@@ -1,0 +1,351 @@
+<!DOCTYPE html> 
+<html lang="ru"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
+<title>porogi</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script> 
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script> 
+
+<style> 
+:root { 
+  --accent: #a855f7; --success: #22c55e; --bg: #000; 
+  --glass: rgba(30, 30, 30, 0.8); --border: rgba(255, 255, 255, 0.1); --online: #22c55e;
+} 
+
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; background: var(--bg); color: white; -webkit-font-smoothing: antialiased; overflow-x: hidden; } 
+body::before { content: ""; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, #1a1033 0%, #000 70%); z-index: -1; } 
+
+#app { display: none; padding: 15px; max-width: 900px; margin: auto; } 
+button { border: none; border-radius: 14px; padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; position: relative; } 
+.primary { background: var(--accent); color: white; } 
+.glass-btn { background: var(--glass); border: 1px solid var(--border); color: #fff; } 
+.success-btn { background: var(--success); color: white; }
+.danger { background: rgba(255, 59, 48, 0.15); color: #ff3b30; border: 1px solid rgba(255, 59, 48, 0.2); } 
+
+.badge { position: absolute; top: -5px; right: -5px; background: #ff3b30; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; display: none; border: 2px solid var(--bg); font-weight: 800; z-index: 10; }
+.card { background: var(--glass); border: 1px solid var(--border); padding: 20px; border-radius: 24px; margin-bottom: 15px; position: relative; } 
+.count { font-size: 44px; font-weight: 800; cursor: pointer; color: #fff; } 
+.avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #333; border: 2px solid var(--border); }
+.nav-profile { display: flex; align-items: center; gap: 10px; }
+
+/* ГРАФИК */
+.schedule-wrap { width: 100%; overflow-x: auto; background: rgba(0,0,0,0.5); border-radius: 20px; border: 1px solid var(--border); margin-top: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 10px; }
+th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width: 38px; height: 40px; }
+.day-name { font-size: 8px; opacity: 0.6; text-transform: uppercase; display: block; }
+.weekend { color: #ff3b30; background: rgba(255,0,0,0.05); }
+.name-col { text-align: left; min-width: 130px; position: sticky; left: 0; background: #0a0a0a; z-index: 5; padding: 10px; font-weight: 600; cursor: pointer; }
+.cell-box { width: 30px; height: 30px; margin: auto; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s; }
+.st-work { background: var(--accent); box-shadow: 0 0 10px rgba(168, 85, 247, 0.4); }
+
+/* ЧАТ */
+#view-chat { display: none; flex-direction: column; height: 85vh; }
+#chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 12px; }
+.msg-wrapper { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; margin-bottom: 4px; }
+.me-wrapper { align-self: flex-end; flex-direction: row-reverse; }
+.msg { padding: 10px 14px; border-radius: 18px; font-size: 14px; position: relative; min-width: 60px; }
+.me { background: var(--accent); border-bottom-right-radius: 4px; }
+.others { background: #222; border-bottom-left-radius: 4px; }
+.msg-info { display: flex; justify-content: flex-end; align-items: center; gap: 4px; margin-top: 4px; font-size: 10px; opacity: 0.7; }
+.ticks { font-size: 12px; margin-left: 2px; }
+.ticks.read { color: #38bdf8; }
+
+#preview-area { display: none; padding: 10px; background: #1a1a1a; border-radius: 15px; margin-bottom: 10px; }
+.preview-img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
+
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 5000; justify-content: center; align-items: center; padding: 20px; }
+.modal-content { background: #111; border: 1px solid var(--border); padding: 30px; border-radius: 30px; text-align: center; width: 100%; max-width: 400px; }
+
+#context-menu { display: none; position: fixed; background: #222; border: 1px solid #444; border-radius: 12px; z-index: 3000; overflow: hidden; }
+#context-menu div { padding: 12px 20px; font-size: 14px; cursor: pointer; }
+</style> 
+</head> 
+
+<body> 
+<div id="context-menu"><div style="color:#ff3b30;" id="ctx-delete">Удалить</div></div>
+
+<div id="reportModal" class="modal-overlay">
+    <div class="modal-content">
+        <img src="https://media.tenor.com/716m2S_T-94AAAAM/shrek-dance.gif" style="width: 150px; border-radius: 20px; margin-bottom: 15px;">
+        <h2 style="margin:0;">СМЕНА ЗАКРЫТА!</h2>
+        <div id="reportDetails" style="margin: 20px 0; font-size: 18px; line-height: 1.6;"></div>
+        <button class="primary" style="width:100%" onclick="document.getElementById('reportModal').style.display='none'">КРАСАВА</button>
+    </div>
+</div>
+
+<div id="lightbox" class="modal-overlay" onclick="this.style.display='none'"><img id="lightbox-img" style="max-width:95%; max-height:95%"></div>
+
+<div id="login" style="height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:15px; padding: 20px;"> 
+  <h1>porogi</h1> 
+  <input id="nameInput" placeholder="Ваше имя" style="padding:15px; border-radius:15px; border:none; width: 220px; background:#111; color:#fff;"> 
+  <input type="password" id="codeInput" placeholder="Код" style="padding:15px; border-radius:15px; border:none; width:220px; text-align:center; background:#111; color:#fff;"> 
+  <button class="primary" style="width:220px" onclick="login()">Войти</button> 
+</div> 
+
+<div id="app"> 
+  <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"> 
+    <div class="nav-profile">
+        <img id="myAvatar" class="avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
+        <div><div id="userTag" style="font-weight:800;"></div><div id="presence-mini" style="display:flex; gap:3px;"></div></div>
+    </div>
+    <div style="display:flex; gap:5px;">
+        <button id="btn-main" class="primary" onclick="switchTab('main')">Смена</button>
+        <button id="btn-sched" class="glass-btn" onclick="switchTab('sched')">График</button>
+        <button id="btn-chat" class="glass-btn" onclick="switchTab('chat')">Чат <div id="chat-badge" class="badge">0</div></button> 
+        <button class="glass-btn" onclick="switchTab('settings')">⚙️</button>
+    </div>
+  </div> 
+
+  <div id="view-main">
+    <div id="startBtnCont"><button class="primary" style="width: 100%; padding: 25px; font-size: 18px;" onclick="startShift()">ОТКРЫТЬ СМЕНУ</button></div> 
+    <div id="work" style="display:none;"> 
+      <div class="card"><h4 style="margin:0; color:#888;">СДЭК</h4>
+        <div style="display:flex; gap:15px; align-items: center;">
+            <button class="success-btn" style="flex:1; font-size:24px;" onclick="addCounter('cdek')">+</button>
+            <div class="count" id="cdek_val" onclick="manualInput('cdek')">0</div>
+            <button class="danger" style="padding:10px 20px;" onclick="removeCounter('cdek')">−</button>
+        </div>
+      </div> 
+      <div class="card"><h4 style="margin:0; color:#888;">ВБ / ОЗОН</h4>
+        <div style="display:flex; gap:15px; align-items: center;">
+            <button class="success-btn" style="flex:1; font-size:24px;" onclick="addCounter('wb')">+</button>
+            <div class="count" id="wb_val" onclick="manualInput('wb')">0</div>
+            <button class="danger" style="padding:10px 20px;" onclick="removeCounter('wb')">−</button>
+        </div>
+      </div> 
+      <div style="text-align:center; margin:20px 0;"><div style="font-size:48px; font-weight:900;" id="total">0</div><div id="salaryDisplay" style="color:var(--accent); font-weight:800;">Итого: 0₽</div></div> 
+      <button class="danger" style="width:100%; padding:20px;" onclick="endShift()">ЗАВЕРШИТЬ</button> 
+    </div> 
+    <button class="glass-btn" style="width:100%; margin-top:10px;" onclick="toggleHistory()">Архив смен</button>
+    <div id="history" style="display:none; margin-top:10px;"></div>
+  </div>
+
+  <div id="view-sched" style="display:none;">
+    <div style="display:flex; gap:10px; margin-bottom:15px;">
+        <button id="t-day" class="primary" style="flex:1" onclick="setMode('day')">ДЕНЬ</button>
+        <button id="t-night" class="glass-btn" style="flex:1" onclick="setMode('night')">НОЧЬ</button>
+    </div>
+    <div style="display:flex; justify-content: center; gap:15px; align-items: center; margin-bottom:10px;">
+        <button class="glass-btn" onclick="changeMonth(-1)">←</button><span id="monthLabel" style="font-weight:700;"></span><button class="glass-btn" onclick="changeMonth(1)">→</button>
+    </div>
+    <div id="adminPanel" style="display:none; gap:5px; margin-bottom:10px;">
+        <input id="staffInp" placeholder="Имя" style="flex:1; padding:12px; border-radius:12px; background:#111; border:none; color:#fff;">
+        <button class="success-btn" onclick="addNewStaff()">+</button>
+    </div>
+    <div class="schedule-wrap"><table><thead><tr id="h-row"></tr></thead><tbody id="b-rows"></tbody></table></div>
+  </div>
+
+  <div id="view-chat" style="display:none;">
+    <div id="chat-messages"></div>
+    <div id="preview-area">
+        <div id="preview-imgs" style="display:flex; gap:5px; margin-bottom:10px; overflow-x:auto;"></div>
+        <input type="text" id="photoCaption" placeholder="Подпись к фото..." style="width:100%; background:#222; border:none; color:white; padding:10px; border-radius:10px; outline:none;">
+    </div>
+    <div style="background:#111; padding:10px; border-radius:24px; display:flex; gap:10px; align-items:center;">
+        <button class="glass-btn" style="width:40px; height:40px; border-radius:50%;" onclick="document.getElementById('fileInp').click()">+</button>
+        <input type="file" id="fileInp" style="display:none" accept="image/*" multiple onchange="preparePhotos(this)">
+        <input type="text" id="chatMsg" placeholder="Сообщение..." style="flex:1; background:transparent; border:none; color:white; outline:none;">
+        <button class="primary" onclick="sendChat()">↑</button>
+    </div>
+  </div>
+
+  <div id="view-settings" style="display:none;">
+    <div class="card"><center>
+      <img id="setAvatarPreview" class="avatar" style="width:100px; height:100px; margin-bottom:15px;">
+      <button class="glass-btn" onclick="document.getElementById('avatarInp').click()">Изменить фото</button>
+      <input type="file" id="avatarInp" style="display:none" accept="image/*" onchange="uploadAvatar(this)">
+      <button class="danger" style="width:100%; margin-top:20px;" onclick="logout()">Выйти</button>
+    </center></div>
+  </div>
+</div> 
+
+<script> 
+const firebaseConfig = { apiKey: "AIzaSyA41nDX13dsMuPNJkckCMQz8bfim3Hscxs", authDomain: "porog-lol.firebaseapp.com", databaseURL: "https://porog-lol-default-rtdb.europe-west1.firebasedatabase.app", projectId: "porog-lol" }; 
+firebase.initializeApp(firebaseConfig); const db = firebase.database(); 
+
+let currentUser = localStorage.getItem("userName") || ""; 
+let isAdmin = false, cdek = 0, wb = 0, scheduleDate = new Date(), scheduleMode = 'day', userAvatars = {}, chatInitialized = false; 
+let lastChatViewTime = localStorage.getItem("lastChatView") || 0;
+let currentTab = 'main', pendingPhotos = [], startTime = null;
+
+if(currentUser) showApp(); 
+
+function login() { 
+  const n = document.getElementById("nameInput").value.trim(); 
+  if(n && document.getElementById("codeInput").value === "67") { localStorage.setItem("userName", n); location.reload(); } 
+} 
+
+function showApp() { 
+  isAdmin = (currentUser.toLowerCase() === "дениска"); 
+  document.getElementById("login").style.display = "none"; 
+  document.getElementById("app").style.display = "block"; 
+  document.getElementById("userTag").innerText = isAdmin ? "👑 Дениска" : "@" + currentUser.toLowerCase(); 
+  if(isAdmin) document.getElementById("adminPanel").style.display = "flex"; 
+  
+  db.ref("users").on("value", snap => {
+      userAvatars = snap.val() || {};
+      const myAv = userAvatars[currentUser]?.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+      document.getElementById("myAvatar").src = myAv;
+      document.getElementById("setAvatarPreview").src = myAv;
+  });
+
+  setupPresence(); listenChat(); renderSched(); listenHistory();
+  window.onclick = () => document.getElementById("context-menu").style.display = "none";
+} 
+
+function listenChat() { 
+    const box = document.getElementById("chat-messages"); 
+    db.ref("chat_v4").limitToLast(30).on("value", snap => {
+        box.innerHTML = ""; let unread = 0;
+        snap.forEach(s => {
+            const m = s.val();
+            if (m.time > lastChatViewTime && m.name !== currentUser) unread++;
+            appendMsgUI(s.key, m, false);
+        });
+        if(currentTab !== 'chat') updateBadge(unread);
+        if(!chatInitialized) { box.scrollTop = box.scrollHeight; chatInitialized = true; }
+        if(currentTab === 'chat') db.ref("chat_v4").limitToLast(1).once("child_added", s => { if(s.val().name !== currentUser) db.ref("chat_v4/"+s.key+"/readBy").child(currentUser).set(true); });
+    });
+}
+
+function appendMsgUI(key, m, scroll) {
+    const box = document.getElementById("chat-messages");
+    const isMe = m.name === currentUser;
+    const div = document.createElement('div');
+    div.className = `msg-wrapper ${isMe ? 'me-wrapper' : ''}`;
+    div.setAttribute('data-key', key);
+    const av = userAvatars[m.name]?.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+    const time = new Date(m.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    let ticks = "✓";
+    if (m.readBy && Object.keys(m.readBy).length > 0) ticks = "✓✓";
+    const tickClass = (ticks === "✓✓") ? "read" : "";
+
+    div.innerHTML = `
+        <img class="avatar" style="width:28px;height:28px" src="${av}"> 
+        <div class="msg ${isMe ? 'me' : 'others'}" oncontextmenu="showCtx(event, '${key}', '${m.name}')">
+            <small style="font-size:10px; font-weight:700; opacity:0.8;">${m.name}</small>
+            ${m.images ? `<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(80px,1fr)); gap:4px; margin:5px 0;">${m.images.map(i=>`<img src="${i}" onclick="openFullImg('${i}')" style="width:100%; border-radius:10px;">`).join('')}</div>`:''}
+            <div>${m.text || ""}</div>
+            <div class="msg-info"><span>${time}</span>${isMe ? `<span class="ticks ${tickClass}">${ticks}</span>` : ''}</div>
+        </div>`;
+    box.appendChild(div);
+    if(scroll) box.scrollTo({top: box.scrollHeight, behavior:'smooth'});
+}
+
+async function preparePhotos(input) {
+    const files = Array.from(input.files).slice(0, 10);
+    if(!files.length) return;
+    pendingPhotos = [];
+    const previewBox = document.getElementById("preview-imgs");
+    previewBox.innerHTML = "";
+    document.getElementById("preview-area").style.display = "block";
+    for (let f of files) {
+        const b = await new Promise(res => {
+            const r = new FileReader(); r.onload = e => {
+                const img = new Image(); img.onload = () => {
+                    const c = document.createElement('canvas'); const max = 800; let w=img.width, h=img.height;
+                    if(w>h && w>max) { h*=max/w; w=max; } else if(h>max) { w*=max/h; h=max; }
+                    c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); res(c.toDataURL('image/jpeg', 0.7));
+                }; img.src = e.target.result;
+            }; r.readAsDataURL(f);
+        });
+        pendingPhotos.push(b); previewBox.innerHTML += `<img src="${b}" class="preview-img">`;
+    }
+}
+
+function sendChat() {
+    const msgInput = document.getElementById("chatMsg"), capInput = document.getElementById("photoCaption");
+    const text = pendingPhotos.length > 0 ? capInput.value.trim() : msgInput.value.trim();
+    if(!text && !pendingPhotos.length) return;
+    db.ref("chat_v4").push({ name: currentUser, text: text, images: pendingPhotos.length>0?pendingPhotos:null, time: Date.now() });
+    msgInput.value = ""; capInput.value = ""; pendingPhotos = []; document.getElementById("preview-area").style.display = "none";
+}
+
+function switchTab(t) {
+    currentTab = t;
+    ["view-main", "view-sched", "view-chat", "view-settings"].forEach(v => document.getElementById(v).style.display = "none");
+    ["btn-main", "btn-sched", "btn-chat"].forEach(b => document.getElementById(b).className = "glass-btn");
+    if(document.getElementById("btn-"+t)) document.getElementById("btn-"+t).className = "primary";
+    document.getElementById("view-"+t).style.display = t==='chat'?'flex':'block';
+    if(t==='chat') { 
+        lastChatViewTime = Date.now(); localStorage.setItem("lastChatView", lastChatViewTime);
+        updateBadge(0);
+        db.ref("chat_v4").limitToLast(10).once("value", snap => { snap.forEach(s => { if(s.val().name !== currentUser) db.ref("chat_v4/"+s.key+"/readBy").child(currentUser).set(true); }); });
+        setTimeout(() => { const b = document.getElementById("chat-messages"); b.scrollTop = b.scrollHeight; }, 50);
+    }
+}
+
+function updateBadge(n) { const b = document.getElementById("chat-badge"); b.innerText = n; b.style.display = n > 0 ? "block" : "none"; }
+function openFullImg(s) { document.getElementById("lightbox-img").src = s; document.getElementById("lightbox").style.display = "flex"; }
+function showCtx(e, k, a) { e.preventDefault(); if(!isAdmin && a!==currentUser) return; const m = document.getElementById("context-menu"); m.style.display="block"; m.style.left=e.pageX+"px"; m.style.top=e.pageY+"px"; document.getElementById("ctx-delete").onclick=()=>{ if(confirm("Удалить?")) db.ref("chat_v4/"+k).remove(); }; }
+
+function addCounter(t) { if(t==='cdek') cdek++; else wb++; updCnt(); }
+function removeCounter(t) { if(t==='cdek'&&cdek>0) cdek--; if(t==='wb'&&wb>0) wb--; updCnt(); }
+function updCnt() { document.getElementById("cdek_val").innerText = cdek; document.getElementById("wb_val").innerText = wb; const t = cdek+wb; document.getElementById("total").innerText = t; document.getElementById("salaryDisplay").innerText = `Итого: ${t*80}₽`; }
+function manualInput(t) { let v = prompt("Число:", t==='cdek'?cdek:wb); if(v && !isNaN(v)) { if(t==='cdek') cdek=parseInt(v); else wb=parseInt(v); updCnt(); } }
+
+function startShift() { startTime = new Date(); document.getElementById("work").style.display="block"; document.getElementById("startBtnCont").style.display="none"; }
+function endShift() {
+    const end = new Date(); const total = cdek + wb; const salary = total * 80;
+    const reportText = `Имя: ${currentUser}<br>Заказов: ${total}<br>Зарплата: ${salary}₽<br>Время: ${startTime ? startTime.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '--'} - ${end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+    document.getElementById("reportDetails").innerHTML = reportText;
+    document.getElementById("reportModal").style.display = "flex";
+    db.ref("shifts").push({ name: currentUser, total: total, salary: salary, end: end.toLocaleString(), start: startTime ? startTime.toLocaleString() : '' });
+    cdek=0; wb=0; updCnt(); document.getElementById("work").style.display="none"; document.getElementById("startBtnCont").style.display="block";
+}
+
+function toggleHistory() { const h = document.getElementById("history"); h.style.display = h.style.display==="none"?"block":"none"; }
+function listenHistory() { db.ref("shifts").limitToLast(15).on("value", snap => { let html = ""; snap.forEach(s => { const d = s.val(); html = `<div class="card" style="padding:15px;"><b>${d.name}</b>: ${d.total} зак. (${d.salary}₽)${isAdmin ? `<button class="danger" style="position:absolute; right:10px; top:10px; padding:5px 10px;" onclick="db.ref('shifts/${s.key}').remove()">×</button>` : ''}<br><small style="opacity:0.6">${d.end}</small></div>` + html; }); document.getElementById("history").innerHTML = html; }); }
+
+function renderSched() {
+    const y = scheduleDate.getFullYear(), m = scheduleDate.getMonth(), days = new Date(y, m+1, 0).getDate();
+    const weekDays = ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
+    document.getElementById("monthLabel").innerText = `${(m+1).toString().padStart(2,'0')}.${y}`;
+    let h = "<th>Имя</th>"; for(let i=1; i<=days; i++) { let d = new Date(y, m, i); h += `<th class="${(d.getDay()===0||d.getDay()===6)?'weekend':''}"><span class="day-name">${weekDays[d.getDay()]}</span>${i}</th>`; }
+    document.getElementById("h-row").innerHTML = h;
+    
+    db.ref(`schedule/${y}-${m}/${scheduleMode}`).on("value", snap => {
+        const data = snap.val() || {}; let html = "";
+        Object.keys(data).sort().forEach(n => {
+            html += `<tr><td class="name-col" onclick="if(isAdmin && confirm('Удалить сотрудника?')) db.ref('schedule/${y}-${m}/${scheduleMode}/${n}').remove()">${n}</td>`;
+            for(let i=1; i<=days; i++) { 
+                let isWork = data[n][i] === "10-22"; 
+                html += `<td><div class="cell-box ${isWork?'st-work':''}" onclick="toggleWorkCell('${y}-${m}', '${n}', ${i}, ${isWork})"></div></td>`;
+            }
+            html += "</tr>";
+        }); document.getElementById("b-rows").innerHTML = html;
+    });
+}
+
+function toggleWorkCell(path, name, day, isWork) {
+    if(!isAdmin) return;
+    // Используем .set для точного переключения значения
+    db.ref(`schedule/${path}/${scheduleMode}/${name}/${day}`).set(isWork ? "" : "10-22");
+}
+
+function changeMonth(n) { scheduleDate.setMonth(scheduleDate.getMonth()+n); renderSched(); }
+function setMode(m) { scheduleMode = m; document.getElementById("t-day").className = m==='day'?'primary':'glass-btn'; document.getElementById("t-night").className = m==='night'?'primary':'glass-btn'; renderSched(); }
+
+function addNewStaff() { 
+    const i = document.getElementById("staffInp"); 
+    const name = i.value.trim();
+    if(name) { 
+        const yearMonth = `${scheduleDate.getFullYear()}-${scheduleDate.getMonth()}`;
+        // Добавляем технический флаг _init, чтобы ветка сотрудника создалась в базе
+        db.ref(`schedule/${yearMonth}/${scheduleMode}/${name}`).update({_init:true})
+        .then(() => {
+            i.value = ""; 
+            // Принудительно вызываем рендер для обновления UI
+            renderSched();
+        });
+    } 
+}
+
+function setupPresence() { const r = db.ref(`presence/${currentUser}`); r.set("online"); r.onDisconnect().remove(); db.ref("presence").on("value", snap => { const m = document.getElementById("presence-mini"); m.innerHTML = ""; Object.keys(snap.val()||{}).forEach(() => m.innerHTML += `<div style="width:6px;height:6px;background:var(--online);border-radius:50%;"></div>`); }); }
+function uploadAvatar(input) { if(input.files[0]) { const r = new FileReader(); r.onload = e => db.ref(`users/${currentUser}/avatar`).set(e.target.result); r.readAsDataURL(input.files[0]); } }
+function logout() { localStorage.clear(); location.reload(); }
+</script> 
+</body> 
+</html>
