@@ -60,17 +60,22 @@ th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width
 
 #context-menu { display: none; position: fixed; background: #222; border: 1px solid #444; border-radius: 12px; z-index: 3000; overflow: hidden; }
 #context-menu div { padding: 12px 20px; font-size: 14px; cursor: pointer; }
+
+/* Версия сайта */
+.version-tag { position: fixed; bottom: 5px; right: 10px; font-size: 10px; color: rgba(255,255,255,0.3); z-index: 9999; pointer-events: none; font-weight: 600; }
 </style> 
 </head> 
 
 <body> 
+<div class="version-tag">test v 1.02</div>
+
 <div id="context-menu"><div style="color:#ff3b30;" id="ctx-delete">Удалить</div></div>
 
 <div id="reportModal" class="modal-overlay">
     <div class="modal-content">
         <img src="https://media.tenor.com/716m2S_T-94AAAAM/shrek-dance.gif" style="width: 150px; border-radius: 20px; margin-bottom: 15px;">
-        <h2 style="margin:0;">СМЕНА ЗАКРЫТА!</h2>
-        <div id="reportDetails" style="margin: 20px 0; font-size: 18px; line-height: 1.6;"></div>
+        <h2 style="margin:0;">СМЕНА ЗАКРЫТА!(</h2>
+        <div id="reportDetails" style="margin: 20px 0; font-size: 16px; line-height: 1.6; text-align: left; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px;"></div>
         <button class="primary" style="width:100%" onclick="document.getElementById('reportModal').style.display='none'">КРАСАВА</button>
     </div>
 </div>
@@ -99,24 +104,35 @@ th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width
   </div> 
 
   <div id="view-main">
-    <div id="startBtnCont"><button class="primary" style="width: 100%; padding: 25px; font-size: 18px;" onclick="startShift()">ОТКРЫТЬ СМЕНУ</button></div> 
+    <div id="startBtnCont"><button class="primary" style="width: 100%; padding: 25px; font-size: 18px;" onclick="startShift()">КРУТИТЬ ПОРОГИ</button></div> 
+    
     <div id="work" style="display:none;"> 
+      
+      <div id="active-shift-info" style="margin-bottom: 15px; padding: 15px; background: var(--glass); border-radius: 15px; border: 1px solid var(--border); font-size: 14px;">
+          <div id="shift-participants"></div>
+      </div>
+
       <div class="card"><h4 style="margin:0; color:#888;">СДЭК</h4>
         <div style="display:flex; gap:15px; align-items: center;">
-            <button class="success-btn" style="flex:1; font-size:24px;" onclick="addCounter('cdek')">+</button>
+            <button class="success-btn ctrl-btn" style="flex:1; font-size:24px;" onclick="addCounter('cdek')">+</button>
             <div class="count" id="cdek_val" onclick="manualInput('cdek')">0</div>
-            <button class="danger" style="padding:10px 20px;" onclick="removeCounter('cdek')">−</button>
+            <button class="danger ctrl-btn" style="padding:10px 20px;" onclick="removeCounter('cdek')">−</button>
         </div>
       </div> 
-      <div class="card"><h4 style="margin:0; color:#888;">ВБ / ОЗОН / Дост</h4>
+      <div class="card"><h4 style="margin:0; color:#888;">ВБ / ОЗОН / ДОСТ</h4>
         <div style="display:flex; gap:15px; align-items: center;">
-            <button class="success-btn" style="flex:1; font-size:24px;" onclick="addCounter('wb')">+</button>
+            <button class="success-btn ctrl-btn" style="flex:1; font-size:24px;" onclick="addCounter('wb')">+</button>
             <div class="count" id="wb_val" onclick="manualInput('wb')">0</div>
-            <button class="danger" style="padding:10px 20px;" onclick="removeCounter('wb')">−</button>
+            <button class="danger ctrl-btn" style="padding:10px 20px;" onclick="removeCounter('wb')">−</button>
         </div>
       </div> 
-      <div style="text-align:center; margin:20px 0;"><div style="font-size:48px; font-weight:900;" id="total">0</div><div id="salaryDisplay" style="color:var(--accent); font-weight:800;">Итого: 0₽</div></div> 
-      <button class="danger" style="width:100%; padding:20px;" onclick="endShift()">ЗАВЕРШИТЬ</button> 
+      <div style="text-align:center; margin:20px 0;">
+          <div style="font-size:48px; font-weight:900;" id="total">0</div>
+          <div id="salaryDisplay" style="color:var(--accent); font-weight:800;">Итого: 0₽</div>
+      </div> 
+      
+      <button id="joinShiftBtn" class="success-btn" style="width:100%; padding:20px; display:none;" onclick="joinShift()">ПРИСОЕДИНИТЬСЯ К СМЕНЕ</button>
+      <button id="leaveShiftBtn" class="danger" style="width:100%; padding:20px; display:none;" onclick="leaveShift()">УЙТИ СО СМЕНЫ</button> 
     </div> 
     <button class="glass-btn" style="width:100%; margin-top:10px;" onclick="toggleHistory()">Архив смен</button>
     <div id="history" style="display:none; margin-top:10px;"></div>
@@ -165,10 +181,13 @@ th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width
 const firebaseConfig = { apiKey: "AIzaSyA41nDX13dsMuPNJkckCMQz8bfim3Hscxs", authDomain: "porog-lol.firebaseapp.com", databaseURL: "https://porog-lol-default-rtdb.europe-west1.firebasedatabase.app", projectId: "porog-lol" }; 
 firebase.initializeApp(firebaseConfig); const db = firebase.database(); 
 
+// --- ПЕРЕМЕННЫЕ (добавлены нужные для исправления графика и статуса) ---
 let currentUser = localStorage.getItem("userName") || ""; 
-let isAdmin = false, cdek = 0, wb = 0, scheduleDate = new Date(), scheduleMode = 'day', userAvatars = {}, chatInitialized = false; 
+let isAdmin = false, scheduleDate = new Date(), scheduleMode = 'day', userAvatars = {}, chatInitialized = false; 
 let lastChatViewTime = localStorage.getItem("lastChatView") || 0;
-let currentTab = 'main', pendingPhotos = [], startTime = null;
+let currentTab = 'main', pendingPhotos = [];
+let currentSchedRef = null; 
+let isGlobalParticipant = false; 
 
 if(currentUser) showApp(); 
 
@@ -181,7 +200,7 @@ function showApp() {
   isAdmin = (currentUser.toLowerCase() === "дениска"); 
   document.getElementById("login").style.display = "none"; 
   document.getElementById("app").style.display = "block"; 
-  document.getElementById("userTag").innerText = isAdmin ? "👑 Дениска" : "@" + currentUser.toLowerCase(); 
+  document.getElementById("userTag").innerText = isAdmin ? "💀 Дениска" : "@" + currentUser.toLowerCase(); 
   if(isAdmin) document.getElementById("adminPanel").style.display = "flex"; 
   
   db.ref("users").on("value", snap => {
@@ -191,10 +210,192 @@ function showApp() {
       document.getElementById("setAvatarPreview").src = myAv;
   });
 
-  setupPresence(); listenChat(); renderSched(); listenHistory();
+  setupPresence(); listenChat(); renderSched(); listenHistory(); listenActiveShift();
   window.onclick = () => document.getElementById("context-menu").style.display = "none";
 } 
 
+// --- РАБОТА СО СМЕНОЙ ---
+function listenActiveShift() {
+    db.ref("active_shift").on("value", snap => {
+        const shift = snap.val();
+        const workDiv = document.getElementById("work");
+        const startBtnCont = document.getElementById("startBtnCont");
+        const joinBtn = document.getElementById("joinShiftBtn");
+        const leaveBtn = document.getElementById("leaveShiftBtn");
+        const ctrls = document.querySelectorAll(".ctrl-btn");
+        const cdekVal = document.getElementById("cdek_val");
+        const wbVal = document.getElementById("wb_val");
+
+        if(shift) {
+            // Локальное сохранение данных (бэкап смены)
+            localStorage.setItem("active_shift_backup", JSON.stringify(shift));
+
+            startBtnCont.style.display = "none";
+            workDiv.style.display = "block";
+
+            cdekVal.innerText = shift.cdek || 0;
+            wbVal.innerText = shift.wb || 0;
+            document.getElementById("total").innerText = (shift.cdek || 0) + (shift.wb || 0);
+
+            const parts = shift.participants || {};
+            isGlobalParticipant = parts[currentUser] !== undefined;
+
+            let partsText = "<b style='color:var(--accent);'>🟢 Смена в эфире:</b><br><br>";
+            Object.keys(parts).forEach(p => {
+                partsText += `• ${p} <span style="float:right; opacity:0.8;">${(parts[p].earned || 0).toFixed(0)}₽</span><br>`;
+            });
+            document.getElementById("shift-participants").innerHTML = partsText;
+
+            if(isGlobalParticipant) {
+                // Если мы работаем
+                ctrls.forEach(b => b.style.display = "flex");
+                joinBtn.style.display = "none";
+                leaveBtn.style.display = "flex";
+                cdekVal.style.pointerEvents = "auto";
+                wbVal.style.pointerEvents = "auto";
+                document.getElementById("salaryDisplay").innerText = `Моя доля: ${(parts[currentUser].earned || 0).toFixed(0)}₽`;
+            } else {
+                // Режим куколда
+                ctrls.forEach(b => b.style.display = "none");
+                joinBtn.style.display = "flex";
+                leaveBtn.style.display = "none";
+                cdekVal.style.pointerEvents = "none";
+                wbVal.style.pointerEvents = "none";
+                document.getElementById("salaryDisplay").innerText = "Режим куколда 👀";
+            }
+        } else {
+            // Смена закрыта
+            startBtnCont.style.display = "block";
+            workDiv.style.display = "none";
+            isGlobalParticipant = false;
+        }
+    });
+}
+
+function startShift() { 
+    db.ref("active_shift").set({
+        startTime: Date.now(),
+        cdek: 0, wb: 0,
+        participants: { [currentUser]: { earned: 0, joinedAt: Date.now() } }
+    });
+}
+
+function joinShift() {
+    db.ref("active_shift/participants/" + currentUser).set({ earned: 0, joinedAt: Date.now() });
+}
+
+function addCounter(type) { 
+    db.ref("active_shift").transaction(shift => {
+        if (!shift || !shift.participants || !shift.participants[currentUser]) {
+            return; 
+        }
+        shift[type] = (shift[type] || 0) + 1;
+        const parts = Object.keys(shift.participants);
+        const share = 80 / parts.length;
+        parts.forEach(p => { shift.participants[p].earned = (shift.participants[p].earned || 0) + share; });
+        return shift;
+    });
+}
+
+function removeCounter(type) { 
+    db.ref("active_shift").transaction(shift => {
+        if (!shift || !shift.participants || !shift.participants[currentUser] || !shift[type] || shift[type] <= 0) {
+            return; 
+        }
+        shift[type]--;
+        const parts = Object.keys(shift.participants);
+        const share = 80 / parts.length;
+        parts.forEach(p => { shift.participants[p].earned = Math.max(0, (shift.participants[p].earned || 0) - share); });
+        return shift;
+    });
+}
+
+function manualInput(type) { 
+    if (!isGlobalParticipant) return; // Куколд не может кликать и менять цифры
+
+    db.ref("active_shift").once("value", snap => {
+        const shift = snap.val();
+        if(!shift || !shift.participants || !shift.participants[currentUser]) return;
+        let currentVal = shift[type] || 0;
+        let v = prompt("Введи новое количество заказов:", currentVal);
+        if(v && !isNaN(v)) {
+            let newVal = parseInt(v);
+            let diff = newVal - currentVal;
+            if(diff !== 0) {
+                db.ref("active_shift").transaction(s => {
+                    if (!s || !s.participants || !s.participants[currentUser]) return;
+                    s[type] = newVal;
+                    const parts = Object.keys(s.participants);
+                    const share = (diff * 80) / parts.length;
+                    parts.forEach(p => { s.participants[p].earned = Math.max(0, (s.participants[p].earned || 0) + share); });
+                    return s;
+                });
+            }
+        }
+    });
+}
+
+function leaveShift() {
+    db.ref("active_shift").once("value", snap => {
+        const shift = snap.val();
+        if(!shift || !shift.participants || !shift.participants[currentUser]) return;
+
+        const myEarned = shift.participants[currentUser].earned || 0;
+        const cdekCount = shift.cdek || 0;
+        const wbCount = shift.wb || 0;
+        const totalCount = cdekCount + wbCount;
+        const startT = new Date(shift.startTime || Date.now());
+        const endT = new Date();
+
+        const reportText = `
+            <b>Вы вышли со смены!</b><br><br>
+            Общая статистика смены:<br>
+            СДЭК: ${cdekCount} | ВБ/Озон: ${wbCount} | Всего: ${totalCount}<br><br>
+            <span style="color:var(--accent); font-weight:800; font-size:22px;">Твоя доля: ${myEarned.toFixed(0)}₽</span><br><br>
+            <span style="font-size:12px; color:#888;">${startT.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${endT.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+        `;
+        document.getElementById("reportDetails").innerHTML = reportText;
+        document.getElementById("reportModal").style.display = "flex";
+
+        db.ref("shifts").push({
+            name: currentUser,
+            total: totalCount, cdek: cdekCount, wb: wbCount,
+            salary: parseFloat(myEarned.toFixed(2)),
+            end: endT.toLocaleString(), start: startT.toLocaleString()
+        });
+
+        if (Object.keys(shift.participants).length <= 1) {
+            db.ref("active_shift").remove(); 
+        } else {
+            db.ref("active_shift/participants/" + currentUser).remove(); 
+        }
+    });
+}
+
+function toggleHistory() { const h = document.getElementById("history"); h.style.display = h.style.display==="none"?"block":"none"; }
+
+function listenHistory() { 
+    db.ref("shifts").limitToLast(15).on("value", snap => { 
+        let html = ""; 
+        snap.forEach(s => { 
+            const d = s.val(); 
+            html = `
+            <div class="card" style="padding:15px; text-align: left;">
+                <b style="font-size:16px;">${d.name}</b><br>
+                <div style="margin: 8px 0; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 13px;">
+                    <div style="color:#aaa; margin-bottom:4px;">Статистика смены:</div>
+                    <b>Всего заказов: ${d.total}</b> (СДЭК: ${d.cdek || 0}, ВБ: ${d.wb || 0})
+                </div>
+                <div style="font-size: 14px;">Заработок: <span style="color:var(--accent); font-weight:800; font-size:18px;">${Math.round(d.salary)}₽</span></div>
+                ${isAdmin ? `<button class="danger" style="position:absolute; right:10px; top:10px; padding:5px 10px;" onclick="db.ref('shifts/${s.key}').remove()">×</button>` : ''}
+                <small style="opacity:0.6; display:block; margin-top:8px;">${d.start ? d.start.split(',')[1].trim() + ' - ' : ''}${d.end.split(',')[1].trim()}</small>
+            </div>` + html; 
+        }); 
+        document.getElementById("history").innerHTML = html; 
+    }); 
+}
+
+// --- ЧАТ ---
 function listenChat() { 
     const box = document.getElementById("chat-messages"); 
     db.ref("chat_v4").limitToLast(30).on("value", snap => {
@@ -281,47 +482,58 @@ function updateBadge(n) { const b = document.getElementById("chat-badge"); b.inn
 function openFullImg(s) { document.getElementById("lightbox-img").src = s; document.getElementById("lightbox").style.display = "flex"; }
 function showCtx(e, k, a) { e.preventDefault(); if(!isAdmin && a!==currentUser) return; const m = document.getElementById("context-menu"); m.style.display="block"; m.style.left=e.pageX+"px"; m.style.top=e.pageY+"px"; document.getElementById("ctx-delete").onclick=()=>{ if(confirm("Удалить?")) db.ref("chat_v4/"+k).remove(); }; }
 
-function addCounter(t) { if(t==='cdek') cdek++; else wb++; updCnt(); }
-function removeCounter(t) { if(t==='cdek'&&cdek>0) cdek--; if(t==='wb'&&wb>0) wb--; updCnt(); }
-function updCnt() { document.getElementById("cdek_val").innerText = cdek; document.getElementById("wb_val").innerText = wb; const t = cdek+wb; document.getElementById("total").innerText = t; document.getElementById("salaryDisplay").innerText = `Итого: ${t*80}₽`; }
-function manualInput(t) { let v = prompt("Число:", t==='cdek'?cdek:wb); if(v && !isNaN(v)) { if(t==='cdek') cdek=parseInt(v); else wb=parseInt(v); updCnt(); } }
-
-function startShift() { startTime = new Date(); document.getElementById("work").style.display="block"; document.getElementById("startBtnCont").style.display="none"; }
-function endShift() {
-    const end = new Date(); const total = cdek + wb; const salary = total * 80;
-    const reportText = `Имя: ${currentUser}<br>Заказов: ${total}<br>Зарплата: ${salary}₽<br>Время: ${startTime ? startTime.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '--'} - ${end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
-    document.getElementById("reportDetails").innerHTML = reportText;
-    document.getElementById("reportModal").style.display = "flex";
-    db.ref("shifts").push({ name: currentUser, total: total, salary: salary, end: end.toLocaleString(), start: startTime ? startTime.toLocaleString() : '' });
-    cdek=0; wb=0; updCnt(); document.getElementById("work").style.display="none"; document.getElementById("startBtnCont").style.display="block";
-}
-
-function toggleHistory() { const h = document.getElementById("history"); h.style.display = h.style.display==="none"?"block":"none"; }
-function listenHistory() { db.ref("shifts").limitToLast(15).on("value", snap => { let html = ""; snap.forEach(s => { const d = s.val(); html = `<div class="card" style="padding:15px;"><b>${d.name}</b>: ${d.total} зак. (${d.salary}₽)${isAdmin ? `<button class="danger" style="position:absolute; right:10px; top:10px; padding:5px 10px;" onclick="db.ref('shifts/${s.key}').remove()">×</button>` : ''}<br><small style="opacity:0.6">${d.end}</small></div>` + html; }); document.getElementById("history").innerHTML = html; }); }
-
+// --- ГРАФИК ---
 function renderSched() {
     const y = scheduleDate.getFullYear(), m = scheduleDate.getMonth(), days = new Date(y, m+1, 0).getDate();
     const weekDays = ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
     document.getElementById("monthLabel").innerText = `${(m+1).toString().padStart(2,'0')}.${y}`;
-    let h = "<th>Имя</th>"; for(let i=1; i<=days; i++) { let d = new Date(y, m, i); h += `<th class="${(d.getDay()===0||d.getDay()===6)?'weekend':''}"><span class="day-name">${weekDays[d.getDay()]}</span>${i}</th>`; }
+    let h = "<th>Имя</th>"; 
+    for(let i=1; i<=days; i++) { 
+        let d = new Date(y, m, i); 
+        h += `<th class="${(d.getDay()===0||d.getDay()===6)?'weekend':''}"><span class="day-name">${weekDays[d.getDay()]}</span>${i}</th>`; 
+    }
     document.getElementById("h-row").innerHTML = h;
     
-    db.ref(`schedule/${y}-${m}/${scheduleMode}`).on("value", snap => {
+    // ОТКЛЮЧАЕМ СТАРЫЙ СЛУШАТЕЛЬ (исправляет баг "зависания" и двойного удаления)
+    if (currentSchedRef) currentSchedRef.off();
+    currentSchedRef = db.ref(`schedule/${y}-${m}/${scheduleMode}`);
+    
+    currentSchedRef.on("value", snap => {
         const data = snap.val() || {}; let html = "";
         Object.keys(data).sort().forEach(n => {
-            html += `<tr><td class="name-col" onclick="if(isAdmin && confirm('Удалить сотрудника?')) db.ref('schedule/${y}-${m}/${scheduleMode}/${n}').remove()">${n}</td>`;
+            html += `<tr><td class="name-col" onclick="deleteStaff('${n}')">${n}</td>`;
             for(let i=1; i<=days; i++) { 
                 let isWork = data[n][i] === "10-22"; 
                 html += `<td><div class="cell-box ${isWork?'st-work':''}" onclick="toggleWorkCell('${y}-${m}', '${n}', ${i}, ${isWork})"></div></td>`;
             }
             html += "</tr>";
-        }); document.getElementById("b-rows").innerHTML = html;
+        }); 
+        document.getElementById("b-rows").innerHTML = html;
+    });
+}
+
+function deleteStaff(name) {
+    if(!isAdmin) return;
+    if(!confirm(`Точно удалить ${name} из графика на этот и последующие месяцы?`)) return;
+
+    const currentY = scheduleDate.getFullYear();
+    const currentM = scheduleDate.getMonth();
+
+    db.ref("schedule").once("value", snap => {
+        const data = snap.val() || {};
+        Object.keys(data).forEach(yearMonth => {
+            const [yStr, mStr] = yearMonth.split('-');
+            const y = parseInt(yStr), m = parseInt(mStr);
+            
+            if (y > currentY || (y === currentY && m >= currentM)) {
+                db.ref(`schedule/${yearMonth}/${scheduleMode}/${name}`).remove();
+            }
+        });
     });
 }
 
 function toggleWorkCell(path, name, day, isWork) {
     if(!isAdmin) return;
-    // Используем .set для точного переключения значения
     db.ref(`schedule/${path}/${scheduleMode}/${name}/${day}`).set(isWork ? "" : "10-22");
 }
 
@@ -333,12 +545,8 @@ function addNewStaff() {
     const name = i.value.trim();
     if(name) { 
         const yearMonth = `${scheduleDate.getFullYear()}-${scheduleDate.getMonth()}`;
-        // Добавляем технический флаг _init, чтобы ветка сотрудника создалась в базе
-        db.ref(`schedule/${yearMonth}/${scheduleMode}/${name}`).update({_init:true})
-        .then(() => {
-            i.value = ""; 
-            // Принудительно вызываем рендер для обновления UI
-            renderSched();
+        db.ref(`schedule/${yearMonth}/${scheduleMode}/${name}`).update({_init:true}).then(() => {
+            i.value = ""; renderSched();
         });
     } 
 }
