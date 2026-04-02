@@ -106,7 +106,7 @@ th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width
 </head>
 
 <body>
-<div class="version-tag">test v 1.06 big 12.04.26</div>
+<div class="version-tag">open v 1.06 big 02.04.26</div>
 
 <div id="context-menu"><div style="color:#ff3b30;" id="ctx-delete">Удалить</div></div>
 
@@ -147,7 +147,7 @@ th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width
 <input type="file" id="avatarInp" style="display:none" accept="image/*" onchange="uploadAvatar(this)">
 
 <div id="login" style="height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:15px; padding: 20px;">
-  <h1>porogi</h1>
+  <h1>porogi67</h1>
   <input id="nameInput" placeholder="Ваше имя" style="padding:15px; border-radius:15px; border:none; width: 220px; background:#111; color:#fff;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); login(); }">
   <input type="password" id="codeInput" placeholder="Код" style="padding:15px; border-radius:15px; border:none; width:220px; text-align:center; background:#111; color:#fff;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); login(); }">
   <button class="primary" style="width:220px" onclick="login()">Войти</button>
@@ -255,7 +255,7 @@ th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
           <div>
             <div style="font-size:16px; font-weight:800;">Админ-панель</div>
-            <div style="font-size:12px; color:#aaa;">Управление пользователями и IP</div>
+            <div style="font-size:12px; color:#aaa;">Управление пользователями</div>
           </div>
           <button class="glass-btn" onclick="refreshAdminData()" style="font-size:12px; padding:8px 12px;">Обновить</button>
         </div>
@@ -270,7 +270,7 @@ th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width
         <div id="onlineUsersList" style="display:flex; flex-direction:column; gap:8px; color:#ddd;"></div>
       </div>
       <div class="card" style="padding:15px;">
-        <div style="font-size:16px; font-weight:800; margin-bottom:10px;">Заблокированные IP</div>
+        <div style="font-size:16px; font-weight:800; margin-bottom:10px;">Заблокированные</div>
         <div id="blockedIpsList" style="display:flex; flex-direction:column; gap:10px;"></div>
       </div>
     </div>
