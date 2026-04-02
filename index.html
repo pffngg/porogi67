@@ -1,37 +1,55 @@
-<!DOCTYPE html> 
-<html lang="ru"> 
-<head> 
-<meta charset="UTF-8"> 
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>porogi</title>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script> 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script> 
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-<style> 
-:root { 
-  --accent: #a855f7; --success: #22c55e; --bg: #000; 
+<style>
+:root {
+  --accent: #a855f7; --success: #22c55e; --bg: #000;
   --glass: rgba(30, 30, 30, 0.8); --border: rgba(255, 255, 255, 0.1); --online: #22c55e;
-} 
+}
 
-body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; background: var(--bg); color: white; -webkit-font-smoothing: antialiased; overflow-x: hidden; } 
-body::before { content: ""; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, #1a1033 0%, #000 70%); z-index: -1; } 
+* { box-sizing: border-box; }
 
-#app { display: none; padding: 15px; max-width: 900px; margin: auto; } 
-button { border: none; border-radius: 14px; padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; position: relative; } 
-.primary { background: var(--accent); color: white; } 
-.glass-btn { background: var(--glass); border: 1px solid var(--border); color: #fff; } 
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; background: var(--bg); color: white; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+body::before { content: ""; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, #1a1033 0%, #000 70%); z-index: -1; }
+
+#app { display: none; padding: 15px; max-width: 900px; margin: auto; }
+button { border: none; border-radius: 14px; padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; position: relative; }
+.primary { background: var(--accent); color: white; }
+.glass-btn { background: var(--glass); border: 1px solid var(--border); color: #fff; }
 .success-btn { background: var(--success); color: white; }
-.danger { background: rgba(255, 59, 48, 0.15); color: #ff3b30; border: 1px solid rgba(255, 59, 48, 0.2); } 
+.danger { background: rgba(255, 59, 48, 0.15); color: #ff3b30; border: 1px solid rgba(255, 59, 48, 0.2); }
 
 .badge { position: absolute; top: -5px; right: -5px; background: #ff3b30; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; display: none; border: 2px solid var(--bg); font-weight: 800; z-index: 10; }
-.card { background: var(--glass); border: 1px solid var(--border); padding: 20px; border-radius: 24px; margin-bottom: 15px; position: relative; } 
-.count { font-size: 44px; font-weight: 800; cursor: pointer; color: #fff; } 
-.avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #333; border: 2px solid var(--border); }
+.card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); padding: 22px; border-radius: 28px; margin-bottom: 15px; position: relative; box-shadow: 0 24px 40px rgba(0,0,0,0.16); backdrop-filter: blur(18px); }
+.count { font-size: 44px; font-weight: 800; cursor: pointer; color: #fff; background: rgba(255,255,255,0.05); padding: 18px 22px; border-radius: 22px; display: inline-flex; align-items: center; justify-content: center; transition: transform 0.2s ease; }
+.count:hover { transform: translateY(-2px); }
+.avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #333; border: 2px solid rgba(255,255,255,0.15); }
 .nav-profile { display: flex; align-items: center; gap: 10px; }
+#active-shift-info { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03); border-radius: 24px; }
+.ctrl-btn { color: #fff; }
+.success-btn.ctrl-btn { background: rgba(34, 197, 94, 0.18); color: #d4ffe4; border: 1px solid rgba(34, 197, 94, 0.28); }
+.danger.ctrl-btn { background: rgba(255, 59, 48, 0.18); color: #ffd2d0; border: 1px solid rgba(255, 59, 48, 0.30); }
+.success-btn.ctrl-btn:hover, .danger.ctrl-btn:hover { transform: translateY(-1px); }
 
 /* ГРАФИК */
-.schedule-wrap { width: 100%; overflow-x: auto; background: rgba(0,0,0,0.5); border-radius: 20px; border: 1px solid var(--border); margin-top: 10px; }
+.schedule-wrap { width: 100%; overflow-x: auto; background: rgba(255,255,255,0.04); border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); margin-top: 10px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04); }
+table { border-collapse: collapse; width: 100%; font-size: 11px; }
+th, td { border: 1px solid rgba(255,255,255,0.08); padding: 8px 6px; text-align: center; min-width: 38px; height: 42px; }
+th { background: rgba(255,255,255,0.07); color: #ddd; font-weight: 600; }
+td { background: rgba(255,255,255,0.02); }
+.day-name { font-size: 8px; opacity: 0.6; text-transform: uppercase; display: block; }
+.weekend { color: #ff3b30; background: rgba(255,0,0,0.06); }
+.name-col { text-align: left; min-width: 140px; position: sticky; left: 0; background: rgba(255,255,255,0.08); z-index: 5; padding: 12px; font-weight: 600; cursor: pointer; }
+.cell-box { width: 30px; height: 30px; margin: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); cursor: pointer; transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease; }
+.cell-box:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(0,0,0,0.14); }
+.st-work { background: linear-gradient(135deg, rgba(168,85,247,0.95), rgba(106,17,203,0.95)); box-shadow: 0 16px 30px rgba(168,85,247,0.25); border: 1px solid rgba(168,85,247,0.24); }
 table { border-collapse: collapse; width: 100%; font-size: 10px; }
 th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width: 38px; height: 40px; }
 .day-name { font-size: 8px; opacity: 0.6; text-transform: uppercase; display: block; }
@@ -41,17 +59,38 @@ th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width
 .st-work { background: var(--accent); box-shadow: 0 0 10px rgba(168, 85, 247, 0.4); }
 
 /* ЧАТ */
-#view-chat { display: none; flex-direction: column; height: 85vh; }
-#chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 12px; }
-.msg-wrapper { display: flex; gap: 8px; max-width: 85%; align-items: flex-end; margin-bottom: 4px; }
+#view-chat { display: none; flex-direction: column; height: 85vh; gap: 10px; }
+#chat-messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+#chat-messages::-webkit-scrollbar, .schedule-wrap::-webkit-scrollbar { width: 10px; height: 10px; }
+#chat-messages::-webkit-scrollbar-track, .schedule-wrap::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 999px; }
+#chat-messages::-webkit-scrollbar-thumb, .schedule-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+#chat-messages::-webkit-scrollbar-thumb:hover, .schedule-wrap::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+#chat-messages { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.16) rgba(255,255,255,0.05); }
+.msg-wrapper { display: flex; gap: 10px; max-width: 85%; align-items: flex-end; margin-bottom: 8px; opacity: 1; transform: translateY(0); transition: transform 0.18s ease, opacity 0.18s ease; will-change: transform, opacity; }
+.msg-wrapper.enter { opacity: 0; transform: translateY(10px); }
 .me-wrapper { align-self: flex-end; flex-direction: row-reverse; }
-.msg { padding: 10px 14px; border-radius: 18px; font-size: 14px; position: relative; min-width: 60px; }
-.me { background: var(--accent); border-bottom-right-radius: 4px; }
-.others { background: #222; border-bottom-left-radius: 4px; }
-.msg-info { display: flex; justify-content: flex-end; align-items: center; gap: 4px; margin-top: 4px; font-size: 10px; opacity: 0.7; }
+.msg { padding: 14px 16px; border-radius: 24px; font-size: 14px; position: relative; min-width: 60px; line-height: 1.55; box-shadow: 0 14px 30px rgba(0,0,0,0.16); backdrop-filter: blur(12px); overflow-wrap: anywhere; word-break: break-word; }
+.me { background: linear-gradient(135deg, rgba(168,85,247,0.95), rgba(106,17,203,0.95)); border-bottom-right-radius: 8px; }
+.others { background: rgba(255,255,255,0.05); border-bottom-left-radius: 8px; border: 1px solid rgba(255,255,255,0.08); }
+.msg-info { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 8px; font-size: 11px; opacity: 0.75; }
 .ticks { font-size: 12px; margin-left: 2px; }
 .ticks.read { color: #38bdf8; }
-
+.preview-thumb { position: relative; width: 72px; height: 72px; border-radius: 18px; overflow: hidden; flex: none; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); }
+.preview-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.preview-remove { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; opacity: 0; transition: opacity 0.2s ease; }
+.preview-thumb:hover .preview-remove { opacity: 1; }
+.mute-banner { display: none; background: rgba(255,0,0,0.12); color: #ffb5b5; border: 1px solid rgba(255,0,0,0.25); border-radius: 22px; padding: 12px 14px; text-align: center; margin-bottom: 10px; font-weight: 700; }
+.admin-user-card { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; }
+.admin-user-card .user-info { flex: 1; }
+.admin-user-card .admin-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.admin-action-btn { font-size: 12px; min-width: 82px; padding: 8px 10px; }
+.admin-user-status { font-size: 12px; color: #aaa; margin-top: 4px; }
+@keyframes pulse { 0% { transform: scale(1); opacity:1; } 50% { transform: scale(1.5); opacity:.6; } 100% { transform: scale(1); opacity:1; } }
+ .history-card { cursor: pointer; transition: transform 0.2s ease; position: relative; }
+ .history-card:hover { transform: translateY(-1px); }
+ .history-details { display: none; margin-top: 10px; color: #ddd; }
+ .history-arrow { position: absolute; right: 10px; bottom: 10px; font-size: 16px; color: #aaa; transition: transform 0.2s ease; }
+ .history-card.expanded .history-arrow { transform: rotate(180deg); }
 #preview-area { display: none; padding: 10px; background: #1a1a1a; border-radius: 15px; margin-bottom: 10px; }
 .preview-img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
 
@@ -63,11 +102,11 @@ th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width
 
 /* Версия сайта */
 .version-tag { position: fixed; bottom: 5px; right: 10px; font-size: 10px; color: rgba(255,255,255,0.3); z-index: 9999; pointer-events: none; font-weight: 600; }
-</style> 
-</head> 
+</style>
+</head>
 
-<body> 
-<div class="version-tag">open v 1.05</div>
+<body>
+<div class="version-tag">test v 1.06 big 12.04.26</div>
 
 <div id="context-menu"><div style="color:#ff3b30;" id="ctx-delete">Удалить</div></div>
 
@@ -80,35 +119,60 @@ th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width
     </div>
 </div>
 
+<div id="profileModal" class="modal-overlay" onclick="if(event.target.id==='profileModal') document.getElementById('profileModal').style.display='none'">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <img id="profileAvatarPreview" class="avatar" style="width:100px; height:100px; margin-bottom:15px; cursor:pointer;" onclick="triggerAvatarInput()">
+        <div id="profileName" style="font-weight:800; margin-bottom:10px;"></div>
+        <div id="profileRole" style="font-size:12px; color:#aaa; margin-bottom:10px;"></div>
+        <button id="profileEditBtn" class="glass-btn" style="margin-bottom:10px;" onclick="triggerAvatarInput()">Изменить фото</button>
+        <div id="avatarEditor" style="display:none; text-align:center; margin-bottom:15px;">
+            <div style="position:relative; width:220px; height:220px; margin:0 auto 12px; border-radius:50%; overflow:hidden; background:#111; border:1px solid rgba(255,255,255,0.1);">
+                <canvas id="avatarCanvas" width="220" height="220" style="width:100%; height:100%;"></canvas>
+            </div>
+            <div style="display:flex; gap:10px; justify-content:center; margin-bottom:10px;">
+                <button class="glass-btn" style="padding:10px 14px;" onclick="zoomAvatar(-0.05)">-</button>
+                <button class="glass-btn" style="padding:10px 14px;" onclick="zoomAvatar(0.05)">+</button>
+            </div>
+            <button class="primary" style="width:100%; margin-bottom:10px;" onclick="saveAvatar()">Сохранить</button>
+            <button class="glass-btn" style="width:100%;" onclick="cancelAvatarEdit()">Отмена</button>
+        </div>
+        <div id="profileStats" style="text-align:left; line-height:1.7; color:#ddd; margin-bottom:20px;"></div>
+        <button class="primary" style="width:100%; margin-bottom:10px;" onclick="document.getElementById('profileModal').style.display='none'">Закрыть</button>
+        <button class="danger" style="width:100%;" onclick="logout()">Выйти</button>
+    </div>
+</div>
+
 <div id="lightbox" class="modal-overlay" onclick="this.style.display='none'"><img id="lightbox-img" style="max-width:95%; max-height:95%"></div>
 
-<div id="login" style="height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:15px; padding: 20px;"> 
-  <h1>porogi</h1> 
-  <input id="nameInput" placeholder="Ваше имя" style="padding:15px; border-radius:15px; border:none; width: 220px; background:#111; color:#fff;"
-       onkeydown="if(event.key==='Enter'){ event.preventDefault(); login(); }">
-<input type="password" id="codeInput" placeholder="Код" style="padding:15px; border-radius:15px; border:none; width:220px; text-align:center; background:#111; color:#fff;"
-       onkeydown="if(event.key==='Enter'){ event.preventDefault(); login(); }">
-  <button class="primary" style="width:220px" onclick="login()">Войти</button> 
-</div> 
+<input type="file" id="avatarInp" style="display:none" accept="image/*" onchange="uploadAvatar(this)">
 
-<div id="app"> 
-  <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"> 
-    <div class="nav-profile">
-        <img id="myAvatar" class="avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
+<div id="login" style="height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:15px; padding: 20px;">
+  <h1>porogi</h1>
+  <input id="nameInput" placeholder="Ваше имя" style="padding:15px; border-radius:15px; border:none; width: 220px; background:#111; color:#fff;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); login(); }">
+  <input type="password" id="codeInput" placeholder="Код" style="padding:15px; border-radius:15px; border:none; width:220px; text-align:center; background:#111; color:#fff;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); login(); }">
+  <button class="primary" style="width:220px" onclick="login()">Войти</button>
+</div>
+
+<div id="app">
+  <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div class="nav-profile" style="align-items:flex-start; gap:12px;">
+        <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+            <img id="myAvatar" class="avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" onclick="showProfileModal()" style="cursor:pointer;">
+        </div>
         <div><div id="userTag" style="font-weight:800;"></div><div id="presence-mini" style="display:flex; gap:3px;"></div></div>
     </div>
     <div style="display:flex; gap:5px;">
         <button id="btn-main" class="primary" onclick="switchTab('main')">Смена</button>
         <button id="btn-sched" class="glass-btn" onclick="switchTab('sched')">График</button>
-        <button id="btn-chat" class="glass-btn" onclick="switchTab('chat')">Чат <div id="chat-badge" class="badge">0</div></button> 
-        <button class="glass-btn" onclick="switchTab('settings')">⚙️</button>
+        <button id="btn-chat" class="glass-btn" onclick="switchTab('chat')">Чат <div id="chat-badge" class="badge">0</div></button>
+        <button id="btn-settings" class="glass-btn" onclick="switchTab('settings')">⚙️</button>
     </div>
-  </div> 
+  </div>
 
   <div id="view-main">
-    <div id="startBtnCont"><button class="primary" style="width: 100%; padding: 25px; font-size: 18px;" onclick="startShift()">КРУТИТЬ ПОРОГИ</button></div> 
+    <div id="startBtnCont"><button class="primary" style="width: 100%; padding: 25px; font-size: 18px;" onclick="startShift()">КРУТИТЬ ПОРОГИ</button></div>
     
-    <div id="work" style="display:none;"> 
+    <div id="work" style="display:none;">
       
       <div id="active-shift-info" style="margin-bottom: 15px; padding: 15px; background: var(--glass); border-radius: 15px; border: 1px solid var(--border); font-size: 14px;">
           <div id="shift-participants"></div>
@@ -120,14 +184,21 @@ th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width
             <div class="count" id="cdek_val" onclick="manualInput('cdek')">0</div>
             <button class="danger ctrl-btn" style="padding:10px 20px;" onclick="removeCounter('cdek')">−</button>
         </div>
-      </div> 
-      <div class="card"><h4 style="margin:0; color:#888;">ВБ / ОЗОН / ДОСТ</h4>
+      </div>
+      <div class="card"><h4 style="margin:0; color:#888;">ВБ / ОЗОН</h4>
         <div style="display:flex; gap:15px; align-items: center;">
             <button class="success-btn ctrl-btn" style="flex:1; font-size:24px;" onclick="addCounter('wb')">+</button>
             <div class="count" id="wb_val" onclick="manualInput('wb')">0</div>
             <button class="danger ctrl-btn" style="padding:10px 20px;" onclick="removeCounter('wb')">−</button>
         </div>
-      </div> 
+      </div>
+      <div class="card"><h4 style="margin:0; color:#888;">ДОСТАВКА</h4>
+        <div style="display:flex; gap:15px; align-items: center;">
+            <button class="success-btn ctrl-btn" style="flex:1; font-size:24px;" onclick="addCounter('dost')">+</button>
+            <div class="count" id="dost_val" onclick="manualInput('dost')">0</div>
+            <button class="danger ctrl-btn" style="padding:10px 20px;" onclick="removeCounter('dost')">−</button>
+        </div>
+      </div>
       <div class="card"><h4 style="margin:0; color:#888;">ОПТОВЫЕ ЗАКАЗЫ</h4>
         <div style="display:flex; gap:15px; align-items: center;">
             <button class="success-btn ctrl-btn" style="flex:1; font-size:24px;" onclick="addCounter('opt')">+</button>
@@ -139,11 +210,11 @@ th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width
           <div style="font-size:48px; font-weight:900;" id="total">0</div>
           <div style="font-size:14px; color:#aaa; margin-top:4px;" id="optDisplay">Оптовые: 0</div>
           <div id="salaryDisplay" style="color:var(--accent); font-weight:800;">Итого: 0₽</div>
-      </div> 
+      </div>
       
       <button id="joinShiftBtn" class="success-btn" style="width:100%; padding:20px; display:none;" onclick="joinShift()">ПРИСОЕДИНИТЬСЯ К СМЕНЕ</button>
-      <button id="leaveShiftBtn" class="danger" style="width:100%; padding:20px; display:none;" onclick="leaveShift()">УЙТИ СО СМЕНЫ</button> 
-    </div> 
+      <button id="leaveShiftBtn" class="danger" style="width:100%; padding:20px; display:none;" onclick="leaveShift()">УЙТИ СО СМЕНЫ</button>
+    </div>
     <button class="glass-btn" style="width:100%; margin-top:10px;" onclick="toggleHistory()">Архив смен</button>
     <div id="history" style="display:none; margin-top:10px;"></div>
   </div>
@@ -157,35 +228,28 @@ th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width
         <button class="glass-btn" onclick="changeMonth(-1)">←</button><span id="monthLabel" style="font-weight:700;"></span><button class="glass-btn" onclick="changeMonth(1)">→</button>
     </div>
     <div id="adminPanel" style="display:none; gap:5px; margin-bottom:10px;">
-        <input id="staffInp" placeholder="Имя" style="flex:1; padding:12px; border-radius:12px; background:#111; border:none; color:#fff;"
-           onkeydown="if(event.key==='Enter'){ event.preventDefault(); addNewStaff(); }">
+        <input id="staffInp" placeholder="Имя" style="flex:1; padding:12px; border-radius:12px; background:#111; border:none; color:#fff;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addNewStaff(); }">
         <button class="success-btn" onclick="addNewStaff()">+</button>
     </div>
     <div class="schedule-wrap"><table><thead><tr id="h-row"></tr></thead><tbody id="b-rows"></tbody></table></div>
   </div>
 
   <div id="view-chat" style="display:none;">
+    <div id="muteBanner" class="mute-banner">Ты в муте, чел</div>
     <div id="chat-messages"></div>
-    <div id="preview-area">
-        <div id="preview-imgs" style="display:flex; gap:5px; margin-bottom:10px; overflow-x:auto;"></div>
-        <input type="text" id="photoCaption" placeholder="Подпись к фото..." style="width:100%; background:#222; border:none; color:white; padding:10px; border-radius:10px; outline:none;">
+    <div id="preview-area" style="display:none; margin-bottom:10px;">
+        <div id="preview-info" style="font-size:12px; color:#aaa; margin-bottom:8px;">Нажми на крестик, чтобы удалить фото.</div>
+        <div id="preview-imgs" style="display:flex; gap:8px; margin-bottom:10px; overflow-x:auto;"></div>
     </div>
-    <div style="background:#111; padding:10px; border-radius:24px; display:flex; gap:10px; align-items:center;">
+    <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 28px; display:flex; gap:10px; align-items:center;">
         <button class="glass-btn" style="width:40px; height:40px; border-radius:50%;" onclick="document.getElementById('fileInp').click()">+</button>
         <input type="file" id="fileInp" style="display:none" accept="image/*" multiple onchange="preparePhotos(this)">
-       <textarea id="chatMsg" placeholder="Сообщение..." style="flex:1; background:transparent; border:none; color:white; outline:none; resize:none; min-height:38px; line-height:1.4;"
-          rows="2" onkeydown="handleChatKey(event)"></textarea>
-        <button class="primary" onclick="sendChat()">↑</button>
+       <textarea id="chatMsg" placeholder="пиши..." style="flex:1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; color:white; outline:none; resize:none; min-height:48px; line-height:1.5; padding:12px 14px;" rows="2" onkeydown="handleChatKey(event)"></textarea>
+        <button id="sendChatBtn" class="primary" onclick="sendChat()">↑</button>
     </div>
   </div>
 
   <div id="view-settings" style="display:none;">
-    <div class="card"><center>
-      <img id="setAvatarPreview" class="avatar" style="width:100px; height:100px; margin-bottom:15px;">
-      <button class="glass-btn" onclick="document.getElementById('avatarInp').click()">Изменить фото</button>
-      <input type="file" id="avatarInp" style="display:none" accept="image/*" onchange="uploadAvatar(this)">
-      <button class="danger" style="width:100%; margin-top:20px;" onclick="logout()">Выйти</button>
-    </center></div>
     <div id="adminUsersPanel" style="display:none; margin-top:20px; gap:15px;">
       <div class="card" style="padding:15px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -195,7 +259,15 @@ th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width
           </div>
           <button class="glass-btn" onclick="refreshAdminData()" style="font-size:12px; padding:8px 12px;">Обновить</button>
         </div>
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+          <input id="adminInp" placeholder="Добавить администратора" style="flex:1; padding:12px; border-radius:12px; background:#111; border:none; color:#fff;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addNewAdmin(); }">
+          <button class="success-btn" onclick="addNewAdmin()">+</button>
+        </div>
         <div id="adminUsersList" style="display:flex; flex-direction:column; gap:10px;"></div>
+      </div>
+      <div class="card" style="padding:15px;">
+        <div style="font-size:16px; font-weight:800; margin-bottom:10px;">Онлайн сейчас</div>
+        <div id="onlineUsersList" style="display:flex; flex-direction:column; gap:8px; color:#ddd;"></div>
       </div>
       <div class="card" style="padding:15px;">
         <div style="font-size:16px; font-weight:800; margin-bottom:10px;">Заблокированные IP</div>
@@ -203,28 +275,42 @@ th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width
       </div>
     </div>
   </div>
-</div> 
+</div>
 
-<script> 
-const firebaseConfig = { apiKey: "AIzaSyA41nDX13dsMuPNJkckCMQz8bfim3Hscxs", authDomain: "porog-lol.firebaseapp.com", databaseURL: "https://porog-lol-default-rtdb.europe-west1.firebasedatabase.app", projectId: "porog-lol" }; 
-firebase.initializeApp(firebaseConfig); const db = firebase.database(); 
+<script>
+const firebaseConfig = { apiKey: "AIzaSyA41nDX13dsMuPNJkckCMQz8bfim3Hscxs", authDomain: "porog-lol.firebaseapp.com", databaseURL: "https://porog-lol-default-rtdb.europe-west1.firebasedatabase.app", projectId: "porog-lol" };
+firebase.initializeApp(firebaseConfig); const db = firebase.database();
 
 // --- ПЕРЕМЕННЫЕ (добавлены нужные для исправления графика и статуса) ---
-let currentUser = localStorage.getItem("userName") || ""; 
-let isAdmin = false, scheduleDate = new Date(), scheduleMode = 'day', userAvatars = {}, chatInitialized = false; 
+let currentUser = localStorage.getItem("userName") || "";
+let isAdmin = false, scheduleDate = new Date(), scheduleMode = 'day', userAvatars = {}, chatInitialized = false;
 let lastChatViewTime = localStorage.getItem("lastChatView") || 0;
 let currentTab = 'main', pendingPhotos = [];
-let currentSchedRef = null; 
-let isGlobalParticipant = false; 
+let currentSchedRef = null;
+let isGlobalParticipant = false;
 let currentIp = "";
+let latestPresence = {};
+let latestUsers = {};
+let adminListenersInitialized = false;
+let avatarEditorImage = null;
+let avatarScale = 1;
+let avatarOffset = { x: 0, y: 0 };
+let avatarDragStart = null;
+let avatarMinScale = 1;
+let mutedUsers = {};
+let isMuted = false;
+let currentBlockedIps = {};
+let currentAdmins = {};
+let profileViewUser = currentUser;
+let profileEditable = true;
 
-if(currentUser) showApp(); 
+if(currentUser) showApp();
 
-function login() { 
-  const n = document.getElementById("nameInput").value.trim(); 
-  if (!n) return; 
-  if (/[.$#[\]/]/.test(n)) { alert("Имя не должно содержать символы . $ # [ ] /"); return; } 
-  if (document.getElementById("codeInput").value !== "67") return; 
+function login() {
+  const n = document.getElementById("nameInput").value.trim();
+  if (!n) return;
+  if (/[.$#[\]/]/.test(n)) { alert("Имя не должно содержать символы . $ # [ ] /"); return; }
+  if (document.getElementById("codeInput").value !== "67") return;
 
   getMyIp().then(ip => {
       if (!ip) { alert("Не удалось определить IP. Попробуйте снова."); return; }
@@ -240,29 +326,139 @@ function login() {
           location.reload();
       });
   });
-} 
+}
 
-function showApp() { 
-  isAdmin = (currentUser.toLowerCase() === "дениска"); 
-  document.getElementById("login").style.display = "none"; 
-  document.getElementById("app").style.display = "block"; 
-  document.getElementById("userTag").innerText = isAdmin ? "💀 Дениска" : "@" + currentUser.toLowerCase(); 
-  if(isAdmin) document.getElementById("adminPanel").style.display = "flex"; 
-  
+function showApp() {
+  document.getElementById("login").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  document.getElementById("btn-settings").style.display = "none";
+  document.getElementById("adminPanel").style.display = "none";
+  document.getElementById("adminUsersPanel").style.display = "none";
+
+  db.ref("admins").on("value", snap => {
+      const admins = snap.val() || {};
+      isAdmin = !!admins[currentUser] || currentUser.toLowerCase() === "дениска";
+      document.getElementById("userTag").innerText = isAdmin ? "💀 " + currentUser : "@" + currentUser.toLowerCase();
+      document.getElementById("btn-settings").style.display = isAdmin ? "inline-flex" : "none";
+      document.getElementById("adminPanel").style.display = isAdmin ? "flex" : "none";
+      document.getElementById("adminUsersPanel").style.display = isAdmin ? "block" : "none";
+      if (isAdmin && !adminListenersInitialized) {
+          listenAdminUsers();
+          adminListenersInitialized = true;
+      }
+  });
+
   db.ref("users").on("value", snap => {
-      userAvatars = snap.val() || {};
+      latestUsers = snap.val() || {};
+      userAvatars = latestUsers;
       const myAv = userAvatars[currentUser]?.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
       document.getElementById("myAvatar").src = myAv;
-      document.getElementById("setAvatarPreview").src = myAv;
+      const profileAvatar = document.getElementById("profileAvatarPreview");
+      if (profileAvatar) profileAvatar.src = myAv;
+      renderOnlineUsers();
+  });
+
+  db.ref("muted_users").on("value", snap => {
+      mutedUsers = snap.val() || {};
+      isMuted = !!mutedUsers[currentUser];
+      renderMuteState();
+      if (isAdmin) renderAdminUsers(latestUsers, currentBlockedIps, currentAdmins);
   });
 
   setupPresence(); listenChat(); renderSched(); listenHistory(); listenActiveShift();
-  if (isAdmin) { document.getElementById("adminUsersPanel").style.display = "block"; listenAdminUsers(); }
   fetchAndStoreMyIp();
   window.onclick = () => document.getElementById("context-menu").style.display = "none";
-} 
+}
 
-// --- РАБОТА СО СМЕНОЙ ---
+function showProfileModal(userName = currentUser) {
+    cancelAvatarEdit();
+    profileViewUser = userName;
+    profileEditable = userName === currentUser;
+    document.getElementById("profileName").innerText = userName + (profileEditable ? "" : " (просмотр)");
+    document.getElementById("profileRole").innerText = profileEditable ? (isAdmin ? "Администратор" : "") : (userAvatars[userName]?.admin ? "Администратор" : "");
+    const profileAvatar = document.getElementById("profileAvatarPreview");
+    const avatarUrl = userAvatars[userName]?.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+    if (profileAvatar) {
+        profileAvatar.src = avatarUrl;
+        profileAvatar.style.cursor = profileEditable ? 'pointer' : 'default';
+    }
+    document.getElementById('profileEditBtn').style.display = profileEditable ? 'block' : 'none';
+    loadProfileStats(userName);
+    document.getElementById("profileModal").style.display = "flex";
+}
+
+function loadProfileStats(userName = currentUser) {
+    db.ref("shifts").orderByChild("date").once("value").then(snap => {
+        let totalSalary = 0;
+        let shiftsCount = 0;
+        let totalOrders = 0;
+        let totalOpt = 0;
+        snap.forEach(child => {
+            const d = child.val();
+            if (d.participants && d.participants[userName]) {
+                shiftsCount++;
+                const myData = d.participants[userName];
+                totalSalary += myData.earned || 0;
+                totalOrders += myData.orders || ((d.total || 0) / (d.numParticipants || 1));
+                totalOpt += myData.optOrders || ((d.opt || 0) / (d.numParticipants || 1));
+            }
+        });
+        document.getElementById("profileStats").innerHTML = `
+            <div>Смен отработано: <b>${shiftsCount}</b></div>
+            <div>Всего заказов: <b>${Math.round(totalOrders)}</b></div>
+            <div>Оптовых заказов: <b>${Math.round(totalOpt)}</b></div>
+            <div>Заработано всего: <b>${Math.round(totalSalary)} ₽</b></div>
+        `;
+        const profileAvatar = document.getElementById("profileAvatarPreview");
+        if (profileAvatar && userAvatars[userName]) profileAvatar.src = userAvatars[userName].avatar || profileAvatar.src;
+    });
+}
+
+function triggerAvatarInput() {
+    if (!profileEditable) return;
+    document.getElementById('avatarInp').click();
+}
+
+function renderMuteState() {
+    const banner = document.getElementById('muteBanner');
+    const sendBtn = document.getElementById('sendChatBtn');
+    const msgInput = document.getElementById('chatMsg');
+    if (!banner || !sendBtn || !msgInput) return;
+    if (isMuted) {
+        banner.style.display = 'block';
+        sendBtn.disabled = true;
+        sendBtn.style.opacity = '0.6';
+        msgInput.placeholder = 'Ты в муте, чел';
+    } else {
+        banner.style.display = 'none';
+        sendBtn.disabled = false;
+        sendBtn.style.opacity = '1';
+        msgInput.placeholder = 'пиши...';
+    }
+}
+
+function toggleMuteUser(name) {
+    if (!isAdmin || !name) return;
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    const mutePath = `muted_users/${trimmed}`;
+    if (mutedUsers[trimmed]) {
+        db.ref(mutePath).remove();
+    } else {
+        db.ref(mutePath).set({ mutedBy: currentUser, at: Date.now() });
+    }
+}
+
+function deleteUser(name) {
+    if (!isAdmin || !name) return;
+    if (!confirm(`Удалить пользователя ${name} из сайта? Это действие необратимо.`)) return;
+    const safeName = name.trim();
+    db.ref(`users/${safeName}`).remove();
+    db.ref(`admins/${safeName}`).remove();
+    db.ref(`muted_users/${safeName}`).remove();
+    db.ref(`presence/${safeName}`).remove();
+}
+
 function listenActiveShift() {
     db.ref("active_shift").on("value", snap => {
         const shift = snap.val();
@@ -273,10 +469,10 @@ function listenActiveShift() {
         const ctrls = document.querySelectorAll(".ctrl-btn");
         const cdekVal = document.getElementById("cdek_val");
         const wbVal = document.getElementById("wb_val");
+        const dostVal = document.getElementById("dost_val");
         const optVal = document.getElementById("opt_val");
 
         if(shift) {
-            // Локальное сохранение данных (бэкап смены)
             localStorage.setItem("active_shift_backup", JSON.stringify(shift));
 
             startBtnCont.style.display = "none";
@@ -284,8 +480,9 @@ function listenActiveShift() {
 
             cdekVal.innerText = shift.cdek || 0;
             wbVal.innerText = shift.wb || 0;
+            dostVal.innerText = shift.dost || 0;
             optVal.innerText = shift.opt || 0;
-            document.getElementById("total").innerText = (shift.cdek || 0) + (shift.wb || 0);
+            document.getElementById("total").innerText = (shift.cdek || 0) + (shift.wb || 0) + (shift.dost || 0);
             document.getElementById("optDisplay").innerText = `Оптовые: ${shift.opt || 0}`;
 
             const parts = shift.participants || {};
@@ -298,26 +495,25 @@ function listenActiveShift() {
             document.getElementById("shift-participants").innerHTML = partsText;
 
             if(isGlobalParticipant) {
-                // Если мы работаем
                 ctrls.forEach(b => b.style.display = "flex");
                 joinBtn.style.display = "none";
                 leaveBtn.style.display = "flex";
                 cdekVal.style.pointerEvents = "auto";
                 wbVal.style.pointerEvents = "auto";
+                dostVal.style.pointerEvents = "auto";
                 optVal.style.pointerEvents = "auto";
                 document.getElementById("salaryDisplay").innerText = `Моя доля: ${(parts[currentUser].earned || 0).toFixed(0)}₽`;
             } else {
-                // Режим куколда
                 ctrls.forEach(b => b.style.display = "none");
                 joinBtn.style.display = "flex";
                 leaveBtn.style.display = "none";
                 cdekVal.style.pointerEvents = "none";
                 wbVal.style.pointerEvents = "none";
+                dostVal.style.pointerEvents = "none";
                 optVal.style.pointerEvents = "none";
                 document.getElementById("salaryDisplay").innerText = "Режим куколда 👀";
             }
         } else {
-            // Смена закрыта
             startBtnCont.style.display = "block";
             workDiv.style.display = "none";
             isGlobalParticipant = false;
@@ -325,50 +521,97 @@ function listenActiveShift() {
     });
 }
 
-function startShift() { 
+function startShift() {
     db.ref("active_shift").set({
         startTime: Date.now(),
-        cdek: 0, wb: 0, opt: 0,
-        participants: { [currentUser]: { earned: 0, joinedAt: Date.now() } }
+        cdek: 0, wb: 0, dost: 0, opt: 0,
+        participants: { [currentUser]: createParticipantData(Date.now()) },
+        allParticipants: { [currentUser]: createParticipantData(Date.now()) }
     });
 }
 
 function joinShift() {
-    db.ref("active_shift/participants/" + currentUser).set({ earned: 0, joinedAt: Date.now() });
+    db.ref("active_shift").once("value", snap => {
+        const shift = snap.val() || {};
+        const existing = (shift.allParticipants && shift.allParticipants[currentUser]) || createParticipantData(Date.now());
+        db.ref("active_shift/participants/" + currentUser).set(createParticipantData(Date.now()));
+        db.ref("active_shift/allParticipants/" + currentUser).set(existing);
+    });
 }
 
 function getOrderShare(type) {
     return type === 'opt' ? 50 : 80;
 }
 
-function addCounter(type) { 
+function createParticipantData(joinedAt = Date.now()) {
+    return {
+        earned: 0,
+        joinedAt,
+        orders: 0,
+        optOrders: 0,
+        cdekOrders: 0,
+        wbOrders: 0,
+        dostOrders: 0
+    };
+}
+
+function addCounter(type) {
     db.ref("active_shift").transaction(shift => {
         if (!shift || !shift.participants || !shift.participants[currentUser]) {
-            return; 
+            return;
         }
         shift[type] = (shift[type] || 0) + 1;
         const parts = Object.keys(shift.participants);
         const share = getOrderShare(type) / parts.length;
-        parts.forEach(p => { shift.participants[p].earned = (shift.participants[p].earned || 0) + share; });
+        const orderIncrement = parts.length === 1 ? 1 : 1 / parts.length;
+        parts.forEach(p => {
+            const part = shift.participants[p] = shift.participants[p] || createParticipantData();
+            part.earned = (part.earned || 0) + share;
+            part.orders = (part.orders || 0) + orderIncrement;
+            if (type === 'opt') {
+                part.optOrders = (part.optOrders || 0) + orderIncrement;
+            } else if (type === 'cdek') {
+                part.cdekOrders = (part.cdekOrders || 0) + orderIncrement;
+            } else if (type === 'wb') {
+                part.wbOrders = (part.wbOrders || 0) + orderIncrement;
+            } else if (type === 'dost') {
+                part.dostOrders = (part.dostOrders || 0) + orderIncrement;
+            }
+        });
         return shift;
     });
 }
 
-function removeCounter(type) { 
+function removeCounter(type) {
     db.ref("active_shift").transaction(shift => {
         if (!shift || !shift.participants || !shift.participants[currentUser] || !shift[type] || shift[type] <= 0) {
-            return; 
+            return;
         }
         shift[type]--;
         const parts = Object.keys(shift.participants);
         const share = getOrderShare(type) / parts.length;
-        parts.forEach(p => { shift.participants[p].earned = Math.max(0, (shift.participants[p].earned || 0) - share); });
+        const orderDecrement = parts.length === 1 ? 1 : 1 / parts.length;
+        parts.forEach(p => {
+            const part = shift.participants[p];
+            if (!part) return;
+            part.earned = Math.max(0, (part.earned || 0) - share);
+            part.orders = Math.max(0, (part.orders || 0) - orderDecrement);
+            if (type === 'opt') {
+                part.optOrders = Math.max(0, (part.optOrders || 0) - orderDecrement);
+            } else if (type === 'cdek') {
+                part.cdekOrders = Math.max(0, (part.cdekOrders || 0) - orderDecrement);
+            } else if (type === 'wb') {
+                part.wbOrders = Math.max(0, (part.wbOrders || 0) - orderDecrement);
+            } else if (type === 'dost') {
+                part.dostOrders = Math.max(0, (part.dostOrders || 0) - orderDecrement);
+            }
+        });
         return shift;
     });
 }
 
-function manualInput(type) { 
-    if (!isGlobalParticipant) return; // Куколд не может кликать и менять цифры
+function manualInput(type) {
+    if (!isGlobalParticipant) return;
 
     db.ref("active_shift").once("value", snap => {
         const shift = snap.val();
@@ -384,9 +627,23 @@ function manualInput(type) {
                     s[type] = newVal;
                     const parts = Object.keys(s.participants);
                     const share = (diff * getOrderShare(type)) / parts.length;
-                    parts.forEach(p => { s.participants[p].earned = Math.max(0, (s.participants[p].earned || 0) + share); });
+                    const orderDelta = parts.length === 1 ? diff : diff / parts.length;
+                    parts.forEach(p => {
+                        const part = s.participants[p] = s.participants[p] || createParticipantData();
+                        part.earned = Math.max(0, (part.earned || 0) + share);
+                        part.orders = Math.max(0, (part.orders || 0) + orderDelta);
+                        if (type === 'opt') {
+                            part.optOrders = Math.max(0, (part.optOrders || 0) + orderDelta);
+                        } else if (type === 'cdek') {
+                            part.cdekOrders = Math.max(0, (part.cdekOrders || 0) + orderDelta);
+                        } else if (type === 'wb') {
+                            part.wbOrders = Math.max(0, (part.wbOrders || 0) + orderDelta);
+                        } else if (type === 'dost') {
+                            part.dostOrders = Math.max(0, (part.dostOrders || 0) + orderDelta);
+                        }
+                    });
                     return s;
-                });
+                }); 
             }
         }
     });
@@ -400,8 +657,9 @@ function leaveShift() {
         const myEarned = shift.participants[currentUser].earned || 0;
         const cdekCount = shift.cdek || 0;
         const wbCount = shift.wb || 0;
+        const dostCount = shift.dost || 0;
         const optCount = shift.opt || 0;
-        const totalCount = cdekCount + wbCount;
+        const totalCount = cdekCount + wbCount + dostCount;
         const startT = new Date(shift.startTime || Date.now());
         const endT = new Date();
 
@@ -415,22 +673,34 @@ function leaveShift() {
         document.getElementById("reportDetails").innerHTML = reportText;
         document.getElementById("reportModal").style.display = "flex";
 
-        db.ref("shifts").push({
-            name: currentUser,
-            date: startT.toLocaleDateString(),
-            total: totalCount,
-            cdek: cdekCount,
-            wb: wbCount,
-            opt: optCount,
-            salary: parseFloat(myEarned.toFixed(2)),
-            start: startT.toLocaleString(),
-            end: endT.toLocaleString()
-        });
+        const allParticipants = Object.assign({}, shift.allParticipants || {}, shift.participants || {});
+        const participantCount = Object.keys(shift.participants).length;
+        const currentMember = shift.participants[currentUser];
+        if (currentMember) {
+            allParticipants[currentUser] = currentMember;
+        }
 
-        if (Object.keys(shift.participants).length <= 1) {
-            db.ref("active_shift").remove(); 
+        if (participantCount <= 1) {
+            // Записать смену в архив
+            const numParts = Object.keys(allParticipants).length;
+            const totalSalary = Object.values(allParticipants).reduce((sum, p) => sum + (p.earned || 0), 0);
+            db.ref("shifts").push({
+                date: startT.toLocaleDateString(),
+                total: totalCount,
+                cdek: cdekCount,
+                wb: wbCount,
+                dost: dostCount,
+                opt: optCount,
+                totalSalary: totalSalary,
+                numParticipants: numParts,
+                participants: allParticipants,
+                start: startT.toLocaleString(),
+                end: endT.toLocaleString()
+            });
+            db.ref("active_shift").remove();
         } else {
-            db.ref("active_shift/participants/" + currentUser).remove(); 
+            db.ref("active_shift/allParticipants").set(allParticipants);
+            db.ref("active_shift/participants/" + currentUser).remove();
         }
     });
 }
@@ -442,27 +712,50 @@ function listenHistory() {
         let html = "";
         snap.forEach(s => {
             const d = s.val();
+            const detailsHtml = `
+                <div>СДЭК: ${d.cdek || 0}</div>
+                <div>ВБ/ОЗОН: ${d.wb || 0}</div>
+                <div>ДОСТАВКА: ${d.dost || 0}</div>
+                <div>ОПТОВЫЕ: ${d.opt || 0}</div>
+                <div style="margin-top:6px;"><b>Заказы: ${d.total || 0}</b></div>
+            `;
             html = `
-            <div class="card" style="padding:15px; text-align: left;">
-                <b style="font-size:16px;">${escapeHtml(d.name)}</b><br>
-                <div style="margin: 8px 0; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 13px;">
-                    <div style="color:#aaa; margin-bottom:4px;">Дата смены: ${d.date || (d.start ? d.start.split(',')[0] : '')}</div>
-                    <div>СДЭК: ${d.cdek || 0}</div>
-                    <div>ВБ/ОЗОН/ДОСТ: ${d.wb || 0}</div>
-                    <div>ОПТОВЫЕ: ${d.opt || 0}</div>
-                    <div style="margin-top:6px;"><b>Заказы: ${d.total}</b></div>
+            <div class="card history-card" style="padding:15px; text-align:left;" onclick="toggleShiftDetails(this)">
+                <div style="padding-bottom: 32px;">
+                    <div><b style="font-size:16px;">Смена ${d.date || (d.start ? d.start.split(',')[0] : '')}</b></div>
                 </div>
-                <div style="font-size: 14px;">Заработок: <span style="color:var(--accent); font-weight:800; font-size:18px;">${Math.round(d.salary)}₽</span></div>
-                ${isAdmin ? `<button class="danger" style="position:absolute; right:10px; top:10px; padding:5px 10px;" onclick="db.ref('shifts/${s.key}').remove()">×</button>` : ''}
+                <div style="margin: 8px 0; font-size: 14px; color:#ddd;">
+                    Общий заработок: <span style="color:var(--accent); font-weight:800; font-size:18px;">${Math.round(d.totalSalary || 0)}₽</span>
+                </div>
+                <div class="history-details" style="display:none; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 13px;">
+                    ${detailsHtml}
+                </div>
+                ${isAdmin ? `<button class="danger" style="position:absolute; right:10px; top:10px; padding:5px 10px;" onclick="event.stopPropagation(); db.ref('shifts/${s.key}').remove()">×</button>` : ''}
+                <div class="history-arrow">▼</div>
                 <small style="opacity:0.6; display:block; margin-top:8px;">${d.start ? d.start.split(',')[1].trim() + ' - ' : ''}${d.end.split(',')[1].trim()}</small>
             </div>` + html;
         });
         document.getElementById("history").innerHTML = html;
     });
 }
-// --- ЧАТ ---
-function listenChat() { 
-    const box = document.getElementById("chat-messages"); 
+
+function toggleShiftDetails(card) {
+    const details = card.querySelector('.history-details');
+    const arrow = card.querySelector('.history-arrow');
+    if (!details || !arrow) return;
+    const expanded = details.style.display === 'block';
+    details.style.display = expanded ? 'none' : 'block';
+    if (expanded) {
+        card.classList.remove('expanded');
+        arrow.textContent = '▼';
+    } else {
+        card.classList.add('expanded');
+        arrow.textContent = '▲';
+    }
+}
+
+function listenChat() {
+    const box = document.getElementById("chat-messages");
     db.ref("chat_v4").limitToLast(30).on("value", snap => {
         box.innerHTML = ""; let unread = 0;
         snap.forEach(s => {
@@ -484,7 +777,7 @@ function appendMsgUI(key, m, scroll) {
     wrapper.dataset.key = key;
 
     const av = userAvatars[m.name]?.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-    const time = new Date(m.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const time = formatChatTimestamp(m.time);
     let ticks = "✓";
     if (m.readBy && Object.keys(m.readBy).length > 0) ticks = "✓✓";
     const tickClass = ticks === "✓✓" ? "read" : "";
@@ -541,21 +834,39 @@ function appendMsgUI(key, m, scroll) {
     }
     msg.appendChild(info);
 
+    let longPressTimer = null;
+    const startLongPress = () => {
+        if (!isAdmin) return;
+        longPressTimer = setTimeout(() => {
+            if (confirm('Удалить сообщение?')) {
+                db.ref('chat_v4/' + key).remove();
+            }
+        }, 700);
+    };
+    const cancelLongPress = () => {
+        if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+        }
+    };
+
+    wrapper.addEventListener('touchstart', startLongPress);
+    wrapper.addEventListener('touchend', cancelLongPress);
+    wrapper.addEventListener('touchmove', cancelLongPress);
+    wrapper.addEventListener('touchcancel', cancelLongPress);
     msg.addEventListener("contextmenu", e => showCtx(e, key, m.name));
     wrapper.appendChild(msg);
+    wrapper.classList.add('enter');
     box.appendChild(wrapper);
+    requestAnimationFrame(() => wrapper.classList.remove('enter'));
 
     if (scroll) box.scrollTo({ top: box.scrollHeight, behavior: "smooth" });
 }
 
-
 async function preparePhotos(input) {
-    const files = Array.from(input.files).slice(0, 10);
+    const files = Array.from(input.files).slice(0, 10 - pendingPhotos.length);
     if(!files.length) return;
-    pendingPhotos = [];
     const previewBox = document.getElementById("preview-imgs");
-    previewBox.innerHTML = "";
-    document.getElementById("preview-area").style.display = "block";
     for (let f of files) {
         const b = await new Promise(res => {
             const r = new FileReader(); r.onload = e => {
@@ -566,16 +877,53 @@ async function preparePhotos(input) {
                 }; img.src = e.target.result;
             }; r.readAsDataURL(f);
         });
-        pendingPhotos.push(b); previewBox.innerHTML += `<img src="${b}" class="preview-img">`;
+        pendingPhotos.push(b);
     }
+    renderPreviewArea();
 }
 
+function renderPreviewArea() {
+    const previewArea = document.getElementById("preview-area");
+    const previewBox = document.getElementById("preview-imgs");
+    previewBox.innerHTML = "";
+
+    if (pendingPhotos.length) {
+        const previewPhotos = pendingPhotos.slice(0, 10);
+        previewPhotos.forEach((src, index) => {
+            const thumb = document.createElement('div');
+            thumb.className = 'preview-thumb';
+            thumb.innerHTML = `
+                <img src="${src}">
+                <div class="preview-remove" onclick="removePreviewPhoto(${index})">×</div>
+            `;
+            previewBox.appendChild(thumb);
+        });
+        previewBox.style.display = 'flex';
+    } else {
+        previewBox.style.display = 'none';
+    }
+
+    previewArea.style.display = pendingPhotos.length ? 'block' : 'none';
+}
+
+function removePreviewPhoto(index) {
+    pendingPhotos.splice(index, 1);
+    renderPreviewArea();
+}
+
+
 function sendChat() {
-    const msgInput = document.getElementById("chatMsg"), capInput = document.getElementById("photoCaption");
-    const text = pendingPhotos.length > 0 ? capInput.value.trim() : msgInput.value.trim();
-    if(!text && !pendingPhotos.length) return;
-    db.ref("chat_v4").push({ name: currentUser, text: text, images: pendingPhotos.length>0?pendingPhotos:null, time: Date.now() });
-    msgInput.value = ""; capInput.value = ""; pendingPhotos = []; document.getElementById("preview-area").style.display = "none";
+    const msgInput = document.getElementById("chatMsg");
+    const text = msgInput.value.trim();
+    if (isMuted) {
+        renderMuteState();
+        return;
+    }
+    if (!text && !pendingPhotos.length) return;
+    db.ref("chat_v4").push({ name: currentUser, text: text, images: pendingPhotos.length ? pendingPhotos : null, time: Date.now() });
+    msgInput.value = "";
+    pendingPhotos = [];
+    renderPreviewArea();
 }
 
 function handleChatKey(event) {
@@ -588,10 +936,10 @@ function handleChatKey(event) {
 function switchTab(t) {
     currentTab = t;
     ["view-main", "view-sched", "view-chat", "view-settings"].forEach(v => document.getElementById(v).style.display = "none");
-    ["btn-main", "btn-sched", "btn-chat"].forEach(b => document.getElementById(b).className = "glass-btn");
+    ["btn-main", "btn-sched", "btn-chat", "btn-settings"].forEach(b => document.getElementById(b).className = "glass-btn");
     if(document.getElementById("btn-"+t)) document.getElementById("btn-"+t).className = "primary";
     document.getElementById("view-"+t).style.display = t==='chat'?'flex':'block';
-    if(t==='chat') { 
+    if(t==='chat') {
         lastChatViewTime = Date.now(); localStorage.setItem("lastChatView", lastChatViewTime);
         updateBadge(0);
         db.ref("chat_v4").limitToLast(10).once("value", snap => { snap.forEach(s => { if(s.val().name !== currentUser) db.ref("chat_v4/"+s.key+"/readBy").child(currentUser).set(true); }); });
@@ -603,9 +951,6 @@ function updateBadge(n) { const b = document.getElementById("chat-badge"); b.inn
 function openFullImg(s) { document.getElementById("lightbox-img").src = s; document.getElementById("lightbox").style.display = "flex"; }
 function showCtx(e, k, a) { e.preventDefault(); if(!isAdmin && a!==currentUser) return; const m = document.getElementById("context-menu"); m.style.display="block"; m.style.left=e.pageX+"px"; m.style.top=e.pageY+"px"; document.getElementById("ctx-delete").onclick=()=>{ if(confirm("Удалить?")) db.ref("chat_v4/"+k).remove(); }; }
 
-// renderSched() вставляет name в inline onclick="..." без экранирования. Если имя содержит апостроф или кавычки, график перестанет работать.
-//appendMsgUI() делает innerHTML с m.text и m.name без защиты — это риск XSS.
-
 function escapeHtml(text) {
     return String(text || "")
         .replace(/&/g, "&amp;")
@@ -613,6 +958,24 @@ function escapeHtml(text) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;");
+}
+
+function formatChatTimestamp(value) {
+    const dt = new Date(value);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const messageDay = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+    let prefix = "";
+    if (messageDay.getTime() === today.getTime()) {
+        prefix = "";
+    } else if (messageDay.getTime() === yesterday.getTime()) {
+        prefix = "Вчера ";
+    } else {
+        prefix = `${String(dt.getDate()).padStart(2, '0')}.${String(dt.getMonth() + 1).padStart(2, '0')} `;
+    }
+    return prefix + dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
 function escapeJsString(text) {
@@ -657,38 +1020,116 @@ function refreshAdminData() {
     if (isAdmin) listenAdminUsers();
 }
 
+function addNewAdmin() {
+    if (!isAdmin) return;
+    const name = document.getElementById("adminInp").value.trim();
+    if (!name) return;
+    if (/[.$#[\]/]/.test(name)) {
+        alert("Имя не должно содержать символы . $ # [ ] /");
+        return;
+    }
+    db.ref(`admins/${name}`).set(true)
+      .then(() => db.ref(`users/${name}`).update({ admin: true }))
+      .then(() => { document.getElementById("adminInp").value = ""; })
+      .catch(err => { console.error(err); alert("Не удалось сделать пользователя администратором"); });
+}
+
+function removeAdmin(name) {
+    if (!isAdmin || !name) return;
+    if (!confirm(`Снять права администратора у ${name}?`)) return;
+    db.ref(`admins/${name}`).remove()
+      .then(() => db.ref(`users/${name}`).update({ admin: false }))
+      .catch(err => { console.error(err); alert("Не удалось снять права администратора"); });
+}
+
+function renderOnlineUsers() {
+    const container = document.getElementById("onlineUsersList");
+    if (!container) return;
+    const onlineNames = Object.keys(latestPresence || {}).sort();
+    if (!onlineNames.length) {
+        container.innerHTML = '<div style="color:#aaa">Никого нет в сети</div>';
+        return;
+    }
+    const html = onlineNames.map(name => {
+        const user = latestUsers[name] || {};
+        const lastSeen = user.lastSeen ? new Date(user.lastSeen) : null;
+        const timeLabel = lastSeen ? lastSeen.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—';
+        return `<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 10px; background:rgba(255,255,255,0.05); border-radius:12px;">
+                    <span style="font-weight:700;">${escapeHtml(name)}</span>
+                    <span style="opacity:.7; font-size:13px;">${timeLabel}</span>
+                </div>`;
+    }).join("");
+    container.innerHTML = html;
+}
+
 function listenAdminUsers() {
     db.ref("users").on("value", snap => {
         const users = snap.val() || {};
-        db.ref("blocked_ips").once("value").then(blockSnap => {
-            renderAdminUsers(users, blockSnap.val() || {});
+        latestUsers = users;
+        Promise.all([
+            db.ref("blocked_ips").once("value"),
+            db.ref("admins").once("value"),
+            db.ref("muted_users").once("value")
+        ]).then(([blockSnap, adminSnap, muteSnap]) => {
+            currentBlockedIps = blockSnap.val() || {};
+            currentAdmins = adminSnap.val() || {};
+            mutedUsers = muteSnap.val() || {};
+            renderAdminUsers(users, currentBlockedIps, currentAdmins);
+            renderBlockedIps(currentBlockedIps);
         });
+        renderOnlineUsers();
     });
     db.ref("blocked_ips").on("value", snap => {
-        renderBlockedIps(snap.val() || {});
+        currentBlockedIps = snap.val() || {};
+        renderBlockedIps(currentBlockedIps);
+        renderAdminUsers(latestUsers, currentBlockedIps, currentAdmins);
+    });
+    db.ref("admins").on("value", snap => {
+        currentAdmins = snap.val() || {};
+        renderAdminUsers(latestUsers, currentBlockedIps, currentAdmins);
+    });
+    db.ref("muted_users").on("value", snap => {
+        mutedUsers = snap.val() || {};
+        if (currentUser) {
+            isMuted = !!mutedUsers[currentUser];
+            renderMuteState();
+        }
+        renderAdminUsers(latestUsers, currentBlockedIps, currentAdmins);
     });
 }
 
-function renderAdminUsers(users, blocked) {
+function renderAdminUsers(users, blocked, admins) {
     let html = "";
     Object.keys(users).sort().forEach(name => {
         const user = users[name] || {};
         const ip = user.ip || "";
         const ipKey = ip ? dbKey(ip) : "";
         const isBlocked = ip && blocked[ipKey];
+        const isUserAdmin = !!admins[name] || !!user.admin || name.toLowerCase() === "дениска";
+        const isUserMuted = !!mutedUsers[name];
         const safeName = escapeHtml(name);
         const safeIp = escapeHtml(ip || "нет");
+        const roleLabel = isUserAdmin ? `<span style="font-size:10px; color:#38bdf8; margin-left:6px;">admin</span>` : "";
+        const adminActionBtn = isUserAdmin && name.toLowerCase() !== "дениска"
+            ? `<button class="glass-btn admin-action-btn" style="background:rgba(255,255,255,0.08);" onclick="removeAdmin('${escapeJsString(name)}')">Снять admin</button>`
+            : "";
         const actionBtn = ip
-            ? `<button class="glass-btn" style="font-size:12px; ${isBlocked ? 'background:#ff3b30;color:#111;' : ''}" onclick="${isBlocked ? `unblockIp('${escapeJsString(ipKey)}')` : `blockIp('${escapeJsString(ipKey)}')`}">${isBlocked ? 'Разблокировать' : 'Заблокировать'}</button>`
-            : `<button class="glass-btn" style="font-size:12px; opacity:.5; cursor:not-allowed;" disabled>нет IP</button>`;
-
+            ? `<button class="glass-btn admin-action-btn" style="${isBlocked ? 'background:#ff3b30;color:#111;' : ''}" onclick="${isBlocked ? `unblockIp('${escapeJsString(ipKey)}')` : `blockIp('${escapeJsString(ipKey)}')`}">${isBlocked ? 'Разблокировать' : 'Заблокировать'}</button>`
+            : `<button class="glass-btn admin-action-btn" style="opacity:.5; cursor:not-allowed;" disabled>нет IP</button>`;
+        const muteBtn = `<button class="glass-btn admin-action-btn" style="${isUserMuted ? 'background:#ff3b30;color:#111;' : ''}" onclick="toggleMuteUser('${escapeJsString(name)}')">${isUserMuted ? 'Размутить' : 'Мут'}</button>`;
         html += `
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px; background:rgba(255,255,255,0.05); border-radius:15px;">
-                <div>
-                    <div style="font-weight:700;">${safeName}</div>
-                    <div style="font-size:12px; color:#aaa;">IP: ${safeIp}</div>
+            <div class="admin-user-card">
+                <div class="user-info">
+                    <div style="font-weight:700;">${safeName}${roleLabel}</div>
+                    <div class="admin-user-status">IP: ${safeIp}${isUserMuted ? ' · muted' : ''}</div>
                 </div>
-                <div>${actionBtn}</div>
+                <div class="admin-actions">
+                    <button class="glass-btn admin-action-btn" onclick="showProfileModal('${escapeJsString(name)}')">Просмотр</button>
+                    ${muteBtn}
+                    ${actionBtn}
+                    ${adminActionBtn}
+                    <button class="glass-btn admin-action-btn" style="background: rgba(255,59,48,0.12); color:#ff7f84;" onclick="deleteUser('${escapeJsString(name)}')">Удалить</button>
+                </div>
             </div>`;
     });
     document.getElementById("adminUsersList").innerHTML = html || '<div style="color:#aaa">Нет зарегистрированных пользователей</div>';
@@ -749,7 +1190,6 @@ function removeStaffRowFromUI(name) {
             cell.parentNode.remove();
         }
     } catch (err) {
-        // CSS.escape может отсутствовать в старых браузерах
         const rows = document.querySelectorAll('td.name-col');
         rows.forEach(cell => {
             if (cell.getAttribute('data-name') === name && cell.parentNode) {
@@ -759,7 +1199,6 @@ function removeStaffRowFromUI(name) {
     }
 }
 
-// --- ГРАФИК ---
 function renderSched() {
     const y = scheduleDate.getFullYear();
     const m = scheduleDate.getMonth();
@@ -860,6 +1299,7 @@ function addNewStaff() {
             alert("Ошибка при добавлении сотрудника");
         });
 }
+
 function toggleWorkCell(path, name, day, isWork) {
     if (!isAdmin) return;
     const ref = db.ref(`schedule/${path}/${scheduleMode}/${name}/${day}`);
@@ -870,11 +1310,110 @@ function toggleWorkCell(path, name, day, isWork) {
     }
 }
 
-function setupPresence() { const r = db.ref(`presence/${currentUser}`); r.set("online"); r.onDisconnect().remove(); db.ref("presence").on("value", snap => { const m = document.getElementById("presence-mini"); m.innerHTML = ""; Object.keys(snap.val()||{}).forEach(() => m.innerHTML += `<div style="width:6px;height:6px;background:var(--online);border-radius:50%;"></div>`); }); }
-function uploadAvatar(input) { if(input.files[0]) { const r = new FileReader(); r.onload = e => db.ref(`users/${currentUser}/avatar`).set(e.target.result); r.readAsDataURL(input.files[0]); } }
-function logout() { localStorage.clear(); location.reload(); }
-</script> 
-</body> 
-</html>
+function setupPresence() { const r = db.ref(`presence/${currentUser}`); r.set("online"); r.onDisconnect().remove(); db.ref("presence").on("value", snap => { latestPresence = snap.val() || {}; const m = document.getElementById("presence-mini"); m.innerHTML = ""; Object.keys(latestPresence).forEach(() => m.innerHTML += `<div style="width:6px;height:6px;background:var(--online);border-radius:50%;"></div>`); renderOnlineUsers(); }); }
+function uploadAvatar(input) {
+    if (input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const img = new Image();
+            img.onload = () => {
+                avatarEditorImage = img;
+                avatarMinScale = Math.max(220 / img.width, 220 / img.height);
+                avatarScale = avatarMinScale;
+                avatarOffset = { x: 0, y: 0 };
+                document.getElementById('avatarEditor').style.display = 'block';
+                document.getElementById('profileAvatarPreview').style.opacity = '0.6';
+                updateAvatarCanvas();
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
 
+function showAvatarEditor() {
+    document.getElementById('avatarEditor').style.display = 'block';
+    document.getElementById('profileAvatarPreview').style.opacity = '0.6';
+    updateAvatarCanvas();
+}
+
+function cancelAvatarEdit() {
+    avatarEditorImage = null;
+    document.getElementById('avatarEditor').style.display = 'none';
+    document.getElementById('profileAvatarPreview').style.opacity = '1';
+}
+
+function saveAvatar() {
+    if (!avatarEditorImage) return;
+    const canvas = document.getElementById('avatarCanvas');
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    db.ref(`users/${currentUser}/avatar`).set(dataUrl);
+    document.getElementById('myAvatar').src = dataUrl;
+    document.getElementById('profileAvatarPreview').src = dataUrl;
+    cancelAvatarEdit();
+}
+
+function updateAvatarCanvas() {
+    const canvas = document.getElementById('avatarCanvas');
+    if (!canvas || !avatarEditorImage) return;
+    const ctx = canvas.getContext('2d');
+    const size = canvas.width;
+    ctx.clearRect(0, 0, size, size);
+
+    const w = avatarEditorImage.width * avatarScale;
+    const h = avatarEditorImage.height * avatarScale;
+    const x = size / 2 - w / 2 + avatarOffset.x;
+    const y = size / 2 - h / 2 + avatarOffset.y;
+    ctx.drawImage(avatarEditorImage, x, y, w, h);
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2 - 2, 0, Math.PI * 2);
+    ctx.stroke();
+}
+
+function clampAvatarOffset() {
+    if (!avatarEditorImage) return;
+    const size = 220;
+    const w = avatarEditorImage.width * avatarScale;
+    const h = avatarEditorImage.height * avatarScale;
+    const maxX = Math.max(0, (w - size) / 2);
+    const maxY = Math.max(0, (h - size) / 2);
+    avatarOffset.x = Math.max(-maxX, Math.min(maxX, avatarOffset.x));
+    avatarOffset.y = Math.max(-maxY, Math.min(maxY, avatarOffset.y));
+}
+
+function zoomAvatar(delta) {
+    if (!avatarEditorImage) return;
+    avatarScale = Math.max(avatarMinScale, avatarScale + delta);
+    clampAvatarOffset();
+    updateAvatarCanvas();
+}
+
+function initAvatarEditor() {
+    const canvas = document.getElementById('avatarCanvas');
+    if (!canvas) return;
+    canvas.onpointerdown = e => {
+        if (!avatarEditorImage) return;
+        avatarDragStart = { x: e.clientX, y: e.clientY, offsetX: avatarOffset.x, offsetY: avatarOffset.y };
+        canvas.setPointerCapture(e.pointerId);
+    };
+    canvas.onpointermove = e => {
+        if (!avatarDragStart) return;
+        avatarOffset.x = avatarDragStart.offsetX + (e.clientX - avatarDragStart.x);
+        avatarOffset.y = avatarDragStart.offsetY + (e.clientY - avatarDragStart.y);
+        clampAvatarOffset();
+        updateAvatarCanvas();
+    };
+    canvas.onpointerup = canvas.onpointercancel = () => {
+        avatarDragStart = null;
+    };
+}
+
+initAvatarEditor();
+
+function logout() { localStorage.clear(); location.reload(); }
+</script>
+</body>
 </html>
