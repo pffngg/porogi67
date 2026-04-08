@@ -338,7 +338,7 @@ function showApp() {
   db.ref("admins").on("value", snap => {
       const admins = snap.val() || {};
       isAdmin = !!admins[currentUser] || currentUser.toLowerCase() === "дениска";
-      document.getElementById("userTag").innerText = isAdmin ? "💀 " + currentUser : "@" + currentUser.toLowerCase();
+      document.getElementById("userTag").innerText = isAdmin ? "🦧" + currentUser : "@" + currentUser.toLowerCase();
       document.getElementById("btn-settings").style.display = isAdmin ? "inline-flex" : "none";
       document.getElementById("adminPanel").style.display = isAdmin ? "flex" : "none";
       document.getElementById("adminUsersPanel").style.display = isAdmin ? "block" : "none";
@@ -799,7 +799,7 @@ function appendMsgUI(key, m, scroll) {
     if (isSenderAdmin) {
         const adminTag = document.createElement("span");
         adminTag.style.cssText = "font-size:9px; color:#aaa; text-transform:uppercase; letter-spacing:0.05em;";
-        adminTag.textContent = "admin";
+        adminTag.textContent = "Гей";
         userLabel.appendChild(adminTag);
     }
     msg.appendChild(userLabel);
