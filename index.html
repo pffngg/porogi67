@@ -10,133 +10,334 @@
 
 <style>
 :root {
-  --accent: #a855f7; --success: #22c55e; --bg: #000;
-  --glass: rgba(30, 30, 30, 0.8); --border: rgba(255, 255, 255, 0.1); --online: #22c55e;
+  --accent: #6366f1; --accent-light: #818cf8; --success: #10b981; --bg: #f8fafc; --text: #1e293b; --text-secondary: #64748b; --card-bg: white;
+  --glass: rgba(255, 255, 255, 0.8); --border: rgba(99, 102, 241, 0.1); --online: #10b981; --shadow: 0 4px 20px rgba(99, 102, 241, 0.08);
+}
+
+html.dark-mode {
+  --accent: #a78bfa; --accent-light: #d8b4fe; --success: #34d399; --bg: #0f172a; --text: #f1f5f9; --text-secondary: #cbd5e1; --card-bg: #1e293b;
+  --glass: rgba(30, 41, 59, 0.8); --border: rgba(148, 163, 184, 0.15); --online: #34d399; --shadow: 0 4px 20px rgba(168, 85, 247, 0.1);
+}
+
+html.dark-mode * {
+  color: var(--text);
 }
 
 * { box-sizing: border-box; }
 
-body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; background: var(--bg); color: white; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
-body::before { content: ""; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, #1a1033 0%, #000 70%); z-index: -1; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; transition: background 0.3s ease, color 0.3s ease; }
+body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(167, 139, 250, 0.02) 50%, transparent 100%); z-index: -1; }
 
-#app { display: none; padding: 15px; max-width: 900px; margin: auto; }
-button { border: none; border-radius: 14px; padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; position: relative; }
-.primary { background: var(--accent); color: white; }
-.glass-btn { background: var(--glass); border: 1px solid var(--border); color: #fff; }
-.success-btn { background: var(--success); color: white; }
-.danger { background: rgba(255, 59, 48, 0.15); color: #ff3b30; border: 1px solid rgba(255, 59, 48, 0.2); }
+html.dark-mode body::before {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(59, 130, 246, 0.04) 50%, transparent 100%);
+}
 
-.badge { position: absolute; top: -5px; right: -5px; background: #ff3b30; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; display: none; border: 2px solid var(--bg); font-weight: 800; z-index: 10; }
-.card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12); padding: 22px; border-radius: 28px; margin-bottom: 15px; position: relative; box-shadow: 0 24px 40px rgba(0,0,0,0.16); backdrop-filter: blur(18px); }
-.count { font-size: 44px; font-weight: 800; cursor: pointer; color: #fff; background: rgba(255,255,255,0.05); padding: 18px 22px; border-radius: 22px; display: inline-flex; align-items: center; justify-content: center; transition: transform 0.2s ease; }
-.count:hover { transform: translateY(-2px); }
-.avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #333; border: 2px solid rgba(255,255,255,0.15); }
-.nav-profile { display: flex; align-items: center; gap: 10px; }
-#active-shift-info { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03); border-radius: 24px; }
-.ctrl-btn { color: #fff; }
-.success-btn.ctrl-btn { background: rgba(34, 197, 94, 0.18); color: #d4ffe4; border: 1px solid rgba(34, 197, 94, 0.28); }
-.danger.ctrl-btn { background: rgba(255, 59, 48, 0.18); color: #ffd2d0; border: 1px solid rgba(255, 59, 48, 0.30); }
-.success-btn.ctrl-btn:hover, .danger.ctrl-btn:hover { transform: translateY(-1px); }
+#app { display: none; padding: 20px; max-width: 1000px; margin: 0 auto; }
+#app-sidebar { display: none; position: fixed; right: 20px; top: 20px; width: 300px; max-height: calc(100vh - 40px); overflow-y: auto; z-index: 10; transition: all 0.3s ease; }
+@media (min-width: 1400px) {
+  #app-sidebar { display: block !important; }
+}
+.admin-panel-mobile { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 2px solid var(--accent); border-radius: 16px 16px 0 0; max-height: 60vh; overflow-y: auto; z-index: 100; padding: 16px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); transition: transform 0.3s ease; will-change: transform; }
+@media (max-width: 1000px) {
+  .admin-panel-mobile { display: block !important; }
+}
+.admin-panel-mobile.collapsed { transform: translateY(calc(100% - 52px)); }
+.admin-panel-mobile.collapsed #adminPanelMobileContent { display: none !important; }
+.admin-panel-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; cursor: pointer; user-select: none; margin-bottom: 12px; }
+.admin-panel-header.collapsed { margin-bottom: 0; }
+.admin-panel-toggle { font-size: 18px; transition: transform 0.3s ease; display: inline-flex; }
+.admin-panel-mobile.collapsed .admin-panel-toggle { transform: rotate(180deg); }
+.admin-panel-mobile.collapsed .admin-panel-header { margin-bottom: 0; }
+html.dark-mode .admin-panel-mobile { background: #1e293b; border-color: rgba(168, 85, 247, 0.3); }
+#announcement-popup { position: fixed; bottom: 20px; right: 20px; background: white; border-left: 4px solid var(--accent); border-radius: 12px; padding: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 2000; max-width: 320px; animation: slideIn 0.3s ease; word-wrap: break-word; word-break: break-word; overflow-wrap: break-word; }
+@keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@media (max-width: 768px) {
+  #announcement-popup { bottom: 60px; right: 10px; left: 10px; max-width: none; }
+}
+html.dark-mode #announcement-popup {
+  background: #1e293b;
+  border-left-color: var(--accent);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+button { border: none; border-radius: 12px; padding: 12px 16px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.primary { background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%); color: white; box-shadow: var(--shadow); }
+.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99, 102, 241, 0.25); }
+.glass-btn { background: white; border: 1px solid var(--border); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.glass-btn:hover { background: #f1f5f9; }
+.success-btn { background: #10b981; color: white; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15); }
+.success-btn:hover { background: #059669; transform: translateY(-2px); }
+.danger { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+
+html.dark-mode .glass-btn {
+  background: #334155;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+}
+
+html.dark-mode .glass-btn:hover {
+  background: #475569;
+}
+
+html.dark-mode .danger {
+  background: rgba(220, 38, 38, 0.15);
+  color: #fca5a5;
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+html.dark-mode .success-btn {
+  background: #059669;
+}
+
+html.dark-mode .success-btn:hover {
+  background: #047857;
+}
+
+.badge { position: absolute; top: -5px; right: -5px; background: #dc2626; color: white; font-size: 10px; padding: 3px 7px; border-radius: 10px; display: none; border: 2px solid var(--bg); font-weight: 800; z-index: 10; }
+.card { background: white; border: 1px solid rgba(99, 102, 241, 0.1); padding: 24px; border-radius: 16px; margin-bottom: 16px; position: relative; box-shadow: 0 2px 12px rgba(0,0,0,0.04); transform: transition all 0.3s ease; }
+.card:hover { box-shadow: 0 8px 24px rgba(99, 102, 241, 0.08); }
+
+html.dark-mode .card {
+  background: #1e293b;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+
+html.dark-mode .card:hover {
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.2);
+}
+.count { font-size: 44px; font-weight: 800; cursor: pointer; color: var(--accent); background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(167, 139, 250, 0.08) 100%); padding: 18px 24px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.3s ease; border: 1px solid rgba(99, 102, 241, 0.1); }
+.count:hover { transform: scale(1.05); background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(167, 139, 250, 0.12) 100%); }
+.avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #f1f5f9; border: 2px solid rgba(99, 102, 241, 0.2); }
+.nav-profile { display: flex; align-items: center; gap: 12px; }
+#active-shift-info { background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(167, 139, 250, 0.06) 100%); border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-radius: 12px; }
+.ctrl-btn { color: white; border-radius: 10px; }
+.success-btn.ctrl-btn { background: #10b981; }
+.success-btn.ctrl-btn:hover { background: #059669; transform: translateY(-1px); }
+.danger.ctrl-btn { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+.danger.ctrl-btn:hover { transform: translateY(-1px); }
 
 /* ГРАФИК */
-.schedule-wrap { width: 100%; overflow-x: auto; background: rgba(255,255,255,0.04); border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); margin-top: 10px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04); }
-table { border-collapse: collapse; width: 100%; font-size: 11px; }
-th, td { border: 1px solid rgba(255,255,255,0.08); padding: 8px 6px; text-align: center; min-width: 38px; height: 42px; }
-th { background: rgba(255,255,255,0.07); color: #ddd; font-weight: 600; }
-td { background: rgba(255,255,255,0.02); }
-.day-name { font-size: 8px; opacity: 0.6; text-transform: uppercase; display: block; }
-.weekend { color: #ff3b30; background: rgba(255,0,0,0.06); }
-.name-col { text-align: left; min-width: 140px; position: sticky; left: 0; background: rgba(255,255,255,0.08); z-index: 5; padding: 12px; font-weight: 600; cursor: pointer; }
-.cell-box { width: 30px; height: 30px; margin: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); cursor: pointer; transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease; }
-.cell-box:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(0,0,0,0.14); }
-.st-work { background: linear-gradient(135deg, rgba(168,85,247,0.95), rgba(106,17,203,0.95)); box-shadow: 0 16px 30px rgba(168,85,247,0.25); border: 1px solid rgba(168,85,247,0.24); }
-table { border-collapse: collapse; width: 100%; font-size: 10px; }
-th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width: 38px; height: 40px; }
-.day-name { font-size: 8px; opacity: 0.6; text-transform: uppercase; display: block; }
-.weekend { color: #ff3b30; background: rgba(255,0,0,0.05); }
-.name-col { text-align: left; min-width: 130px; position: sticky; left: 0; background: #0a0a0a; z-index: 5; padding: 10px; font-weight: 600; cursor: pointer; }
-.cell-box { width: 30px; height: 30px; margin: auto; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s; }
-.st-work { background: var(--accent); box-shadow: 0 0 10px rgba(168, 85, 247, 0.4); }
+.schedule-wrap { width: 100%; overflow-x: auto; background: white; border-radius: 16px; border: 1px solid var(--border); margin-top: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+table { border-collapse: collapse; width: 100%; font-size: 12px; }
+th, td { border: 1px solid rgba(99, 102, 241, 0.08); padding: 12px 8px; text-align: center; min-width: 40px; height: 44px; }
+th { background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(167, 139, 250, 0.06) 100%); color: var(--text); font-weight: 600; }
+td { background: white; }
+.day-name { font-size: 9px; opacity: 0.6; text-transform: uppercase; display: block; color: #64748b; }
+.weekend { color: #dc2626; background: #fee2e2; }
+.name-col { text-align: left; min-width: 140px; position: sticky; left: 0; background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(167, 139, 250, 0.03) 100%); z-index: 5; padding: 12px; font-weight: 600; cursor: pointer; color: var(--text); }
+.cell-box { width: 32px; height: 32px; margin: auto; border-radius: 8px; border: 1px solid var(--border); background: white; cursor: pointer; transition: all 0.2s ease; }
+.cell-box:hover { transform: scale(1.1); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15); }
+.st-work { background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); border: none; }
 
 /* ЧАТ */
-#view-chat { display: none; flex-direction: column; height: 85vh; gap: 10px; }
-#chat-messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
-#chat-messages::-webkit-scrollbar, .schedule-wrap::-webkit-scrollbar { width: 10px; height: 10px; }
-#chat-messages::-webkit-scrollbar-track, .schedule-wrap::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 999px; }
-#chat-messages::-webkit-scrollbar-thumb, .schedule-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.16); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
-#chat-messages::-webkit-scrollbar-thumb:hover, .schedule-wrap::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
-#chat-messages { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.16) rgba(255,255,255,0.05); }
-.msg-wrapper { display: flex; gap: 10px; max-width: 85%; align-items: flex-end; margin-bottom: 8px; opacity: 1; transform: translateY(0); transition: transform 0.18s ease, opacity 0.18s ease; will-change: transform, opacity; }
+#view-chat { display: none; flex-direction: column; height: 85vh; gap: 12px; }
+#chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+#chat-messages::-webkit-scrollbar, .schedule-wrap::-webkit-scrollbar { width: 8px; height: 8px; }
+#chat-messages::-webkit-scrollbar-track, .schedule-wrap::-webkit-scrollbar-track { background: rgba(99, 102, 241, 0.05); border-radius: 999px; }
+#chat-messages::-webkit-scrollbar-thumb, .schedule-wrap::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 999px; }
+#chat-messages::-webkit-scrollbar-thumb:hover, .schedule-wrap::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.5); }
+#chat-messages { scrollbar-width: thin; scrollbar-color: rgba(99, 102, 241, 0.3) rgba(99, 102, 241, 0.05); }
+.msg-wrapper { display: flex; gap: 10px; max-width: 85%; align-items: flex-end; margin-bottom: 8px; opacity: 1; transform: translateY(0); transition: all 0.2s ease; }
 .msg-wrapper.enter { opacity: 0; transform: translateY(10px); }
 .me-wrapper { align-self: flex-end; flex-direction: row-reverse; }
-.msg { padding: 14px 16px; border-radius: 24px; font-size: 14px; position: relative; min-width: 60px; line-height: 1.55; box-shadow: 0 14px 30px rgba(0,0,0,0.16); backdrop-filter: blur(12px); overflow-wrap: anywhere; word-break: break-word; }
-.me { background: linear-gradient(135deg, rgba(168,85,247,0.95), rgba(106,17,203,0.95)); border-bottom-right-radius: 8px; }
-.others { background: rgba(255,255,255,0.05); border-bottom-left-radius: 8px; border: 1px solid rgba(255,255,255,0.08); }
-.msg-info { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 8px; font-size: 11px; opacity: 0.75; }
+.msg { padding: 12px 16px; border-radius: 12px; font-size: 14px; position: relative; min-width: 60px; line-height: 1.5; box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow-wrap: anywhere; word-break: break-word; }
+.me { background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%); color: white; }
+.others { background: #f1f5f9; color: var(--text); border: 1px solid rgba(99, 102, 241, 0.1); }
+.msg-info { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 6px; font-size: 11px; opacity: 0.7; }
 .ticks { font-size: 12px; margin-left: 2px; }
-.ticks.read { color: #38bdf8; }
-.preview-thumb { position: relative; width: 72px; height: 72px; border-radius: 18px; overflow: hidden; flex: none; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); }
+.ticks.read { color: #6366f1; }
+.preview-thumb { position: relative; width: 72px; height: 72px; border-radius: 12px; overflow: hidden; flex: none; cursor: pointer; border: 1px solid rgba(99, 102, 241, 0.15); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 .preview-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.preview-remove { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; opacity: 0; transition: opacity 0.2s ease; }
+.preview-remove { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; opacity: 0; transition: opacity 0.2s; }
 .preview-thumb:hover .preview-remove { opacity: 1; }
-.mute-banner { display: none; background: rgba(255,0,0,0.12); color: #ffb5b5; border: 1px solid rgba(255,0,0,0.25); border-radius: 22px; padding: 12px 14px; text-align: center; margin-bottom: 10px; font-weight: 700; }
-.admin-user-card { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; }
+.mute-banner { display: none; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; border-radius: 12px; padding: 12px 14px; text-align: center; margin-bottom: 12px; font-weight: 700; }
+.admin-user-card { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px; background: white; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.2s ease; }
+.admin-user-card:hover { box-shadow: 0 4px 16px rgba(99, 102, 241, 0.1); }
 .admin-user-card .user-info { flex: 1; }
 .admin-user-card .admin-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
-.admin-action-btn { font-size: 12px; min-width: 82px; padding: 8px 10px; }
-.admin-user-status { font-size: 12px; color: #aaa; margin-top: 4px; }
-@keyframes pulse { 0% { transform: scale(1); opacity:1; } 50% { transform: scale(1.5); opacity:.6; } 100% { transform: scale(1); opacity:1; } }
- .history-card { cursor: pointer; transition: transform 0.2s ease; position: relative; }
- .history-card:hover { transform: translateY(-1px); }
- .history-details { display: none; margin-top: 10px; color: #ddd; }
- .history-arrow { position: absolute; right: 10px; bottom: 10px; font-size: 16px; color: #aaa; transition: transform 0.2s ease; }
- .history-card.expanded .history-arrow { transform: rotate(180deg); }
-#preview-area { display: none; padding: 10px; background: #1a1a1a; border-radius: 15px; margin-bottom: 10px; }
-.preview-img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
+.admin-action-btn { font-size: 12px; min-width: 82px; padding: 8px 12px; border-radius: 8px; }
+.admin-user-status { font-size: 12px; color: #64748b; margin-top: 4px; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 5000; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(4px); }
+.modal-content { background: white; border: 1px solid rgba(99, 102, 241, 0.1); padding: 32px; border-radius: 20px; text-align: center; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
 
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 5000; justify-content: center; align-items: center; padding: 20px; }
-.modal-content { background: #111; border: 1px solid var(--border); padding: 30px; border-radius: 30px; text-align: center; width: 100%; max-width: 400px; }
+html.dark-mode .modal-overlay {
+  background: rgba(0, 0, 0, 0.8);
+}
 
-#context-menu { display: none; position: fixed; background: #222; border: 1px solid #444; border-radius: 12px; z-index: 3000; overflow: hidden; }
-#context-menu div { padding: 12px 20px; font-size: 14px; cursor: pointer; }
+html.dark-mode .modal-content {
+  background: #1e293b;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+html.dark-mode button,
+html.dark-mode h1, html.dark-mode h2, html.dark-mode h3, html.dark-mode h4, html.dark-mode h5, html.dark-mode h6,
+html.dark-mode div, html.dark-mode span, html.dark-mode p, html.dark-mode label, html.dark-mode small {
+  color: #f1f5f9;
+}
+
+html.dark-mode input::placeholder,
+html.dark-mode textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.dark-mode input,
+html.dark-mode textarea,
+html.dark-mode select {
+  background: #334155;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f1f5f9;
+}
+
+html.dark-mode #profileStats,
+html.dark-mode #profileName,
+html.dark-mode #profileRole,
+html.dark-mode #presence-mini {
+  color: #f1f5f9;
+  background: #334155 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.dark-mode #chatInputContainer {
+  background: #334155 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+#context-menu { display: none; position: fixed; background: white; border: 1px solid rgba(99, 102, 241, 0.1); border-radius: 12px; z-index: 3000; overflow: hidden; box-shadow: 0 12px 32px rgba(0,0,0,0.12); }
+#context-menu div { padding: 12px 20px; font-size: 14px; cursor: pointer; color: var(--text); transition: all 0.2s ease; }
+#context-menu div:hover { background: rgba(99, 102, 241, 0.08); }
+#context-menu div[style*="color:#ff3b30"] { color: #dc2626; }
+#context-menu div[style*="color:#ff3b30"]:hover { background: #fee2e2; }
 
 /* Версия сайта */
-.version-tag { position: fixed; bottom: 5px; right: 10px; font-size: 10px; color: rgba(255,255,255,0.3); z-index: 9999; pointer-events: none; font-weight: 600; }
+.version-tag { position: fixed; bottom: 5px; right: 10px; font-size: 10px; color: rgba(99, 102, 241, 0.5); z-index: 9999; pointer-events: none; font-weight: 600; }
+
+html.dark-mode input,
+html.dark-mode textarea,
+html.dark-mode select {
+  background: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+html.dark-mode .schedule-wrap {
+  background: #1e293b;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark-mode table th {
+  background: rgba(168, 85, 247, 0.1);
+  color: #f1f5f9;
+}
+
+html.dark-mode table td {
+  background: #1e293b;
+  color: #f1f5f9;
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+html.dark-mode #view-chat {
+  background: #0f172a;
+}
+
+html.dark-mode .admin-user-card {
+  background: #1e293b;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark-mode .msg {
+  color: #f1f5f9;
+}
+
+html.dark-mode .others {
+  background: #334155;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+}
+
+html.dark-mode .count {
+  background: #334155;
+  color: #d8b4fe;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark-mode .card {
+  background: #1e293b;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+
+html.dark-mode .card:hover {
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.15);
+}
+
+html.dark-mode #announcement-popup {
+  background: #1e293b;
+  border-left-color: var(--accent);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+html.dark-mode .admin-panel-mobile {
+  background: #1e293b;
+  border-top-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+}
+
+html.dark-mode #active-shift-info {
+  background: #1e293b;
+  border-color: rgba(168, 85, 247, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark-mode #active-shift-info div,
+html.dark-mode #active-shift-info span {
+  color: #f1f5f9 !important;
+}
+
+/* История */
+.history-card { cursor: pointer; transition: all 0.2s ease; position: relative; background: white; border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.history-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99, 102, 241, 0.1); }
+.history-details { display: none; margin-top: 12px; color: var(--text); background: rgba(99, 102, 241, 0.04); padding: 12px; border-radius: 8px; font-size: 13px; }
+.history-arrow { position: absolute; right: 16px; bottom: 16px; font-size: 16px; color: rgba(99, 102, 241, 0.5); transition: transform 0.2s ease; }
+.history-card.expanded .history-arrow { transform: rotate(180deg); }
+#preview-area { display: none; padding: 12px; background: #f1f5f9; border-radius: 12px; margin-bottom: 12px; border: 1px solid var(--border); }
+.preview-img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
+
+@keyframes pulse { 0% { transform: scale(1); opacity:1; } 50% { transform: scale(1.5); opacity:.6; } 100% { transform: scale(1); opacity:1; } }
 </style>
 </head>
 
 <body>
-<div class="version-tag">open v 1.06 big 02.04.26</div>
+<div class="version-tag">test v 1.07 ad 10.04.26</div>
 
 <div id="context-menu"><div style="color:#ff3b30;" id="ctx-delete">Удалить</div></div>
 
 <div id="reportModal" class="modal-overlay">
     <div class="modal-content">
-        <img src="https://media.tenor.com/716m2S_T-94AAAAM/shrek-dance.gif" style="width: 150px; border-radius: 20px; margin-bottom: 15px;">
-        <h2 style="margin:0;">СМЕНА ЗАКРЫТА!(</h2>
-        <div id="reportDetails" style="margin: 20px 0; font-size: 16px; line-height: 1.6; text-align: left; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px;"></div>
-        <button class="primary" style="width:100%" onclick="document.getElementById('reportModal').style.display='none'">КРАСАВА</button>
+        <img src="https://media.tenor.com/716m2S_T-94AAAAM/shrek-dance.gif" style="width: 150px; border-radius: 16px; margin-bottom: 20px;">
+        <h2 style="margin:0 0 16px 0; color:var(--accent);">СМЕНА ЗАКРЫТА!</h2>
+        <div id="reportDetails" style="margin: 20px 0; font-size: 15px; line-height: 1.7; text-align: left; background: rgba(99, 102, 241, 0.04); padding: 16px; border-radius: 12px; border: 1px solid var(--border);"></div>
+        <button class="primary" style="width:100%" onclick="document.getElementById('reportModal').style.display='none'">Домой💀</button>
     </div>
 </div>
 
 <div id="profileModal" class="modal-overlay" onclick="if(event.target.id==='profileModal') document.getElementById('profileModal').style.display='none'">
     <div class="modal-content" onclick="event.stopPropagation()">
-        <img id="profileAvatarPreview" class="avatar" style="width:100px; height:100px; margin-bottom:15px; cursor:pointer;" onclick="triggerAvatarInput()">
-        <div id="profileName" style="font-weight:800; margin-bottom:10px;"></div>
-        <div id="profileRole" style="font-size:12px; color:#aaa; margin-bottom:10px;"></div>
-        <button id="profileEditBtn" class="glass-btn" style="margin-bottom:10px;" onclick="triggerAvatarInput()">Изменить фото</button>
-        <div id="avatarEditor" style="display:none; text-align:center; margin-bottom:15px;">
-            <div style="position:relative; width:220px; height:220px; margin:0 auto 12px; border-radius:50%; overflow:hidden; background:#111; border:1px solid rgba(255,255,255,0.1);">
+        <img id="profileAvatarPreview" class="avatar" style="width:100px; height:100px; margin-bottom:20px; cursor:pointer; border-width:3px;" onclick="triggerAvatarInput()">
+        <div id="profileName" style="font-weight:800; margin-bottom:10px; font-size:18px;"></div>
+        <div id="profileRole" style="font-size:12px; color:#64748b; margin-bottom:16px;"></div>
+        <button id="profileEditBtn" class="glass-btn" style="margin-bottom:16px; width:100%;" onclick="triggerAvatarInput()">Изменить фото</button>
+        <div id="avatarEditor" style="display:none; text-align:center; margin-bottom:16px;">
+            <div style="position:relative; width:220px; height:220px; margin:0 auto 12px; border-radius:50%; overflow:hidden; background:#f1f5f9; border:2px solid rgba(99,102,241,0.2);">
                 <canvas id="avatarCanvas" width="220" height="220" style="width:100%; height:100%;"></canvas>
             </div>
-            <div style="display:flex; gap:10px; justify-content:center; margin-bottom:10px;">
-                <button class="glass-btn" style="padding:10px 14px;" onclick="zoomAvatar(-0.05)">-</button>
+            <div style="display:flex; gap:10px; justify-content:center; margin-bottom:12px;">
+                <button class="glass-btn" style="padding:10px 14px;" onclick="zoomAvatar(-0.05)">−</button>
                 <button class="glass-btn" style="padding:10px 14px;" onclick="zoomAvatar(0.05)">+</button>
             </div>
             <button class="primary" style="width:100%; margin-bottom:10px;" onclick="saveAvatar()">Сохранить</button>
             <button class="glass-btn" style="width:100%;" onclick="cancelAvatarEdit()">Отмена</button>
         </div>
-        <div id="profileStats" style="text-align:left; line-height:1.7; color:#ddd; margin-bottom:20px;"></div>
+        <div id="profileStats" style="text-align:left; line-height:1.8; color:#64748b; margin-bottom:20px; background:#f8fafc; padding:16px; border-radius:12px; border: 1px solid var(--border); transition: all 0.3s ease;"></div>
         <button class="primary" style="width:100%; margin-bottom:10px;" onclick="document.getElementById('profileModal').style.display='none'">Закрыть</button>
         <button class="danger" style="width:100%;" onclick="logout()">Выйти</button>
     </div>
@@ -146,90 +347,108 @@ th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width
 
 <input type="file" id="avatarInp" style="display:none" accept="image/*" onchange="uploadAvatar(this)">
 
-<div id="login" style="height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:15px; padding: 20px;">
-  <h1>porogi67</h1>
-  <input id="nameInput" placeholder="Ваше имя" style="padding:15px; border-radius:15px; border:none; width: 220px; background:#111; color:#fff;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); login(); }">
-  <input type="password" id="codeInput" placeholder="Код" style="padding:15px; border-radius:15px; border:none; width:220px; text-align:center; background:#111; color:#fff;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); login(); }">
-  <button class="primary" style="width:220px" onclick="login()">Войти</button>
+<div id="login" style="height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:20px; padding: 20px;">
+  <div style="text-align:center; margin-bottom:20px;">
+    <h1 style="margin:0; color:var(--accent); font-size:32px;">porogi67</h1>
+    <p style="margin:8px 0 0 0; color:#64748b; font-size:14px;">Система управления порогами</p>
+  </div>
+  <input id="nameInput" placeholder="Ваше имя" style="padding:14px 16px; border-radius:12px; border: 1px solid rgba(99,102,241,0.2); width: 280px; text-align:center; background:white; color:var(--text); font-size:14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);" onkeydown="if(event.key==='Enter'){ event.preventDefault(); login(); }">
+  <input type="password" id="codeInput" placeholder="Код" style="padding:14px 16px; border-radius:12px; border: 1px solid rgba(99,102,241,0.2); width:280px; text-align:center; background:white; color:var(--text); font-size:14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);" onkeydown="if(event.key==='Enter'){ event.preventDefault(); login(); }">
+  <button class="primary" style="width:280px; margin-top:8px;" onclick="login()">Войти</button>
 </div>
 
 <div id="app">
-  <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+  <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 28px; gap:16px; flex-wrap: wrap;">
     <div class="nav-profile" style="align-items:flex-start; gap:12px;">
         <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
-            <img id="myAvatar" class="avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" onclick="showProfileModal()" style="cursor:pointer;">
+            <img id="myAvatar" class="avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" onclick="showProfileModal()" style="cursor:pointer; width:44px; height:44px;">
         </div>
-        <div><div id="userTag" style="font-weight:800;"></div><div id="presence-mini" style="display:flex; gap:3px;"></div></div>
+        <div><div id="userTag" style="font-weight:700; color:var(--text);"></div><div id="presence-mini" style="display:flex; gap:3px;"></div></div>
     </div>
-    <div style="display:flex; gap:5px;">
+    <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
         <button id="btn-main" class="primary" onclick="switchTab('main')">Смена</button>
         <button id="btn-sched" class="glass-btn" onclick="switchTab('sched')">График</button>
         <button id="btn-chat" class="glass-btn" onclick="switchTab('chat')">Чат <div id="chat-badge" class="badge">0</div></button>
         <button id="btn-settings" class="glass-btn" onclick="switchTab('settings')">⚙️</button>
+        <button id="btn-theme" class="glass-btn" onclick="toggleTheme()" title="Переключить тему">🌙</button>
     </div>
   </div>
 
   <div id="view-main">
-    <div id="startBtnCont"><button class="primary" style="width: 100%; padding: 25px; font-size: 18px;" onclick="startShift()">КРУТИТЬ ПОРОГИ</button></div>
+    <div id="startBtnCont"><button class="primary" style="width: 100%; padding: 28px; font-size: 18px; font-weight:700;" onclick="startShift()">КРУТИТЬ ПОРОГИ</button></div>
     
     <div id="work" style="display:none;">
       
-      <div id="active-shift-info" style="margin-bottom: 15px; padding: 15px; background: var(--glass); border-radius: 15px; border: 1px solid var(--border); font-size: 14px;">
+      <div id="active-shift-info" style="margin-bottom: 16px; padding: 16px; border-radius: 12px; font-size: 14px;">
           <div id="shift-participants"></div>
       </div>
 
-      <div class="card"><h4 style="margin:0; color:#888;">СДЭК</h4>
-        <div style="display:flex; gap:15px; align-items: center;">
+      <div class="card"><h4 style="margin:0 0 12px 0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">СДЭК</h4>
+        <div style="display:flex; gap:16px; align-items: center;">
             <button class="success-btn ctrl-btn" style="flex:1; font-size:24px;" onclick="addCounter('cdek')">+</button>
             <div class="count" id="cdek_val" onclick="manualInput('cdek')">0</div>
-            <button class="danger ctrl-btn" style="padding:10px 20px;" onclick="removeCounter('cdek')">−</button>
+            <button class="danger ctrl-btn" style="padding:12px 16px;" onclick="removeCounter('cdek')">−</button>
         </div>
       </div>
-      <div class="card"><h4 style="margin:0; color:#888;">ВБ / ОЗОН</h4>
-        <div style="display:flex; gap:15px; align-items: center;">
+      <div class="card"><h4 style="margin:0 0 12px 0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">ВБ / ОЗОН</h4>
+        <div style="display:flex; gap:16px; align-items: center;">
             <button class="success-btn ctrl-btn" style="flex:1; font-size:24px;" onclick="addCounter('wb')">+</button>
             <div class="count" id="wb_val" onclick="manualInput('wb')">0</div>
-            <button class="danger ctrl-btn" style="padding:10px 20px;" onclick="removeCounter('wb')">−</button>
+            <button class="danger ctrl-btn" style="padding:12px 16px;" onclick="removeCounter('wb')">−</button>
         </div>
       </div>
-      <div class="card"><h4 style="margin:0; color:#888;">ДОСТАВКА</h4>
-        <div style="display:flex; gap:15px; align-items: center;">
+      <div class="card"><h4 style="margin:0 0 12px 0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">ДОСТАВКА</h4>
+        <div style="display:flex; gap:16px; align-items: center;">
             <button class="success-btn ctrl-btn" style="flex:1; font-size:24px;" onclick="addCounter('dost')">+</button>
             <div class="count" id="dost_val" onclick="manualInput('dost')">0</div>
-            <button class="danger ctrl-btn" style="padding:10px 20px;" onclick="removeCounter('dost')">−</button>
+            <button class="danger ctrl-btn" style="padding:12px 16px;" onclick="removeCounter('dost')">−</button>
         </div>
       </div>
-      <div class="card"><h4 style="margin:0; color:#888;">ОПТОВЫЕ ЗАКАЗЫ</h4>
-        <div style="display:flex; gap:15px; align-items: center;">
+      <div class="card"><h4 style="margin:0 0 12px 0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">ОПТОВЫЕ ЗАКАЗЫ</h4>
+        <div style="display:flex; gap:16px; align-items: center;">
             <button class="success-btn ctrl-btn" style="flex:1; font-size:24px;" onclick="addCounter('opt')">+</button>
             <div class="count" id="opt_val" onclick="manualInput('opt')">0</div>
-            <button class="danger ctrl-btn" style="padding:10px 20px;" onclick="removeCounter('opt')">−</button>
+            <button class="danger ctrl-btn" style="padding:12px 16px;" onclick="removeCounter('opt')">−</button>
         </div>
       </div>
-      <div style="text-align:center; margin:20px 0;">
-          <div style="font-size:48px; font-weight:900;" id="total">0</div>
-          <div style="font-size:14px; color:#aaa; margin-top:4px;" id="optDisplay">Оптовые: 0</div>
-          <div id="salaryDisplay" style="color:var(--accent); font-weight:800;">Итого: 0₽</div>
+      <div style="text-align:center; margin:28px 0; background: white; padding:20px; border-radius:12px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+          <div style="font-size:52px; font-weight:900; color:var(--accent);" id="total">0</div>
+          <div style="font-size:14px; color:#64748b; margin-top:6px;" id="optDisplay">Оптовые: 0</div>
+          <div id="salaryDisplay" style="color:var(--accent); font-weight:800; font-size:18px; margin-top:8px;">Итого: 0₽</div>
       </div>
       
-      <button id="joinShiftBtn" class="success-btn" style="width:100%; padding:20px; display:none;" onclick="joinShift()">ПРИСОЕДИНИТЬСЯ К СМЕНЕ</button>
-      <button id="leaveShiftBtn" class="danger" style="width:100%; padding:20px; display:none;" onclick="leaveShift()">УЙТИ СО СМЕНЫ</button>
+      <button id="joinShiftBtn" class="success-btn" style="width:100%; padding:16px; display:none; font-size:16px; font-weight:700;" onclick="joinShift()">➕ ПРИСОЕДИНИТЬСЯ К СМЕНЕ</button>
+      <div style="display:flex; gap:10px;">
+        <button id="leaveShiftBtn" class="danger" style="flex:1; padding:16px; display:none; font-size:16px; font-weight:700;" onclick="leaveShift()">УЙТИ СО СМЕНЫ</button>
+        <button id="closeShiftBtn" class="danger" style="flex:1; padding:16px; display:none; font-size:16px; font-weight:700; background: #dc2626; border: 2px solid #991b1b; color: white;" onclick="closeShift()" title="Закрыть смену для всех">ЗАКРЫТЬ СМЕНУ</button>
+      </div>
     </div>
-    <button class="glass-btn" style="width:100%; margin-top:10px;" onclick="toggleHistory()">Архив смен</button>
-    <div id="history" style="display:none; margin-top:10px;"></div>
+    <button class="glass-btn" style="width:100%; margin-top:16px; padding:12px;" onclick="toggleHistory()">История смен</button>
+    <div id="history" style="display:none; margin-top:16px;"></div>
+    
+    <!-- Announcements Section (Visible to All) - Moved Below History -->
+    <div id="announcementsPublic" class="card" style="display:none; padding:0; margin-top:28px; overflow:hidden;">
+      <div class="announcement-header" style="display:flex; justify-content:flex-start; align-items:center; padding:16px; background:linear-gradient(135deg, rgba(99, 102, 241, 0.04) 0%, rgba(167, 139, 250, 0.04) 100%); border-left:4px solid var(--accent); cursor:pointer; user-select:none;" onclick="toggleAnnouncementsMenu()">
+        <div style="font-weight:600; color:var(--accent); display:flex; align-items:center; gap:8px;">
+          <span class="announcement-toggle-arrow" style="transition:transform 0.3s ease;">▼</span>
+          📢 Объявления
+        </div>
+      </div>
+      <div id="announcementsPublicContent" style="display:block; padding:16px; transition:all 0.3s ease;"></div>
+    </div>
   </div>
 
   <div id="view-sched" style="display:none;">
-    <div style="display:flex; gap:10px; margin-bottom:15px;">
+    <div style="display:flex; gap:12px; margin-bottom:16px;">
         <button id="t-day" class="primary" style="flex:1" onclick="setMode('day')">ДЕНЬ</button>
         <button id="t-night" class="glass-btn" style="flex:1" onclick="setMode('night')">НОЧЬ</button>
     </div>
-    <div style="display:flex; justify-content: center; gap:15px; align-items: center; margin-bottom:10px;">
-        <button class="glass-btn" onclick="changeMonth(-1)">←</button><span id="monthLabel" style="font-weight:700;"></span><button class="glass-btn" onclick="changeMonth(1)">→</button>
+    <div style="display:flex; justify-content: center; gap:16px; align-items: center; margin-bottom:16px;">
+        <button class="glass-btn" onclick="changeMonth(-1)">←</button><span id="monthLabel" style="font-weight:700; min-width:60px; text-align:center;"></span><button class="glass-btn" onclick="changeMonth(1)">→</button>
     </div>
-    <div id="adminPanel" style="display:none; gap:5px; margin-bottom:10px;">
-        <input id="staffInp" placeholder="Имя" style="flex:1; padding:12px; border-radius:12px; background:#111; border:none; color:#fff;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addNewStaff(); }">
-        <button class="success-btn" onclick="addNewStaff()">+</button>
+    <div id="adminPanel" style="display:none; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+        <input id="staffInp" placeholder="Имя сотрудника" style="flex:1; min-width:200px; padding:12px 14px; border-radius:10px; background:white; border: 1px solid var(--border); color:var(--text); font-size:14px;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addNewStaff(); }">
+        <button class="success-btn" onclick="addNewStaff()">+ Добавить</button>
     </div>
     <div class="schedule-wrap"><table><thead><tr id="h-row"></tr></thead><tbody id="b-rows"></tbody></table></div>
   </div>
@@ -241,41 +460,63 @@ th, td { border: 1px solid #222; padding: 6px 2px; text-align: center; min-width
         <div id="preview-info" style="font-size:12px; color:#aaa; margin-bottom:8px;">Нажми на крестик, чтобы удалить фото.</div>
         <div id="preview-imgs" style="display:flex; gap:8px; margin-bottom:10px; overflow-x:auto;"></div>
     </div>
-    <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 28px; display:flex; gap:10px; align-items:center;">
-        <button class="glass-btn" style="width:40px; height:40px; border-radius:50%;" onclick="document.getElementById('fileInp').click()">+</button>
+    <div id="chatInputContainer" style="background: white; border: 1px solid var(--border); padding: 12px; border-radius: 12px; display:flex; gap:10px; align-items:center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.3s ease;">
+        <button class="glass-btn" style="width:40px; height:40px; border-radius:50%; padding:0;" onclick="document.getElementById('fileInp').click()">+</button>
         <input type="file" id="fileInp" style="display:none" accept="image/*" multiple onchange="preparePhotos(this)">
-       <textarea id="chatMsg" placeholder="пиши..." style="flex:1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; color:white; outline:none; resize:none; min-height:48px; line-height:1.5; padding:12px 14px;" rows="2" onkeydown="handleChatKey(event)"></textarea>
+       <textarea id="chatMsg" placeholder="Напиши что-нибудь..." style="flex:1; background: transparent; border: none; color:var(--text); outline:none; resize:none; min-height:44px; line-height:1.5; padding:0 8px; font-family: inherit; font-size:14px;" rows="2" onkeydown="handleChatKey(event)"></textarea>
         <button id="sendChatBtn" class="primary" onclick="sendChat()">↑</button>
     </div>
   </div>
 
   <div id="view-settings" style="display:none;">
-    <div id="adminUsersPanel" style="display:none; margin-top:20px; gap:15px;">
-      <div class="card" style="padding:15px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+    <div id="adminUsersPanel" style="display:none; margin-top:24px; gap:16px;">
+      <div class="card" style="padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
           <div>
-            <div style="font-size:16px; font-weight:800;">Админ-панель</div>
-            <div style="font-size:12px; color:#aaa;">Управление пользователями</div>
+            <div style="font-size:18px; font-weight:800; color:var(--text);">Админ-панель</div>
+            <div style="font-size:13px; color:#64748b;">Управление пользователями</div>
           </div>
           <button class="glass-btn" onclick="refreshAdminData()" style="font-size:12px; padding:8px 12px;">Обновить</button>
         </div>
-        <div style="display:flex; gap:10px; margin-bottom:15px;">
-          <input id="adminInp" placeholder="Добавить администратора" style="flex:1; padding:12px; border-radius:12px; background:#111; border:none; color:#fff;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addNewAdmin(); }">
+        <div style="display:flex; gap:10px; margin-bottom:16px;">
+          <input id="adminInp" placeholder="Добавить администратора" style="flex:1; padding:12px 14px; border-radius:10px; background:white; border: 1px solid var(--border); color:var(--text); font-size:14px;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addNewAdmin(); }">
           <button class="success-btn" onclick="addNewAdmin()">+</button>
         </div>
-        <div id="adminUsersList" style="display:flex; flex-direction:column; gap:10px;"></div>
+        <div id="adminUsersList" style="display:flex; flex-direction:column; gap:12px;"></div>
       </div>
-      <div class="card" style="padding:15px;">
-        <div style="font-size:16px; font-weight:800; margin-bottom:10px;">Онлайн сейчас</div>
-        <div id="onlineUsersList" style="display:flex; flex-direction:column; gap:8px; color:#ddd;"></div>
+      <div id="adminActiveShiftPanel" class="card" style="padding:20px;">
+        <!-- Active shift admin controls will be rendered here -->
       </div>
-      <div class="card" style="padding:15px;">
-        <div style="font-size:16px; font-weight:800; margin-bottom:10px;">Заблокированные</div>
+      <div class="card" style="padding:20px;">
+        <div style="font-size:18px; font-weight:800; margin-bottom:12px; color:var(--text);">🟢 Онлайн сейчас</div>
+        <div id="onlineUsersList" style="display:flex; flex-direction:column; gap:8px; color:var(--text);"></div>
+      </div>
+      <div class="card" style="padding:20px;">
+        <div style="font-size:18px; font-weight:800; margin-bottom:12px; color:var(--text);">🚫 Заблокированные</div>
         <div id="blockedIpsList" style="display:flex; flex-direction:column; gap:10px;"></div>
       </div>
     </div>
   </div>
+  
+  <!-- Admin Panel for Announcements -->
+  <div id="adminPanelMobile" class="admin-panel-mobile card">
+    <div class="admin-panel-header" onclick="toggleAdminPanelMobile()">
+      <div style="font-weight:700; color:var(--text);">📢 Новое объявление</div>
+      <div class="admin-panel-toggle">▲</div>
+    </div>
+    <div id="adminPanelMobileContent" style="display:block;">
+      <textarea id="announcementInputMobile" placeholder="Напишите обновление для команды..." style="width:100%; min-height:70px; padding:10px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-size:13px; font-family:inherit; resize:none;" maxlength="500" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); sendAnnouncement('mobile');}"></textarea>
+      <div style="font-size:11px; color:var(--text-secondary); margin:8px 0; text-align:right;"><span id="announcementCharsMobile">0</span>/500</div>
+      <button class="primary" style="width:100%; font-size:13px; padding:10px;" onclick="sendAnnouncement('mobile')">Отправить</button>
+      <div id="announcementsHistory" style="max-height:200px; overflow-y:auto; border-top:1px solid var(--border); padding-top:12px; margin-top:12px;">
+        <div style="font-size:12px; color:var(--text-secondary); text-align:center; padding:20px 0;">Нет объявлений</div>
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- Announcement Notification Popup -->
+<div id="announcementNotification" style="display:none;"></div>
 
 <script>
 const firebaseConfig = { apiKey: "AIzaSyA41nDX13dsMuPNJkckCMQz8bfim3Hscxs", authDomain: "porog-lol.firebaseapp.com", databaseURL: "https://porog-lol-default-rtdb.europe-west1.firebasedatabase.app", projectId: "porog-lol" };
@@ -329,21 +570,32 @@ function login() {
 }
 
 function showApp() {
+  initTheme();
   document.getElementById("login").style.display = "none";
   document.getElementById("app").style.display = "block";
   document.getElementById("btn-settings").style.display = "none";
   document.getElementById("adminPanel").style.display = "none";
   document.getElementById("adminUsersPanel").style.display = "none";
+  document.getElementById("adminPanelMobile").style.display = "none";
 
   db.ref("admins").on("value", snap => {
       const admins = snap.val() || {};
       isAdmin = !!admins[currentUser] || currentUser.toLowerCase() === "дениска";
-      document.getElementById("userTag").innerText = isAdmin ? "🦧" + currentUser : "@" + currentUser.toLowerCase();
+      document.getElementById("userTag").innerText = isAdmin ? "⭐" + currentUser : "@" + currentUser.toLowerCase();
       document.getElementById("btn-settings").style.display = isAdmin ? "inline-flex" : "none";
       document.getElementById("adminPanel").style.display = isAdmin ? "flex" : "none";
       document.getElementById("adminUsersPanel").style.display = isAdmin ? "block" : "none";
+      document.getElementById("app-sidebar").style.display = isAdmin ? "block" : "none";
+      document.getElementById("adminPanelMobile").style.display = isAdmin ? "block" : "none";
+      
+      // Restore collapsed state for mobile panel
+      if (isAdmin && localStorage.getItem("adminPanelCollapsed") === "true") {
+          document.getElementById("adminPanelMobile").classList.add("collapsed");
+      }
+      
       if (isAdmin && !adminListenersInitialized) {
           listenAdminUsers();
+          listenAnnouncements();
           adminListenersInitialized = true;
       }
   });
@@ -367,6 +619,18 @@ function showApp() {
 
   setupPresence(); listenChat(); renderSched(); listenHistory(); listenActiveShift();
   fetchAndStoreMyIp();
+  
+  // Listen for announcements for ALL users (not just admins)
+  listenAnnouncements();
+  
+  // Restore announcements collapsed state
+  if (localStorage.getItem("announcementsCollapsed") === "true") {
+      const content = document.getElementById("announcementsPublicContent");
+      const arrow = document.querySelector(".announcement-toggle-arrow");
+      if (content) content.style.display = "none";
+      if (arrow) arrow.textContent = "▶";
+  }
+  
   window.onclick = () => document.getElementById("context-menu").style.display = "none";
 }
 
@@ -466,6 +730,7 @@ function listenActiveShift() {
         const startBtnCont = document.getElementById("startBtnCont");
         const joinBtn = document.getElementById("joinShiftBtn");
         const leaveBtn = document.getElementById("leaveShiftBtn");
+        const closeBtn = document.getElementById("closeShiftBtn");
         const ctrls = document.querySelectorAll(".ctrl-btn");
         const cdekVal = document.getElementById("cdek_val");
         const wbVal = document.getElementById("wb_val");
@@ -498,6 +763,7 @@ function listenActiveShift() {
                 ctrls.forEach(b => b.style.display = "flex");
                 joinBtn.style.display = "none";
                 leaveBtn.style.display = "flex";
+                closeBtn.style.display = "flex";
                 cdekVal.style.pointerEvents = "auto";
                 wbVal.style.pointerEvents = "auto";
                 dostVal.style.pointerEvents = "auto";
@@ -507,6 +773,7 @@ function listenActiveShift() {
                 ctrls.forEach(b => b.style.display = "none");
                 joinBtn.style.display = "flex";
                 leaveBtn.style.display = "none";
+                closeBtn.style.display = "none";
                 cdekVal.style.pointerEvents = "none";
                 wbVal.style.pointerEvents = "none";
                 dostVal.style.pointerEvents = "none";
@@ -531,11 +798,25 @@ function startShift() {
 }
 
 function joinShift() {
+    if (!currentUser) {
+        alert("Ошибка: пользователь не авторизован");
+        return;
+    }
     db.ref("active_shift").once("value", snap => {
         const shift = snap.val() || {};
+        if (!shift.startTime) {
+            alert("Ошибка: нет активной смены");
+            return;
+        }
         const existing = (shift.allParticipants && shift.allParticipants[currentUser]) || createParticipantData(Date.now());
-        db.ref("active_shift/participants/" + currentUser).set(createParticipantData(Date.now()));
-        db.ref("active_shift/allParticipants/" + currentUser).set(existing);
+        
+        // Сохраняем текущие данные смены
+        const updateData = {
+            [`active_shift/participants/${currentUser}`]: createParticipantData(Date.now()),
+            [`active_shift/allParticipants/${currentUser}`]: existing
+        };
+        
+        db.ref().update(updateData).catch(err => console.error('joinShift error:', err));
     });
 }
 
@@ -556,10 +837,12 @@ function createParticipantData(joinedAt = Date.now()) {
 }
 
 function addCounter(type) {
+    if (!type || !currentUser) return;
     db.ref("active_shift").transaction(shift => {
         if (!shift || !shift.participants || !shift.participants[currentUser]) {
             return;
         }
+        if (!["cdek", "wb", "dost", "opt"].includes(type)) return;
         shift[type] = (shift[type] || 0) + 1;
         const parts = Object.keys(shift.participants);
         const share = getOrderShare(type) / parts.length;
@@ -583,10 +866,12 @@ function addCounter(type) {
 }
 
 function removeCounter(type) {
+    if (!type || !currentUser) return;
     db.ref("active_shift").transaction(shift => {
         if (!shift || !shift.participants || !shift.participants[currentUser] || !shift[type] || shift[type] <= 0) {
             return;
         }
+        if (!["cdek", "wb", "dost", "opt"].includes(type)) return;
         shift[type]--;
         const parts = Object.keys(shift.participants);
         const share = getOrderShare(type) / parts.length;
@@ -650,6 +935,10 @@ function manualInput(type) {
 }
 
 function leaveShift() {
+    if (!currentUser) {
+        alert("Ошибка: пользователь не авторизован");
+        return;
+    }
     db.ref("active_shift").once("value", snap => {
         const shift = snap.val();
         if(!shift || !shift.participants || !shift.participants[currentUser]) return;
@@ -756,17 +1045,22 @@ function toggleShiftDetails(card) {
 
 function listenChat() {
     const box = document.getElementById("chat-messages");
+    if (!box) return;
     db.ref("chat_v4").limitToLast(30).on("value", snap => {
-        box.innerHTML = ""; let unread = 0;
+        if (!box) return;
+        box.innerHTML = ""; let unread = 0; const msgs = [];
         snap.forEach(s => {
             const m = s.val();
-            if (m.time > lastChatViewTime && m.name !== currentUser) unread++;
-            appendMsgUI(s.key, m, false);
+            if (m && m.name && m.time) {
+                msgs.push({key: s.key, msg: m});
+                if (m.time > lastChatViewTime && m.name !== currentUser) unread++;
+            }
         });
+        msgs.forEach(({key, msg}) => appendMsgUI(key, msg, false));
         if(currentTab !== 'chat') updateBadge(unread);
-        if(!chatInitialized) { box.scrollTop = box.scrollHeight; chatInitialized = true; }
-        if(currentTab === 'chat') db.ref("chat_v4").limitToLast(1).once("child_added", s => { if(s.val().name !== currentUser) db.ref("chat_v4/"+s.key+"/readBy").child(currentUser).set(true); });
-    });
+        if(!chatInitialized) { setTimeout(() => { if(box) box.scrollTop = box.scrollHeight; }, 0); chatInitialized = true; }
+        if(currentTab === 'chat') db.ref("chat_v4").limitToLast(1).once("child_added", s => { if(s.val() && s.val().name !== currentUser) db.ref("chat_v4/"+s.key+"/readBy").child(currentUser).set(true).catch(e => console.error('readBy error', e)); });
+    }, err => { console.error('listenChat error:', err); });
 }
 
 function appendMsgUI(key, m, scroll) {
@@ -794,12 +1088,12 @@ function appendMsgUI(key, m, scroll) {
 
     const isSenderAdmin = String(m.name).toLowerCase() === "дениска";
     const userLabel = document.createElement("small");
-    userLabel.style.cssText = "font-size:10px; font-weight:700; opacity:0.8; display:flex; align-items:center; gap:6px;";
+    userLabel.style.cssText = "font-size:11px; font-weight:700; opacity:0.9; display:flex; align-items:center; gap:6px;";
     userLabel.textContent = m.name;
     if (isSenderAdmin) {
         const adminTag = document.createElement("span");
-        adminTag.style.cssText = "font-size:9px; color:#aaa; text-transform:uppercase; letter-spacing:0.05em;";
-        adminTag.textContent = "Гей";
+        adminTag.style.cssText = "font-size:10px; color: #6366f1; text-transform:uppercase; letter-spacing:0.05em; font-weight:600;";
+        adminTag.textContent = "⭐";
         userLabel.appendChild(adminTag);
     }
     msg.appendChild(userLabel);
@@ -1028,8 +1322,9 @@ function addNewAdmin() {
         alert("Имя не должно содержать символы . $ # [ ] /");
         return;
     }
-    db.ref(`admins/${name}`).set(true)
-      .then(() => db.ref(`users/${name}`).update({ admin: true }))
+    const safeName = String(name);
+    db.ref(`admins/${safeName}`).set(true)
+      .then(() => db.ref(`users/${safeName}`).update({ admin: true }))
       .then(() => { document.getElementById("adminInp").value = ""; })
       .catch(err => { console.error(err); alert("Не удалось сделать пользователя администратором"); });
 }
@@ -1054,9 +1349,9 @@ function renderOnlineUsers() {
         const user = latestUsers[name] || {};
         const lastSeen = user.lastSeen ? new Date(user.lastSeen) : null;
         const timeLabel = lastSeen ? lastSeen.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—';
-        return `<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 10px; background:rgba(255,255,255,0.05); border-radius:12px;">
-                    <span style="font-weight:700;">${escapeHtml(name)}</span>
-                    <span style="opacity:.7; font-size:13px;">${timeLabel}</span>
+        return `<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 12px; background:rgba(99, 102, 241, 0.04); border-radius:10px; border: 1px solid var(--border);">
+                    <span style="font-weight:700; color:var(--text);">${escapeHtml(name)}</span>
+                    <span style="opacity:.7; font-size:13px; color:#64748b;">${timeLabel}</span>
                 </div>`;
     }).join("");
     container.innerHTML = html;
@@ -1096,11 +1391,17 @@ function listenAdminUsers() {
         }
         renderAdminUsers(latestUsers, currentBlockedIps, currentAdmins);
     });
+    db.ref("active_shift").on("value", snap => {
+        const shift = snap.val();
+        renderActiveShiftAdmin(shift);
+    });
 }
 
 function renderAdminUsers(users, blocked, admins) {
+    if (!users || !blocked || !admins) return;
     let html = "";
     Object.keys(users).sort().forEach(name => {
+        if (!name) return;
         const user = users[name] || {};
         const ip = user.ip || "";
         const ipKey = ip ? dbKey(ip) : "";
@@ -1109,14 +1410,16 @@ function renderAdminUsers(users, blocked, admins) {
         const isUserMuted = !!mutedUsers[name];
         const safeName = escapeHtml(name);
         const safeIp = escapeHtml(ip || "нет");
+        const safeJsName = escapeJsString(name);
+        const safeJsIpKey = escapeJsString(ipKey);
         const roleLabel = isUserAdmin ? `<span style="font-size:10px; color:#38bdf8; margin-left:6px;">admin</span>` : "";
         const adminActionBtn = isUserAdmin && name.toLowerCase() !== "дениска"
-            ? `<button class="glass-btn admin-action-btn" style="background:rgba(255,255,255,0.08);" onclick="removeAdmin('${escapeJsString(name)}')">Снять admin</button>`
+            ? `<button class="glass-btn admin-action-btn" style="background:rgba(255,255,255,0.08);" onclick="removeAdmin('${safeJsName}')">Снять admin</button>`
             : "";
         const actionBtn = ip
-            ? `<button class="glass-btn admin-action-btn" style="${isBlocked ? 'background:#ff3b30;color:#111;' : ''}" onclick="${isBlocked ? `unblockIp('${escapeJsString(ipKey)}')` : `blockIp('${escapeJsString(ipKey)}')`}">${isBlocked ? 'Разблокировать' : 'Заблокировать'}</button>`
+            ? `<button class="glass-btn admin-action-btn" style="${isBlocked ? 'background:#ff3b30;color:#111;' : ''}" onclick="${isBlocked ? `unblockIp('${safeJsIpKey}')` : `blockIp('${safeJsIpKey}')`}">${isBlocked ? 'Разблокировать' : 'Заблокировать'}</button>`
             : `<button class="glass-btn admin-action-btn" style="opacity:.5; cursor:not-allowed;" disabled>нет IP</button>`;
-        const muteBtn = `<button class="glass-btn admin-action-btn" style="${isUserMuted ? 'background:#ff3b30;color:#111;' : ''}" onclick="toggleMuteUser('${escapeJsString(name)}')">${isUserMuted ? 'Размутить' : 'Мут'}</button>`;
+        const muteBtn = `<button class="glass-btn admin-action-btn" style="${isUserMuted ? 'background:#ff3b30;color:#111;' : ''}" onclick="toggleMuteUser('${safeJsName}')">${isUserMuted ? 'Размутить' : 'Мут'}</button>`;
         html += `
             <div class="admin-user-card">
                 <div class="user-info">
@@ -1124,15 +1427,131 @@ function renderAdminUsers(users, blocked, admins) {
                     <div class="admin-user-status">IP: ${safeIp}${isUserMuted ? ' · muted' : ''}</div>
                 </div>
                 <div class="admin-actions">
-                    <button class="glass-btn admin-action-btn" onclick="showProfileModal('${escapeJsString(name)}')">Просмотр</button>
+                    <button class="glass-btn admin-action-btn" onclick="showProfileModal('${safeJsName}')">Просмотр</button>
                     ${muteBtn}
                     ${actionBtn}
                     ${adminActionBtn}
-                    <button class="glass-btn admin-action-btn" style="background: rgba(255,59,48,0.12); color:#ff7f84;" onclick="deleteUser('${escapeJsString(name)}')">Удалить</button>
+                    <button class="glass-btn admin-action-btn" style="background: rgba(255,59,48,0.12); color:#ff7f84;" onclick="deleteUser('${safeJsName}')">Удалить</button>
                 </div>
             </div>`;
     });
-    document.getElementById("adminUsersList").innerHTML = html || '<div style="color:#aaa">Нет зарегистрированных пользователей</div>';
+    const container = document.getElementById("adminUsersList");
+    if (container) container.innerHTML = html || '<div style="color:#aaa">Нет зарегистрированных пользователей</div>';
+}
+
+function renderActiveShiftAdmin(shift) {
+    const adminShiftContainer = document.getElementById("adminActiveShiftPanel");
+    if (!adminShiftContainer) return;
+    
+    if (!shift) {
+        adminShiftContainer.innerHTML = '<div style="color:#aaa; padding:15px;">Нет активной смены</div>';
+        return;
+    }
+    
+    const startTime = new Date(shift.startTime).toLocaleTimeString("ru-RU", {hour: "2-digit", minute: "2-digit"});
+    const duration = ((Date.now() - shift.startTime) / 60000).toFixed(1);
+    const totalEarnings = shift.totalSalary || 0;
+    
+    let participantsHtml = '';
+    if (shift.participants) {
+        Object.entries(shift.participants).forEach(([name, data]) => {
+            const earnedAmount = (data.earned || 0).toFixed(0);
+            const safeName = escapeHtml(name);
+            participantsHtml += `<div style="display:flex; justify-content:space-between; padding:8px 10px; border-bottom: 1px solid var(--border);">
+                <span>${safeName}</span>
+                <span style="font-weight:600;">${earnedAmount} ₽</span>
+            </div>`;
+        });
+    }
+    
+    const html = `
+        <div class="admin-panel-section">
+            <h3 style="margin-top:0; color:var(--text);">🔴 Активная смена (Admin)</h3>
+            <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:15px; margin-bottom:15px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
+                    <div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">Начало:</div>
+                        <div style="font-weight:600; color:var(--text);">${startTime}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">Длительность:</div>
+                        <div style="font-weight:600; color:var(--text);">${duration} мин</div>
+                    </div>
+                    <div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">Участников:</div>
+                        <div style="font-weight:600; color:var(--text);">${Object.keys(shift.participants || {}).length}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">Общий заработок:</div>
+                        <div style="font-weight:600; color:var(--accent);">${totalEarnings.toFixed(0)} ₽</div>
+                    </div>
+                </div>
+                <div style="background:var(--bg); border-radius:8px; max-height:150px; overflow-y:auto; margin-bottom:15px;">
+                    ${participantsHtml || '<div style="padding:10px; color:var(--text-secondary);">Нет участников</div>'}
+                </div>
+                <button class="danger" style="width:100%; padding:10px; font-size:14px; font-weight:600;" onclick="closeShiftFromAdmin()">
+                    ⛔ Закрыть смену для всех
+                </button>
+            </div>
+        </div>
+    `;
+    
+    adminShiftContainer.innerHTML = html;
+}
+
+function closeShiftFromAdmin() {
+    db.ref("active_shift").once("value", snap => {
+        const shift = snap.val();
+        if (!shift || !shift.participants) {
+            alert("Смена уже закрыта");
+            return;
+        }
+        
+        // Правильно рассчитываем все показатели перед архивированием
+        const startT = new Date(shift.startTime || Date.now());
+        const endT = new Date();
+        const cdekCount = shift.cdek || 0;
+        const wbCount = shift.wb || 0;
+        const dostCount = shift.dost || 0;
+        const optCount = shift.opt || 0;
+        const totalCount = cdekCount + wbCount + dostCount;
+        
+        const allParticipants = Object.assign({}, shift.allParticipants || {}, shift.participants || {});
+        const numParts = Object.keys(allParticipants).length;
+        const totalSalary = Object.values(allParticipants).reduce((sum, p) => sum + (p.earned || 0), 0);
+        
+        // Создаем полную копию для архива с неизменяемыми данными
+        const archiveShift = {
+            date: startT.toLocaleDateString(),
+            total: totalCount,
+            cdek: cdekCount,
+            wb: wbCount,
+            dost: dostCount,
+            opt: optCount,
+            totalSalary: totalSalary,
+            numParticipants: numParts,
+            participants: JSON.parse(JSON.stringify(allParticipants)), // Deep copy
+            start: startT.toLocaleString(),
+            end: endT.toLocaleString(),
+            startTime: shift.startTime,
+            endTime: Date.now(),
+            closedBy: currentUser,
+            closedAt: Date.now()
+        };
+        
+        const now = new Date();
+        const archiveKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${Date.now()}`;
+        
+        db.ref(`shifts/${archiveKey}`).set(archiveShift, err => {
+            if (!err) {
+                db.ref("active_shift").set(null);
+                alert('✅ Смена закрыта админом и сохранена в архив');
+                console.log("Смена закрыта админом:", currentUser);
+            } else {
+                alert('❌ Ошибка при закрытии смены: ' + err.message);
+            }
+        });
+    });
 }
 
 function renderBlockedIps(blocked) {
@@ -1143,12 +1562,12 @@ function renderBlockedIps(blocked) {
         const blockedBy = escapeHtml(item.blockedBy || "");
         const blockedAt = item.at ? new Date(item.at).toLocaleString() : "";
         html += `
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px; background:rgba(255,255,255,0.05); border-radius:15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px; background:white; border: 1px solid var(--border); border-radius:10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
                 <div>
-                    <div style="font-weight:700;">${escapeHtml(ip)}</div>
-                    <div style="font-size:12px; color:#aaa;">${blockedBy ? `Заблокировал: ${blockedBy}` : ''}${blockedAt ? ` ${blockedAt}` : ''}</div>
+                    <div style="font-weight:700; color:var(--text);">${escapeHtml(ip)}</div>
+                    <div style="font-size:12px; color:#64748b;">${blockedBy ? `Заблокировал: ${blockedBy}` : ''}${blockedAt ? ` ${blockedAt}` : ''}</div>
                 </div>
-                <button class="glass-btn" style="font-size:12px;" onclick="unblockIp('${escapeJsString(ipKey)}')">Разблокировать</button>
+                <button class="glass-btn" style="font-size:12px; padding:8px 12px;" onclick="unblockIp('${escapeJsString(ipKey)}')">Разблокировать</button>
             </div>`;
     });
     document.getElementById("blockedIpsList").innerHTML = html || '<div style="color:#aaa">Нет заблокированных IP</div>';
@@ -1204,7 +1623,8 @@ function renderSched() {
     const m = scheduleDate.getMonth();
     const days = new Date(y, m + 1, 0).getDate();
     const weekDays = ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
-    document.getElementById("monthLabel").innerText = `${(m+1).toString().padStart(2,'0')}.${y}`;
+    const monthLabel = document.getElementById("monthLabel");
+    if (monthLabel) monthLabel.innerText = `${(m+1).toString().padStart(2,'0')}.${y}`;
 
     let h = "<th>Имя</th>";
     for (let i = 1; i <= days; i++) {
@@ -1213,19 +1633,24 @@ function renderSched() {
                 <span class="day-name">${weekDays[d.getDay()]}</span>${i}
               </th>`;
     }
-    document.getElementById("h-row").innerHTML = h;
+    const hRow = document.getElementById("h-row");
+    if (hRow) hRow.innerHTML = h;
 
     if (currentSchedRef) currentSchedRef.off();
     currentSchedRef = db.ref(`schedule/${y}-${m}/${scheduleMode}`);
 
     currentSchedRef.on("value", snap => {
+        const bRows = document.getElementById("b-rows");
+        if (!bRows) return;
         const data = snap.val() || {};
         let html = "";
         Object.keys(data).sort().forEach(n => {
+            if (!n) return;
             const row = data[n] || {};
             const safeName = escapeJsString(n);
+            const safeHtml = escapeHtml(n);
             html += `<tr>
-                <td class="name-col" data-name="${escapeHtml(n)}" onclick="deleteStaff('${safeName}')">${escapeHtml(n)}</td>`;
+                <td class="name-col" data-name="${safeHtml}" onclick="deleteStaff('${safeName}')">${safeHtml}</td>`;
             for (let i = 1; i <= days; i++) {
                 const isWork = row[i] === "10-22";
                 html += `<td>
@@ -1234,8 +1659,8 @@ function renderSched() {
             }
             html += "</tr>";
         });
-        document.getElementById("b-rows").innerHTML = html;
-    });
+        bRows.innerHTML = html;
+    }, err => { console.error('Schedule listen error:', err); });
 }
 
 function setMode(mode) {
@@ -1310,7 +1735,25 @@ function toggleWorkCell(path, name, day, isWork) {
     }
 }
 
-function setupPresence() { const r = db.ref(`presence/${currentUser}`); r.set("online"); r.onDisconnect().remove(); db.ref("presence").on("value", snap => { latestPresence = snap.val() || {}; const m = document.getElementById("presence-mini"); m.innerHTML = ""; Object.keys(latestPresence).forEach(() => m.innerHTML += `<div style="width:6px;height:6px;background:var(--online);border-radius:50%;"></div>`); renderOnlineUsers(); }); }
+function setupPresence() {
+    if (!currentUser) return;
+    const r = db.ref(`presence/${currentUser}`);
+    r.set("online").catch(e => console.error('Presence set error:', e));
+    r.onDisconnect().remove();
+    let presenceFirst = true;
+    db.ref("presence").on("value", snap => {
+        latestPresence = snap.val() || {};
+        const m = document.getElementById("presence-mini");
+        if (m) {
+            m.innerHTML = "";
+            const count = Object.keys(latestPresence).length;
+            for (let i = 0; i < count; i++) {
+                m.innerHTML += `<div style="width:6px;height:6px;background:var(--online);border-radius:50%;"></div>`;
+            }
+        }
+        if (presenceFirst) { renderOnlineUsers(); presenceFirst = false; }
+    }, err => console.error('Presence listen error:', err));
+}
 function uploadAvatar(input) {
     if (input.files[0]) {
         const reader = new FileReader();
@@ -1412,6 +1855,273 @@ function initAvatarEditor() {
 }
 
 initAvatarEditor();
+
+function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.classList.contains('dark-mode');
+    const themeBtn = document.getElementById('btn-theme');
+    
+    if (isDark) {
+        html.classList.remove('dark-mode');
+        themeBtn.innerText = '🌙';
+        localStorage.setItem('theme', 'light');
+    } else {
+        html.classList.add('dark-mode');
+        themeBtn.innerText = '☀️';
+        localStorage.setItem('theme', 'dark');
+    }
+}
+
+function initTheme() {
+    const theme = localStorage.getItem('theme') || 'light';
+    const html = document.documentElement;
+    const themeBtn = document.getElementById('btn-theme');
+    
+    if (theme === 'dark') {
+        html.classList.add('dark-mode');
+        if (themeBtn) themeBtn.innerText = '☀️';
+    } else {
+        html.classList.remove('dark-mode');
+        if (themeBtn) themeBtn.innerText = '🌙';
+    }
+}
+
+function closeShift() {
+    if (!currentUser || !isAdmin) return;
+    
+    db.ref("active_shift").once("value", snap => {
+        const shift = snap.val();
+        if(!shift || !shift.participants) return;
+
+        const startT = new Date(shift.startTime || Date.now());
+        const endT = new Date();
+        const cdekCount = shift.cdek || 0;
+        const wbCount = shift.wb || 0;
+        const dostCount = shift.dost || 0;
+        const optCount = shift.opt || 0;
+        const totalCount = cdekCount + wbCount + dostCount;
+        
+        // Show report modal like leaveShift does
+        const reportText = `
+            <b>Смена закрыта!</b><br><br>
+            Общая статистика смены:<br>
+            Заказы: ${totalCount} | Оптовые: ${optCount}<br><br>
+            <span style="color:var(--accent); font-weight:800; font-size:20px;">Общий заработок: ${shift.totalSalary ? Math.round(shift.totalSalary) : 0}₽</span><br><br>
+            <span style="font-size:12px; color:#888;">${startT.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${endT.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+        `;
+        document.getElementById("reportDetails").innerHTML = reportText;
+        document.getElementById("reportModal").style.display = "flex";
+        
+        const allParticipants = Object.assign({}, shift.allParticipants || {}, shift.participants || {});
+        const numParts = Object.keys(allParticipants).length;
+        const totalSalary = Object.values(allParticipants).reduce((sum, p) => sum + (p.earned || 0), 0);
+        
+        // Сохранить в архив с глубокой копией для неизменяемости
+        db.ref("shifts").push({
+            date: startT.toLocaleDateString(),
+            total: totalCount,
+            cdek: cdekCount,
+            wb: wbCount,
+            dost: dostCount,
+            opt: optCount,
+            totalSalary: totalSalary,
+            numParticipants: numParts,
+            participants: JSON.parse(JSON.stringify(allParticipants)), // Deep copy to prevent mutations
+            start: startT.toLocaleString(),
+            end: endT.toLocaleString(),
+            startTime: shift.startTime,
+            endTime: Date.now(),
+            closedBy: currentUser,
+            closedAt: Date.now()
+        }).then(() => {
+            // Удалить активную смену
+            db.ref("active_shift").remove();
+        });
+    });
+}
+
+function listenAnnouncements() {
+    // Register character counter for admin input
+    const mobileInput = document.getElementById("announcementInputMobile");
+    
+    if (mobileInput) {
+        mobileInput.addEventListener("input", () => {
+            const counter = document.getElementById("announcementCharsMobile");
+            if (counter) counter.innerText = mobileInput.value.length;
+        });
+    }
+    
+    // Display announcements history for admins (only if admin)
+    if (isAdmin) {
+        db.ref("announcements").orderByChild("timestamp").limitToLast(10).on("value", snap => {
+            let html = "";
+            snap.forEach(s => {
+                const a = s.val();
+                const key = s.key;
+                const time = new Date(a.timestamp).toLocaleTimeString("ru-RU", {hour: "2-digit", minute: "2-digit"});
+                const by = escapeHtml(a.by || "");
+                const deleteBtn = `<button style="background:none; border:none; color:#dc2626; font-size:11px; cursor:pointer; padding:2px 6px; line-height:1; transition:opacity 0.2s;" onclick="deleteAnnouncement('${key}')" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">✕ Удалить</button>`;
+                html = `<div style="font-size:11px; padding:10px; border-bottom:1px solid var(--border); background:var(--bg); border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:start; gap:8px;">
+                    <div style="flex:1;">
+                        <div style="color:var(--accent); font-weight:600;">${by}</div>
+                        <div style="color:var(--text); margin:4px 0; line-height:1.4; word-break:break-word;">${escapeHtml(a.text)}</div>
+                        <div style="color:var(--text-secondary); font-size:10px;">${time}</div>
+                    </div>
+                    ${deleteBtn}
+                </div>` + html;
+            });
+            const container = document.getElementById("announcementsHistory");
+            if (container) {
+                container.innerHTML = html || '<div style="font-size:12px; color:var(--text-secondary); text-align:center; padding:20px 0;">Нет объявлений</div>';
+            }
+        });
+    }
+    
+    // Display announcements to ALL users (latest 3) - visible in main feed
+    db.ref("announcements").orderByChild("timestamp").limitToLast(3).on("value", snap => {
+        let html = "";
+        snap.forEach(s => {
+            const a = s.val();
+            const key = s.key;
+            const time = new Date(a.timestamp).toLocaleTimeString("ru-RU", {hour: "2-digit", minute: "2-digit"});
+            const by = escapeHtml(a.by || "");
+            const deleteBtn = isAdmin ? `<button style="background:none; border:none; color:#dc2626; font-size:12px; cursor:pointer; padding:4px 8px; line-height:1; transition:opacity 0.2s; margin-left:auto;" onclick="deleteAnnouncement('${key}')" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">✕</button>` : '';
+            html = `<div style="display:flex; gap:10px; padding:12px 0; border-bottom:1px solid var(--border); align-items:flex-start;">
+                <div style="font-size:14px; flex-shrink:0; margin-top:2px;">📢</div>
+                <div style="flex:1; min-width:0;">
+                    <div style="font-weight:600; color:var(--accent); font-size:12px;">${by}</div>
+                    <div style="color:var(--text); font-size:13px; margin:4px 0; line-height:1.4; word-break:break-word;">${escapeHtml(a.text)}</div>
+                    <div style="color:var(--text-secondary); font-size:11px;">${time}</div>
+                </div>
+                ${deleteBtn}
+            </div>` + html;
+        });
+        const container = document.getElementById("announcementsPublicContent");
+        const publicDiv = document.getElementById("announcementsPublic");
+        if (container && publicDiv) {
+            if (html) {
+                container.innerHTML = html;
+                publicDiv.style.display = "block";
+            } else {
+                publicDiv.style.display = "none";
+            }
+        }
+    });
+    
+    // Listen for new announcements to show popup notifications - for ALL users
+    db.ref("announcements").on("child_added", snap => {
+        const a = snap.val();
+        // Don't show popup for announcements older than 10 seconds
+        if (Date.now() - a.timestamp > 10000) return;
+        // Don't show popup if current user is the one who posted it
+        if (a.by === currentUser) return;
+        
+        showAnnouncementPopup(a);
+    });
+}
+
+function deleteAnnouncement(key) {
+    if (!isAdmin) {
+        alert("Только админ может удалять объявления");
+        return;
+    }
+    db.ref(`announcements/${key}`).remove().catch(err => {
+        alert("Ошибка при удалении: " + err.message);
+    });
+}
+
+function sendAnnouncement(source = 'mobile') {
+    const input = document.getElementById("announcementInputMobile");
+    
+    if (!input) return;
+    
+    const text = input.value.trim();
+    
+    if (!text) {
+        alert("Напишите что-нибудь!");
+        return;
+    }
+    
+    if (!isAdmin) {
+        alert("Только админ может отправлять объявления");
+        return;
+    }
+    
+    db.ref("announcements").push({
+        text: text,
+        by: currentUser,
+        timestamp: Date.now()
+    }).then(() => {
+        input.value = "";
+        const charCounter = document.getElementById("announcementCharsMobile");
+        if (charCounter) charCounter.innerText = "0";
+        
+        // Auto-collapse mobile panel after sending
+        const mobilePanel = document.getElementById("adminPanelMobile");
+        if (mobilePanel) {
+            mobilePanel.classList.add("collapsed");
+        }
+    }).catch(err => {
+        alert("Ошибка: " + err.message);
+    });
+}
+
+function showAnnouncementPopup(announcement) {
+    const popup = document.getElementById("announcementNotification");
+    if (!popup) return;
+    
+    const text = escapeHtml(announcement.text);
+    const by = escapeHtml(announcement.by);
+    
+    popup.innerHTML = `
+        <div id="announcement-popup" style="position: fixed; bottom: 20px; right: 20px; background: white; border-left: 4px solid var(--accent); border-radius: 12px; padding: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 2000; max-width: 320px; animation: slideIn 0.3s ease; word-wrap: break-word; word-break: break-word; overflow-wrap: break-word;">
+            <div style="display:flex; justify-content:space-between; align-items:start; gap:10px; margin-bottom:8px;">
+                <div style="font-weight:700; color:var(--accent); flex-grow:1;">📢 ${by}</div>
+                <button style="background:none; border:none; color:var(--text-secondary); font-size:18px; cursor:pointer; padding:0; line-height:1; transition:color 0.2s; flex-shrink:0;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-secondary)'" onclick="this.closest('#announcement-popup').style.display='none'">×</button>
+            </div>
+            <div style="font-size:14px; line-height:1.5; color:var(--text);">${text}</div>
+            <div style="font-size:11px; color:var(--text-secondary); margin-top:8px; text-align:right;">Закроется через 8 сек</div>
+        </div>
+    `;
+    popup.style.display = "block";
+    
+    // Auto-hide after 8 seconds with fade out
+    const popupElement = popup.querySelector('#announcement-popup');
+    if (popupElement) {
+        setTimeout(() => {
+            if (popup.style.display !== "none") {
+                popupElement.style.opacity = '0';
+                popupElement.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => {
+                    popup.style.display = "none";
+                }, 300);
+            }
+        }, 8000);
+    }
+}
+
+function toggleAnnouncementsMenu() {
+    const content = document.getElementById("announcementsPublicContent");
+    const arrow = document.querySelector(".announcement-toggle-arrow");
+    if (!content || !arrow) return;
+    
+    const isHidden = content.style.display === "none";
+    content.style.display = isHidden ? "block" : "none";
+    arrow.textContent = isHidden ? "▼" : "▶";
+    
+    // Save preference to localStorage
+    localStorage.setItem("announcementsCollapsed", !isHidden);
+}
+
+function toggleAdminPanelMobile() {
+    const panel = document.getElementById("adminPanelMobile");
+    const header = panel ? panel.querySelector(".admin-panel-header") : null;
+    if (!panel || !header) return;
+    
+    const isCollapsed = panel.classList.toggle("collapsed");
+    header.classList.toggle("collapsed", isCollapsed);
+    localStorage.setItem("adminPanelCollapsed", isCollapsed);
+}
 
 function logout() { localStorage.clear(); location.reload(); }
 </script>
