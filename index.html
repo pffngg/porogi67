@@ -404,6 +404,39 @@ html.dark-mode #active-shift-info span {
             <button class="danger ctrl-btn" style="padding:12px 16px;" onclick="removeCounter('dost')">−</button>
         </div>
       </div>
+<div class="card">
+  <h4 style="margin:0 0 12px 0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">
+    ФБО
+  </h4>
+
+  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+    <button id="fboBtnS" class="glass-btn fbo-control" style="width:48px; padding:12px 0;" onclick="selectFboSuffix('S')">
+      S
+    </button>
+
+    <button id="fboBtnF" class="glass-btn fbo-control" style="width:48px; padding:12px 0;" onclick="selectFboSuffix('F')">
+      F
+    </button>
+
+    <input
+      id="fboArticleInput"
+      class="fbo-control"
+      placeholder="Введите артикул"
+      style="flex:1; min-width:160px; padding:14px 16px; border-radius:12px; border:1px solid var(--border); background:white; color:var(--text); font-size:14px;"
+      onkeydown="handleFboArticleKey(event)"
+    >
+
+    <div class="count" id="fbo_val" style="font-size:28px; padding:12px 18px; pointer-events:none;">
+      0
+    </div>
+  </div>
+
+  <div id="fboSelectedSuffix" style="font-size:12px; color:#64748b; margin-top:10px;">
+    Выберите S или F
+  </div>
+
+  <div id="fboArticlesList" style="margin-top:12px; display:flex; flex-direction:column; gap:8px;"></div>
+</div>
       <div class="card"><h4 style="margin:0 0 12px 0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">ОПТОВЫЕ ЗАКАЗЫ</h4>
         <div style="display:flex; gap:16px; align-items: center;">
             <button class="success-btn ctrl-btn" style="flex:1; font-size:24px;" onclick="addCounter('opt')">+</button>
@@ -533,6 +566,8 @@ let currentIp = "";
 let latestPresence = {};
 let latestUsers = {};
 let adminListenersInitialized = false;
+let announcementsListenersInitialized = false;
+let announcementsAdminHistoryInitialized = false;
 let avatarEditorImage = null;
 let avatarScale = 1;
 let avatarOffset = { x: 0, y: 0 };
@@ -544,6 +579,7 @@ let currentBlockedIps = {};
 let currentAdmins = {};
 let profileViewUser = currentUser;
 let profileEditable = true;
+let currentFboSuffix = "";
 
 if(currentUser) showApp();
 
@@ -571,6 +607,7 @@ function login() {
 
 function showApp() {
   initTheme();
+
   document.getElementById("login").style.display = "none";
   document.getElementById("app").style.display = "block";
   document.getElementById("btn-settings").style.display = "none";
@@ -578,35 +615,52 @@ function showApp() {
   document.getElementById("adminUsersPanel").style.display = "none";
   document.getElementById("adminPanelMobile").style.display = "none";
 
+  // Публичные объявления слушают все пользователи один раз
+  listenAnnouncements();
+
   db.ref("admins").on("value", snap => {
       const admins = snap.val() || {};
       isAdmin = !!admins[currentUser] || currentUser.toLowerCase() === "дениска";
-      document.getElementById("userTag").innerText = isAdmin ? "⭐" + currentUser : "@" + currentUser.toLowerCase();
+
+      document.getElementById("userTag").innerText = isAdmin
+          ? "⭐" + currentUser
+          : "@" + currentUser.toLowerCase();
+
       document.getElementById("btn-settings").style.display = isAdmin ? "inline-flex" : "none";
       document.getElementById("adminPanel").style.display = isAdmin ? "flex" : "none";
       document.getElementById("adminUsersPanel").style.display = isAdmin ? "block" : "none";
-      document.getElementById("app-sidebar").style.display = isAdmin ? "block" : "none";
       document.getElementById("adminPanelMobile").style.display = isAdmin ? "block" : "none";
-      
-      // Restore collapsed state for mobile panel
+
+      // Исправление: элемента app-sidebar в HTML нет, поэтому проверяем его наличие
+      const appSidebar = document.getElementById("app-sidebar");
+      if (appSidebar) {
+          appSidebar.style.display = isAdmin ? "block" : "none";
+      }
+
       if (isAdmin && localStorage.getItem("adminPanelCollapsed") === "true") {
           document.getElementById("adminPanelMobile").classList.add("collapsed");
       }
-      
+
       if (isAdmin && !adminListenersInitialized) {
           listenAdminUsers();
-          listenAnnouncements();
           adminListenersInitialized = true;
+      }
+
+      if (isAdmin) {
+          listenAdminAnnouncementsHistory();
       }
   });
 
   db.ref("users").on("value", snap => {
       latestUsers = snap.val() || {};
       userAvatars = latestUsers;
+
       const myAv = userAvatars[currentUser]?.avatar || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
       document.getElementById("myAvatar").src = myAv;
+
       const profileAvatar = document.getElementById("profileAvatarPreview");
       if (profileAvatar) profileAvatar.src = myAv;
+
       renderOnlineUsers();
   });
 
@@ -614,24 +668,31 @@ function showApp() {
       mutedUsers = snap.val() || {};
       isMuted = !!mutedUsers[currentUser];
       renderMuteState();
-      if (isAdmin) renderAdminUsers(latestUsers, currentBlockedIps, currentAdmins);
+
+      if (isAdmin) {
+          renderAdminUsers(latestUsers, currentBlockedIps, currentAdmins);
+      }
   });
 
-  setupPresence(); listenChat(); renderSched(); listenHistory(); listenActiveShift();
+  setupPresence();
+  listenChat();
+  renderSched();
+  listenHistory();
+  listenActiveShift();
   fetchAndStoreMyIp();
-  
-  // Listen for announcements for ALL users (not just admins)
-  listenAnnouncements();
-  
-  // Restore announcements collapsed state
+
   if (localStorage.getItem("announcementsCollapsed") === "true") {
       const content = document.getElementById("announcementsPublicContent");
       const arrow = document.querySelector(".announcement-toggle-arrow");
+
       if (content) content.style.display = "none";
       if (arrow) arrow.textContent = "▶";
   }
-  
-  window.onclick = () => document.getElementById("context-menu").style.display = "none";
+
+  window.onclick = () => {
+      const menu = document.getElementById("context-menu");
+      if (menu) menu.style.display = "none";
+  };
 }
 
 function showProfileModal(userName = currentUser) {
@@ -657,6 +718,7 @@ function loadProfileStats(userName = currentUser) {
         let shiftsCount = 0;
         let totalOrders = 0;
         let totalOpt = 0;
+        let totalFbo = 0;
         snap.forEach(child => {
             const d = child.val();
             if (d.participants && d.participants[userName]) {
@@ -665,12 +727,14 @@ function loadProfileStats(userName = currentUser) {
                 totalSalary += myData.earned || 0;
                 totalOrders += myData.orders || ((d.total || 0) / (d.numParticipants || 1));
                 totalOpt += myData.optOrders || ((d.opt || 0) / (d.numParticipants || 1));
+                totalFbo += myData.fboOrders || ((d.fbo || 0) / (d.numParticipants || 1));
             }
         });
         document.getElementById("profileStats").innerHTML = `
             <div>Смен отработано: <b>${shiftsCount}</b></div>
             <div>Всего заказов: <b>${Math.round(totalOrders)}</b></div>
             <div>Оптовых заказов: <b>${Math.round(totalOpt)}</b></div>
+            <div>ФБО заказов: <b>${Math.round(totalFbo)}</b></div>
             <div>Заработано всего: <b>${Math.round(totalSalary)} ₽</b></div>
         `;
         const profileAvatar = document.getElementById("profileAvatarPreview");
@@ -726,18 +790,21 @@ function deleteUser(name) {
 function listenActiveShift() {
     db.ref("active_shift").on("value", snap => {
         const shift = snap.val();
+
         const workDiv = document.getElementById("work");
         const startBtnCont = document.getElementById("startBtnCont");
         const joinBtn = document.getElementById("joinShiftBtn");
         const leaveBtn = document.getElementById("leaveShiftBtn");
         const closeBtn = document.getElementById("closeShiftBtn");
         const ctrls = document.querySelectorAll(".ctrl-btn");
+
         const cdekVal = document.getElementById("cdek_val");
         const wbVal = document.getElementById("wb_val");
         const dostVal = document.getElementById("dost_val");
         const optVal = document.getElementById("opt_val");
+        const fboVal = document.getElementById("fbo_val");
 
-        if(shift) {
+        if (shift) {
             localStorage.setItem("active_shift_backup", JSON.stringify(shift));
 
             startBtnCont.style.display = "none";
@@ -747,53 +814,93 @@ function listenActiveShift() {
             wbVal.innerText = shift.wb || 0;
             dostVal.innerText = shift.dost || 0;
             optVal.innerText = shift.opt || 0;
-            document.getElementById("total").innerText = (shift.cdek || 0) + (shift.wb || 0) + (shift.dost || 0);
-            document.getElementById("optDisplay").innerText = `Оптовые: ${shift.opt || 0}`;
+
+if (fboVal) {
+    fboVal.innerText = shift.fbo || 0;
+}
+
+renderFboArticles(shift.fboArticles || {});
+
+document.getElementById("total").innerText =
+    (shift.cdek || 0) +
+    (shift.wb || 0) +
+    (shift.dost || 0) +
+    (shift.fbo || 0);
+
+document.getElementById("optDisplay").innerText = `Оптовые: ${shift.opt || 0}`;
 
             const parts = shift.participants || {};
             isGlobalParticipant = parts[currentUser] !== undefined;
 
             let partsText = "<b style='color:var(--accent);'>🟢 Смена в эфире:</b><br><br>";
+
             Object.keys(parts).forEach(p => {
-                partsText += `• ${p} <span style="float:right; opacity:0.8;">${(parts[p].earned || 0).toFixed(0)}₽</span><br>`;
+                partsText += `• ${escapeHtml(p)} <span style="float:right; opacity:0.8;">${Number(parts[p].earned || 0).toFixed(0)}₽</span><br>`;
             });
+
             document.getElementById("shift-participants").innerHTML = partsText;
 
-            if(isGlobalParticipant) {
+            if (isGlobalParticipant) {
                 ctrls.forEach(b => b.style.display = "flex");
+                setFboControlsEnabled(true);
+
                 joinBtn.style.display = "none";
                 leaveBtn.style.display = "flex";
-                closeBtn.style.display = "flex";
+
+                // Исправление: кнопку закрытия видит только админ
+                closeBtn.style.display = isAdmin ? "flex" : "none";
+
                 cdekVal.style.pointerEvents = "auto";
                 wbVal.style.pointerEvents = "auto";
                 dostVal.style.pointerEvents = "auto";
                 optVal.style.pointerEvents = "auto";
-                document.getElementById("salaryDisplay").innerText = `Моя доля: ${(parts[currentUser].earned || 0).toFixed(0)}₽`;
+
+                document.getElementById("salaryDisplay").innerText =
+                    `Моя доля: ${Number(parts[currentUser].earned || 0).toFixed(0)}₽`;
             } else {
                 ctrls.forEach(b => b.style.display = "none");
+                setFboControlsEnabled(false);
+
                 joinBtn.style.display = "flex";
                 leaveBtn.style.display = "none";
                 closeBtn.style.display = "none";
+
                 cdekVal.style.pointerEvents = "none";
                 wbVal.style.pointerEvents = "none";
                 dostVal.style.pointerEvents = "none";
                 optVal.style.pointerEvents = "none";
-                document.getElementById("salaryDisplay").innerText = "Режим куколда 👀";
+
+                document.getElementById("salaryDisplay").innerText = "Режим просмотра 👀";
             }
         } else {
-            startBtnCont.style.display = "block";
-            workDiv.style.display = "none";
-            isGlobalParticipant = false;
-        }
+    startBtnCont.style.display = "block";
+    workDiv.style.display = "none";
+    isGlobalParticipant = false;
+
+    if (fboVal) fboVal.innerText = "0";
+    renderFboArticles({});
+    setFboControlsEnabled(false);
+}
     });
 }
 
 function startShift() {
+    const participant = createParticipantData(Date.now());
+
     db.ref("active_shift").set({
         startTime: Date.now(),
-        cdek: 0, wb: 0, dost: 0, opt: 0,
-        participants: { [currentUser]: createParticipantData(Date.now()) },
-        allParticipants: { [currentUser]: createParticipantData(Date.now()) }
+        cdek: 0,
+        wb: 0,
+        dost: 0,
+        fbo: 0,
+        opt: 0,
+        fboArticles: {},
+        participants: {
+            [currentUser]: participant
+        },
+        allParticipants: {
+            [currentUser]: participant
+        }
     });
 }
 
@@ -802,21 +909,26 @@ function joinShift() {
         alert("Ошибка: пользователь не авторизован");
         return;
     }
+
     db.ref("active_shift").once("value", snap => {
         const shift = snap.val() || {};
+
         if (!shift.startTime) {
             alert("Ошибка: нет активной смены");
             return;
         }
-        const existing = (shift.allParticipants && shift.allParticipants[currentUser]) || createParticipantData(Date.now());
-        
-        // Сохраняем текущие данные смены
+
+        const participantData = getParticipantDataForJoin(shift, currentUser);
+
         const updateData = {
-            [`active_shift/participants/${currentUser}`]: createParticipantData(Date.now()),
-            [`active_shift/allParticipants/${currentUser}`]: existing
+            [`active_shift/participants/${currentUser}`]: participantData,
+            [`active_shift/allParticipants/${currentUser}`]: participantData
         };
-        
-        db.ref().update(updateData).catch(err => console.error('joinShift error:', err));
+
+        db.ref().update(updateData).catch(err => {
+            console.error("joinShift error:", err);
+            alert("Ошибка при присоединении к смене");
+        });
     });
 }
 
@@ -832,7 +944,8 @@ function createParticipantData(joinedAt = Date.now()) {
         optOrders: 0,
         cdekOrders: 0,
         wbOrders: 0,
-        dostOrders: 0
+        dostOrders: 0,
+        fboOrders: 0
     };
 }
 
@@ -895,6 +1008,219 @@ function removeCounter(type) {
     });
 }
 
+function selectFboSuffix(suffix) {
+    currentFboSuffix = suffix;
+
+    const btnS = document.getElementById("fboBtnS");
+    const btnF = document.getElementById("fboBtnF");
+    const label = document.getElementById("fboSelectedSuffix");
+    const input = document.getElementById("fboArticleInput");
+
+    if (btnS) btnS.className = suffix === "S" ? "primary fbo-control" : "glass-btn fbo-control";
+    if (btnF) btnF.className = suffix === "F" ? "primary fbo-control" : "glass-btn fbo-control";
+
+    if (label) {
+        label.innerText = `Выбрано: ${suffix}. Артикул будет сохранён с окончанием ${suffix}`;
+    }
+
+    if (input) input.focus();
+}
+
+function handleFboArticleKey(event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        addFboArticle();
+    }
+}
+
+function setFboControlsEnabled(enabled) {
+    document.querySelectorAll(".fbo-control").forEach(el => {
+        el.disabled = !enabled;
+        el.style.opacity = enabled ? "1" : "0.55";
+        el.style.pointerEvents = enabled ? "auto" : "none";
+    });
+}
+
+function normalizeFboArticles(fboArticles) {
+    if (!fboArticles) return [];
+
+    return Object.entries(fboArticles)
+        .map(([key, value]) => ({
+            key,
+            ...value
+        }))
+        .sort((a, b) => (a.at || 0) - (b.at || 0));
+}
+
+function renderFboArticles(fboArticles) {
+    const list = document.getElementById("fboArticlesList");
+    if (!list) return;
+
+    const articles = normalizeFboArticles(fboArticles);
+
+    if (!articles.length) {
+        list.innerHTML = `
+            <div style="font-size:12px; color:#64748b; opacity:0.8;">
+                Артикулов ФБО пока нет
+            </div>
+        `;
+        return;
+    }
+
+    list.innerHTML = articles.map(item => {
+        const fullArticle = escapeHtml(item.fullArticle || `${item.article || ""}${item.suffix || ""}`);
+        const by = escapeHtml(item.by || "");
+        const time = item.at
+            ? new Date(item.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+            : "";
+
+        const deleteBtn = isGlobalParticipant || isAdmin
+            ? `
+                <button
+                    class="danger"
+                    style="padding:6px 10px; font-size:12px; box-shadow:none;"
+                    onclick="removeFboArticle('${escapeJsString(item.key)}')"
+                >
+                    удалить
+                </button>
+            `
+            : "";
+
+        return `
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 12px; background:rgba(99,102,241,0.04); border:1px solid var(--border); border-radius:10px;">
+                <div style="min-width:0;">
+                    <div style="font-weight:800; color:var(--text); word-break:break-word;">${fullArticle}</div>
+                    <div style="font-size:11px; color:#64748b; margin-top:2px;">
+                        ${by ? `Добавил: ${by}` : ""}${time ? ` · ${time}` : ""}
+                    </div>
+                </div>
+                ${deleteBtn}
+            </div>
+        `;
+    }).join("");
+}
+
+function addFboArticle() {
+    if (!currentUser || !isGlobalParticipant) return;
+
+    const input = document.getElementById("fboArticleInput");
+    if (!input) return;
+
+    const rawArticle = input.value.trim();
+
+    if (!rawArticle) {
+        alert("Введите артикул");
+        return;
+    }
+
+    if (!currentFboSuffix) {
+        alert("Сначала выберите S или F");
+        return;
+    }
+
+    const articleId = db.ref("active_shift/fboArticles").push().key;
+    const now = Date.now();
+    const fullArticle = `${rawArticle}${currentFboSuffix}`;
+
+    db.ref("active_shift").transaction(shift => {
+        if (!shift || !shift.participants || !shift.participants[currentUser]) {
+            return;
+        }
+
+        const participants = Object.keys(shift.participants || {});
+        if (!participants.length) return shift;
+
+        const share = 80 / participants.length;
+        const orderIncrement = participants.length === 1 ? 1 : 1 / participants.length;
+
+        shift.fbo = (shift.fbo || 0) + 1;
+
+        if (!shift.fboArticles) shift.fboArticles = {};
+
+        shift.fboArticles[articleId] = {
+            article: rawArticle,
+            suffix: currentFboSuffix,
+            fullArticle,
+            by: currentUser,
+            at: now,
+            price: 80,
+            participants: participants.reduce((acc, name) => {
+                acc[name] = true;
+                return acc;
+            }, {}),
+            share,
+            orderIncrement
+        };
+
+        participants.forEach(name => {
+            const part = shift.participants[name] = shift.participants[name] || createParticipantData();
+
+            part.earned = (part.earned || 0) + share;
+            part.orders = (part.orders || 0) + orderIncrement;
+            part.fboOrders = (part.fboOrders || 0) + orderIncrement;
+        });
+
+        return shift;
+    }).then(() => {
+        input.value = "";
+        input.focus();
+    }).catch(err => {
+        console.error("addFboArticle error:", err);
+        alert("Ошибка при добавлении ФБО артикула");
+    });
+}
+
+function decreaseFboParticipantStats(part, share, orderDecrement) {
+    if (!part) return;
+
+    part.earned = Math.max(0, (part.earned || 0) - share);
+    part.orders = Math.max(0, (part.orders || 0) - orderDecrement);
+    part.fboOrders = Math.max(0, (part.fboOrders || 0) - orderDecrement);
+}
+
+function removeFboArticle(articleId) {
+    if (!articleId) return;
+    if (!isGlobalParticipant && !isAdmin) return;
+
+    if (!confirm("Удалить этот ФБО артикул? Количество и зарплата уменьшатся.")) return;
+
+    db.ref("active_shift").transaction(shift => {
+        if (!shift || !shift.fboArticles || !shift.fboArticles[articleId]) {
+            return shift;
+        }
+
+        const item = shift.fboArticles[articleId];
+
+        const affectedParticipants = item.participants
+            ? Object.keys(item.participants)
+            : Object.keys(shift.participants || {});
+
+        const participantsCount = Math.max(affectedParticipants.length, 1);
+
+        const share = Number(item.share || (80 / participantsCount));
+        const orderDecrement = Number(
+            item.orderIncrement || (participantsCount === 1 ? 1 : 1 / participantsCount)
+        );
+
+        shift.fbo = Math.max(0, (shift.fbo || 0) - 1);
+
+        affectedParticipants.forEach(name => {
+            if (shift.participants && shift.participants[name]) {
+                decreaseFboParticipantStats(shift.participants[name], share, orderDecrement);
+            } else if (shift.allParticipants && shift.allParticipants[name]) {
+                decreaseFboParticipantStats(shift.allParticipants[name], share, orderDecrement);
+            }
+        });
+
+        delete shift.fboArticles[articleId];
+
+        return shift;
+    }).catch(err => {
+        console.error("removeFboArticle error:", err);
+        alert("Ошибка при удалении ФБО артикула");
+    });
+}
+
 function manualInput(type) {
     if (!isGlobalParticipant) return;
 
@@ -934,62 +1260,120 @@ function manualInput(type) {
     });
 }
 
+// Считает общий заработок по участникам смены
+function calculateTotalSalary(participants = {}) {
+    return Object.values(participants).reduce((sum, p) => {
+        return sum + Number(p?.earned || 0);
+    }, 0);
+}
+
+// Объединяет всех участников смены:
+// allParticipants хранит тех, кто уже выходил,
+// participants хранит тех, кто сейчас на смене.
+// Активные participants имеют приоритет.
+function getMergedParticipants(shift = {}) {
+    return Object.assign(
+        {},
+        shift.allParticipants || {},
+        shift.participants || {}
+    );
+}
+
+// Данные участника при повторном входе в смену.
+// Если он уже выходил раньше — сохраняем его прошлый заработок.
+function getParticipantDataForJoin(shift = {}, userName = "") {
+    const oldData =
+        shift.participants?.[userName] ||
+        shift.allParticipants?.[userName] ||
+        createParticipantData(Date.now());
+
+    return {
+        ...createParticipantData(Date.now()),
+        ...oldData,
+        joinedAt: oldData.joinedAt || Date.now(),
+        rejoinedAt: Date.now()
+    };
+}
+
 function leaveShift() {
     if (!currentUser) {
         alert("Ошибка: пользователь не авторизован");
         return;
     }
+
     db.ref("active_shift").once("value", snap => {
         const shift = snap.val();
-        if(!shift || !shift.participants || !shift.participants[currentUser]) return;
 
-        const myEarned = shift.participants[currentUser].earned || 0;
+        if (!shift || !shift.participants || !shift.participants[currentUser]) return;
+
+        const currentMember = shift.participants[currentUser];
+
+        const myEarned = currentMember.earned || 0;
         const cdekCount = shift.cdek || 0;
         const wbCount = shift.wb || 0;
         const dostCount = shift.dost || 0;
         const optCount = shift.opt || 0;
-        const totalCount = cdekCount + wbCount + dostCount;
+        const fboCount = shift.fbo || 0;
+        const totalCount = cdekCount + wbCount + dostCount + fboCount;
+
         const startT = new Date(shift.startTime || Date.now());
         const endT = new Date();
 
         const reportText = `
             <b>Вы вышли со смены!</b><br><br>
             Общая статистика смены:<br>
-            Заказы: ${totalCount} | Оптовые: ${optCount}<br><br>
-            <span style="color:var(--accent); font-weight:800; font-size:22px;">Твоя доля: ${myEarned.toFixed(0)}₽</span><br><br>
-            <span style="font-size:12px; color:#888;">${startT.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${endT.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+            Заказы: ${totalCount} | ФБО: ${fboCount} | Оптовые: ${optCount}<br><br>
+            <span style="color:var(--accent); font-weight:800; font-size:22px;">
+                Твоя доля: ${myEarned.toFixed(0)}₽
+            </span><br><br>
+            <span style="font-size:12px; color:#888;">
+                ${startT.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                -
+                ${endT.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+            </span>
         `;
+
         document.getElementById("reportDetails").innerHTML = reportText;
         document.getElementById("reportModal").style.display = "flex";
 
-        const allParticipants = Object.assign({}, shift.allParticipants || {}, shift.participants || {});
+        const allParticipants = getMergedParticipants(shift);
+        allParticipants[currentUser] = currentMember;
+
         const participantCount = Object.keys(shift.participants).length;
-        const currentMember = shift.participants[currentUser];
-        if (currentMember) {
-            allParticipants[currentUser] = currentMember;
-        }
 
         if (participantCount <= 1) {
-            // Записать смену в архив
             const numParts = Object.keys(allParticipants).length;
-            const totalSalary = Object.values(allParticipants).reduce((sum, p) => sum + (p.earned || 0), 0);
+            const totalSalary = calculateTotalSalary(allParticipants);
+
             db.ref("shifts").push({
                 date: startT.toLocaleDateString(),
                 total: totalCount,
                 cdek: cdekCount,
                 wb: wbCount,
                 dost: dostCount,
+                fbo: fboCount,
                 opt: optCount,
-                totalSalary: totalSalary,
+                fboArticles: JSON.parse(JSON.stringify(shift.fboArticles || {})),
+                totalSalary,
                 numParticipants: numParts,
-                participants: allParticipants,
+                participants: JSON.parse(JSON.stringify(allParticipants)),
                 start: startT.toLocaleString(),
-                end: endT.toLocaleString()
+                end: endT.toLocaleString(),
+                startTime: shift.startTime,
+                endTime: Date.now(),
+                closedBy: currentUser,
+                closedAt: Date.now()
+            }).then(() => {
+                db.ref("active_shift").remove();
             });
-            db.ref("active_shift").remove();
         } else {
-            db.ref("active_shift/allParticipants").set(allParticipants);
-            db.ref("active_shift/participants/" + currentUser).remove();
+            db.ref().update({
+                "active_shift/allParticipants": allParticipants,
+                [`active_shift/participants/${currentUser}`]: null
+            }).catch(err => {
+                console.error("leaveShift error:", err);
+                alert("Ошибка при выходе со смены");
+            });
         }
     });
 }
@@ -1001,13 +1385,40 @@ function listenHistory() {
         let html = "";
         snap.forEach(s => {
             const d = s.val();
-            const detailsHtml = `
-                <div>СДЭК: ${d.cdek || 0}</div>
-                <div>ВБ/ОЗОН: ${d.wb || 0}</div>
-                <div>ДОСТАВКА: ${d.dost || 0}</div>
-                <div>ОПТОВЫЕ: ${d.opt || 0}</div>
-                <div style="margin-top:6px;"><b>Заказы: ${d.total || 0}</b></div>
-            `;
+            const fboArticles = normalizeFboArticles(d.fboArticles || {});
+
+            const fboArticlesHtml = fboArticles.length
+    ? `
+        <div style="margin-top:10px;">
+            <b>Артикулы ФБО:</b>
+            <div style="margin-top:6px; display:flex; flex-direction:column; gap:5px;">
+                ${fboArticles.map(item => {
+                    const fullArticle = escapeHtml(item.fullArticle || `${item.article || ""}${item.suffix || ""}`);
+                    const by = escapeHtml(item.by || "");
+                    return `
+                        <div style="padding:6px 8px; background:rgba(99,102,241,0.06); border-radius:8px;">
+                            <b>${fullArticle}</b>${by ? ` <span style="opacity:0.65;">от ${by}</span>` : ""}
+                        </div>
+                    `;
+                }).join("")}
+            </div>
+        </div>
+    `
+    : `
+        <div style="margin-top:10px; opacity:0.65;">
+            Артикулов ФБО нет
+        </div>
+    `;
+
+const detailsHtml = `
+    <div>СДЭК: ${d.cdek || 0}</div>
+    <div>ВБ/ОЗОН: ${d.wb || 0}</div>
+    <div>ДОСТАВКА: ${d.dost || 0}</div>
+    <div>ФБО: ${d.fbo || 0}</div>
+    <div>ОПТОВЫЕ: ${d.opt || 0}</div>
+    <div style="margin-top:6px;"><b>Заказы: ${d.total || 0}</b></div>
+    ${fboArticlesHtml}
+`;
             html = `
             <div class="card history-card" style="padding:15px; text-align:left;" onclick="toggleShiftDetails(this)">
                 <div style="padding-bottom: 32px;">
@@ -1442,95 +1853,115 @@ function renderAdminUsers(users, blocked, admins) {
 function renderActiveShiftAdmin(shift) {
     const adminShiftContainer = document.getElementById("adminActiveShiftPanel");
     if (!adminShiftContainer) return;
-    
+
     if (!shift) {
         adminShiftContainer.innerHTML = '<div style="color:#aaa; padding:15px;">Нет активной смены</div>';
         return;
     }
-    
-    const startTime = new Date(shift.startTime).toLocaleTimeString("ru-RU", {hour: "2-digit", minute: "2-digit"});
+
+    const startTime = new Date(shift.startTime).toLocaleTimeString("ru-RU", {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
     const duration = ((Date.now() - shift.startTime) / 60000).toFixed(1);
-    const totalEarnings = shift.totalSalary || 0;
-    
-    let participantsHtml = '';
-    if (shift.participants) {
-        Object.entries(shift.participants).forEach(([name, data]) => {
-            const earnedAmount = (data.earned || 0).toFixed(0);
-            const safeName = escapeHtml(name);
-            participantsHtml += `<div style="display:flex; justify-content:space-between; padding:8px 10px; border-bottom: 1px solid var(--border);">
+    const activeParticipants = shift.participants || {};
+    const allParticipants = getMergedParticipants(shift);
+
+    // Исправление: считаем заработок из участников, а не из несуществующего shift.totalSalary
+    const totalEarnings = calculateTotalSalary(allParticipants);
+
+    let participantsHtml = "";
+
+    Object.entries(activeParticipants).forEach(([name, data]) => {
+        const earnedAmount = Number(data.earned || 0).toFixed(0);
+        const safeName = escapeHtml(name);
+
+        participantsHtml += `
+            <div style="display:flex; justify-content:space-between; padding:8px 10px; border-bottom: 1px solid var(--border);">
                 <span>${safeName}</span>
                 <span style="font-weight:600;">${earnedAmount} ₽</span>
             </div>`;
-        });
-    }
-    
-    const html = `
+    });
+
+    adminShiftContainer.innerHTML = `
         <div class="admin-panel-section">
-            <h3 style="margin-top:0; color:var(--text);">🔴 Активная смена (Admin)</h3>
+            <h3 style="margin-top:0; color:var(--text);">🔴 Активная смена Admin</h3>
+
             <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:15px; margin-bottom:15px;">
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
                     <div>
                         <div style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">Начало:</div>
                         <div style="font-weight:600; color:var(--text);">${startTime}</div>
                     </div>
+
                     <div>
                         <div style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">Длительность:</div>
                         <div style="font-weight:600; color:var(--text);">${duration} мин</div>
                     </div>
+
                     <div>
-                        <div style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">Участников:</div>
-                        <div style="font-weight:600; color:var(--text);">${Object.keys(shift.participants || {}).length}</div>
+                        <div style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">Активных:</div>
+                        <div style="font-weight:600; color:var(--text);">${Object.keys(activeParticipants).length}</div>
                     </div>
+
                     <div>
                         <div style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">Общий заработок:</div>
                         <div style="font-weight:600; color:var(--accent);">${totalEarnings.toFixed(0)} ₽</div>
                     </div>
                 </div>
+
                 <div style="background:var(--bg); border-radius:8px; max-height:150px; overflow-y:auto; margin-bottom:15px;">
-                    ${participantsHtml || '<div style="padding:10px; color:var(--text-secondary);">Нет участников</div>'}
+                    ${participantsHtml || '<div style="padding:10px; color:var(--text-secondary);">Нет активных участников</div>'}
                 </div>
+
                 <button class="danger" style="width:100%; padding:10px; font-size:14px; font-weight:600;" onclick="closeShiftFromAdmin()">
                     ⛔ Закрыть смену для всех
                 </button>
             </div>
         </div>
     `;
-    
-    adminShiftContainer.innerHTML = html;
 }
 
 function closeShiftFromAdmin() {
+    if (!isAdmin) return;
+
+    if (!confirm("Закрыть активную смену для всех?")) return;
+
     db.ref("active_shift").once("value", snap => {
         const shift = snap.val();
+
         if (!shift || !shift.participants) {
             alert("Смена уже закрыта");
             return;
         }
-        
-        // Правильно рассчитываем все показатели перед архивированием
+
         const startT = new Date(shift.startTime || Date.now());
         const endT = new Date();
+
         const cdekCount = shift.cdek || 0;
         const wbCount = shift.wb || 0;
         const dostCount = shift.dost || 0;
         const optCount = shift.opt || 0;
-        const totalCount = cdekCount + wbCount + dostCount;
-        
-        const allParticipants = Object.assign({}, shift.allParticipants || {}, shift.participants || {});
+        const fboCount = shift.fbo || 0;
+        const totalCount = cdekCount + wbCount + dostCount + fboCount;
+
+        const allParticipants = getMergedParticipants(shift);
         const numParts = Object.keys(allParticipants).length;
-        const totalSalary = Object.values(allParticipants).reduce((sum, p) => sum + (p.earned || 0), 0);
-        
-        // Создаем полную копию для архива с неизменяемыми данными
+        const totalSalary = calculateTotalSalary(allParticipants);
+
         const archiveShift = {
             date: startT.toLocaleDateString(),
             total: totalCount,
             cdek: cdekCount,
             wb: wbCount,
             dost: dostCount,
+            fbo: fboCount,
             opt: optCount,
-            totalSalary: totalSalary,
+            fboArticles: JSON.parse(JSON.stringify(shift.fboArticles || {})),
+            totalSalary,
             numParticipants: numParts,
-            participants: JSON.parse(JSON.stringify(allParticipants)), // Deep copy
+            participants: JSON.parse(JSON.stringify(allParticipants)),
             start: startT.toLocaleString(),
             end: endT.toLocaleString(),
             startTime: shift.startTime,
@@ -1538,19 +1969,19 @@ function closeShiftFromAdmin() {
             closedBy: currentUser,
             closedAt: Date.now()
         };
-        
+
         const now = new Date();
-        const archiveKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${Date.now()}`;
-        
-        db.ref(`shifts/${archiveKey}`).set(archiveShift, err => {
-            if (!err) {
-                db.ref("active_shift").set(null);
-                alert('✅ Смена закрыта админом и сохранена в архив');
-                console.log("Смена закрыта админом:", currentUser);
-            } else {
-                alert('❌ Ошибка при закрытии смены: ' + err.message);
-            }
-        });
+        const archiveKey =
+            `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}_${Date.now()}`;
+
+        db.ref(`shifts/${archiveKey}`).set(archiveShift)
+            .then(() => {
+                db.ref("active_shift").remove();
+                alert("✅ Смена закрыта админом и сохранена в архив");
+            })
+            .catch(err => {
+                alert("❌ Ошибка при закрытии смены: " + err.message);
+            });
     });
 }
 
@@ -1888,45 +2319,57 @@ function initTheme() {
 
 function closeShift() {
     if (!currentUser || !isAdmin) return;
-    
+
+    if (!confirm("Закрыть смену для всех?")) return;
+
     db.ref("active_shift").once("value", snap => {
         const shift = snap.val();
-        if(!shift || !shift.participants) return;
+
+        if (!shift || !shift.participants) return;
 
         const startT = new Date(shift.startTime || Date.now());
         const endT = new Date();
+
         const cdekCount = shift.cdek || 0;
         const wbCount = shift.wb || 0;
         const dostCount = shift.dost || 0;
         const optCount = shift.opt || 0;
-        const totalCount = cdekCount + wbCount + dostCount;
-        
-        // Show report modal like leaveShift does
+        const fboCount = shift.fbo || 0;
+        const totalCount = cdekCount + wbCount + dostCount + fboCount;
+
+        const allParticipants = getMergedParticipants(shift);
+        const numParts = Object.keys(allParticipants).length;
+        const totalSalary = calculateTotalSalary(allParticipants);
+
         const reportText = `
             <b>Смена закрыта!</b><br><br>
             Общая статистика смены:<br>
-            Заказы: ${totalCount} | Оптовые: ${optCount}<br><br>
-            <span style="color:var(--accent); font-weight:800; font-size:20px;">Общий заработок: ${shift.totalSalary ? Math.round(shift.totalSalary) : 0}₽</span><br><br>
-            <span style="font-size:12px; color:#888;">${startT.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${endT.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+            Заказы: ${totalCount} | ФБО: ${fboCount} | Оптовые: ${optCount}<br><br>
+            <span style="color:var(--accent); font-weight:800; font-size:20px;">
+                Общий заработок: ${Math.round(totalSalary)}₽
+            </span><br><br>
+            <span style="font-size:12px; color:#888;">
+                ${startT.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                -
+                ${endT.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+            </span>
         `;
+
         document.getElementById("reportDetails").innerHTML = reportText;
         document.getElementById("reportModal").style.display = "flex";
-        
-        const allParticipants = Object.assign({}, shift.allParticipants || {}, shift.participants || {});
-        const numParts = Object.keys(allParticipants).length;
-        const totalSalary = Object.values(allParticipants).reduce((sum, p) => sum + (p.earned || 0), 0);
-        
-        // Сохранить в архив с глубокой копией для неизменяемости
+
         db.ref("shifts").push({
             date: startT.toLocaleDateString(),
             total: totalCount,
             cdek: cdekCount,
             wb: wbCount,
             dost: dostCount,
+            fbo: fboCount,
             opt: optCount,
-            totalSalary: totalSalary,
+            fboArticles: JSON.parse(JSON.stringify(shift.fboArticles || {})),
+            totalSalary,
             numParticipants: numParts,
-            participants: JSON.parse(JSON.stringify(allParticipants)), // Deep copy to prevent mutations
+            participants: JSON.parse(JSON.stringify(allParticipants)),
             start: startT.toLocaleString(),
             end: endT.toLocaleString(),
             startTime: shift.startTime,
@@ -1934,70 +2377,57 @@ function closeShift() {
             closedBy: currentUser,
             closedAt: Date.now()
         }).then(() => {
-            // Удалить активную смену
             db.ref("active_shift").remove();
+        }).catch(err => {
+            console.error("closeShift error:", err);
+            alert("Ошибка при закрытии смены");
         });
     });
 }
 
 function listenAnnouncements() {
-    // Register character counter for admin input
-    const mobileInput = document.getElementById("announcementInputMobile");
-    
-    if (mobileInput) {
-        mobileInput.addEventListener("input", () => {
-            const counter = document.getElementById("announcementCharsMobile");
-            if (counter) counter.innerText = mobileInput.value.length;
-        });
-    }
-    
-    // Display announcements history for admins (only if admin)
-    if (isAdmin) {
-        db.ref("announcements").orderByChild("timestamp").limitToLast(10).on("value", snap => {
-            let html = "";
-            snap.forEach(s => {
-                const a = s.val();
-                const key = s.key;
-                const time = new Date(a.timestamp).toLocaleTimeString("ru-RU", {hour: "2-digit", minute: "2-digit"});
-                const by = escapeHtml(a.by || "");
-                const deleteBtn = `<button style="background:none; border:none; color:#dc2626; font-size:11px; cursor:pointer; padding:2px 6px; line-height:1; transition:opacity 0.2s;" onclick="deleteAnnouncement('${key}')" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">✕ Удалить</button>`;
-                html = `<div style="font-size:11px; padding:10px; border-bottom:1px solid var(--border); background:var(--bg); border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:start; gap:8px;">
-                    <div style="flex:1;">
-                        <div style="color:var(--accent); font-weight:600;">${by}</div>
-                        <div style="color:var(--text); margin:4px 0; line-height:1.4; word-break:break-word;">${escapeHtml(a.text)}</div>
-                        <div style="color:var(--text-secondary); font-size:10px;">${time}</div>
-                    </div>
-                    ${deleteBtn}
-                </div>` + html;
-            });
-            const container = document.getElementById("announcementsHistory");
-            if (container) {
-                container.innerHTML = html || '<div style="font-size:12px; color:var(--text-secondary); text-align:center; padding:20px 0;">Нет объявлений</div>';
-            }
-        });
-    }
-    
-    // Display announcements to ALL users (latest 3) - visible in main feed
+    // Чтобы слушатели не дублировались
+    if (announcementsListenersInitialized) return;
+    announcementsListenersInitialized = true;
+
+    // Последние объявления для всех пользователей
     db.ref("announcements").orderByChild("timestamp").limitToLast(3).on("value", snap => {
         let html = "";
+
         snap.forEach(s => {
-            const a = s.val();
+            const a = s.val() || {};
             const key = s.key;
-            const time = new Date(a.timestamp).toLocaleTimeString("ru-RU", {hour: "2-digit", minute: "2-digit"});
+
+            const time = new Date(a.timestamp || Date.now()).toLocaleTimeString("ru-RU", {
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+
             const by = escapeHtml(a.by || "");
-            const deleteBtn = isAdmin ? `<button style="background:none; border:none; color:#dc2626; font-size:12px; cursor:pointer; padding:4px 8px; line-height:1; transition:opacity 0.2s; margin-left:auto;" onclick="deleteAnnouncement('${key}')" onmouseover="this.style.opacity='0.7'" onmouseout="this.style.opacity='1'">✕</button>` : '';
-            html = `<div style="display:flex; gap:10px; padding:12px 0; border-bottom:1px solid var(--border); align-items:flex-start;">
-                <div style="font-size:14px; flex-shrink:0; margin-top:2px;">📢</div>
-                <div style="flex:1; min-width:0;">
-                    <div style="font-weight:600; color:var(--accent); font-size:12px;">${by}</div>
-                    <div style="color:var(--text); font-size:13px; margin:4px 0; line-height:1.4; word-break:break-word;">${escapeHtml(a.text)}</div>
-                    <div style="color:var(--text-secondary); font-size:11px;">${time}</div>
-                </div>
-                ${deleteBtn}
-            </div>` + html;
+
+            const deleteBtn = isAdmin
+                ? `<button style="background:none; border:none; color:#dc2626; font-size:12px; cursor:pointer; padding:4px 8px; line-height:1; transition:opacity 0.2s; margin-left:auto;" onclick="deleteAnnouncement('${key}')">✕</button>`
+                : "";
+
+            html = `
+                <div style="display:flex; gap:10px; padding:12px 0; border-bottom:1px solid var(--border); align-items:flex-start;">
+                    <div style="font-size:14px; flex-shrink:0; margin-top:2px;">📢</div>
+
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-weight:600; color:var(--accent); font-size:12px;">${by}</div>
+                        <div style="color:var(--text); font-size:13px; margin:4px 0; line-height:1.4; word-break:break-word;">
+                            ${escapeHtml(a.text)}
+                        </div>
+                        <div style="color:var(--text-secondary); font-size:11px;">${time}</div>
+                    </div>
+
+                    ${deleteBtn}
+                </div>` + html;
         });
+
         const container = document.getElementById("announcementsPublicContent");
         const publicDiv = document.getElementById("announcementsPublic");
+
         if (container && publicDiv) {
             if (html) {
                 container.innerHTML = html;
@@ -2007,16 +2437,80 @@ function listenAnnouncements() {
             }
         }
     });
-    
-    // Listen for new announcements to show popup notifications - for ALL users
+
+    // Всплывающие уведомления для всех
     db.ref("announcements").on("child_added", snap => {
-        const a = snap.val();
-        // Don't show popup for announcements older than 10 seconds
+        const a = snap.val() || {};
+
+        if (!a.timestamp) return;
+
+        // Старые объявления не показываем всплывашкой
         if (Date.now() - a.timestamp > 10000) return;
-        // Don't show popup if current user is the one who posted it
+
+        // Свои объявления не показываем
         if (a.by === currentUser) return;
-        
+
         showAnnouncementPopup(a);
+    });
+}
+
+function listenAdminAnnouncementsHistory() {
+    if (!isAdmin) return;
+
+    if (announcementsAdminHistoryInitialized) return;
+    announcementsAdminHistoryInitialized = true;
+
+    const mobileInput = document.getElementById("announcementInputMobile");
+
+    if (mobileInput && !mobileInput.dataset.counterInitialized) {
+        mobileInput.dataset.counterInitialized = "true";
+
+        mobileInput.addEventListener("input", () => {
+            const counter = document.getElementById("announcementCharsMobile");
+            if (counter) counter.innerText = mobileInput.value.length;
+        });
+    }
+
+    db.ref("announcements").orderByChild("timestamp").limitToLast(10).on("value", snap => {
+        let html = "";
+
+        snap.forEach(s => {
+            const a = s.val() || {};
+            const key = s.key;
+
+            const time = new Date(a.timestamp || Date.now()).toLocaleTimeString("ru-RU", {
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+
+            const by = escapeHtml(a.by || "");
+
+            html = `
+                <div style="font-size:11px; padding:10px; border-bottom:1px solid var(--border); background:var(--bg); border-radius:6px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:start; gap:8px;">
+                    <div style="flex:1;">
+                        <div style="color:var(--accent); font-weight:600;">${by}</div>
+
+                        <div style="color:var(--text); margin:4px 0; line-height:1.4; word-break:break-word;">
+                            ${escapeHtml(a.text)}
+                        </div>
+
+                        <div style="color:var(--text-secondary); font-size:10px;">${time}</div>
+                    </div>
+
+                    <button style="background:none; border:none; color:#dc2626; font-size:11px; cursor:pointer; padding:2px 6px; line-height:1;" onclick="deleteAnnouncement('${key}')">
+                        ✕ Удалить
+                    </button>
+                </div>` + html;
+        });
+
+        const container = document.getElementById("announcementsHistory");
+
+        if (container) {
+            container.innerHTML = html || `
+                <div style="font-size:12px; color:var(--text-secondary); text-align:center; padding:20px 0;">
+                    Нет объявлений
+                </div>`;
+        }
     });
 }
 
@@ -2058,9 +2552,16 @@ function sendAnnouncement(source = 'mobile') {
         
         // Auto-collapse mobile panel after sending
         const mobilePanel = document.getElementById("adminPanelMobile");
-        if (mobilePanel) {
-            mobilePanel.classList.add("collapsed");
-        }
+const mobileHeader = mobilePanel ? mobilePanel.querySelector(".admin-panel-header") : null;
+
+if (mobilePanel) {
+    mobilePanel.classList.add("collapsed");
+    localStorage.setItem("adminPanelCollapsed", "true");
+}
+
+if (mobileHeader) {
+    mobileHeader.classList.add("collapsed");
+}
     }).catch(err => {
         alert("Ошибка: " + err.message);
     });
