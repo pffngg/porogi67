@@ -68,6 +68,29 @@ button { border: none; border-radius: 12px; padding: 12px 16px; font-size: 14px;
 .success-btn:hover { background: #059669; transform: translateY(-2px); }
 .danger { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
 
+.fbo-content {
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+.fbo-content.collapsed {
+    max-height: 0;
+    margin: 0;
+}
+.fbo-header {
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.fbo-toggle-icon {
+    transition: transform 0.3s;
+    font-size: 10px;
+}
+.fbo-content.collapsed + .fbo-header .fbo-toggle-icon {
+    transform: rotate(-90deg);
+}
+
 html.dark-mode .glass-btn {
   background: #334155;
   border-color: rgba(255, 255, 255, 0.1);
@@ -405,37 +428,25 @@ html.dark-mode #active-shift-info span {
         </div>
       </div>
 <div class="card">
-  <h4 style="margin:0 0 12px 0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">
-    ФБО
-  </h4>
-
-  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-    <button id="fboBtnS" class="glass-btn fbo-control" style="width:48px; padding:12px 0;" onclick="selectFboSuffix('S')">
-      S
-    </button>
-
-    <button id="fboBtnF" class="glass-btn fbo-control" style="width:48px; padding:12px 0;" onclick="selectFboSuffix('F')">
-      F
-    </button>
-
-    <input
-      id="fboArticleInput"
-      class="fbo-control"
-      placeholder="Введите артикул"
-      style="flex:1; min-width:160px; padding:14px 16px; border-radius:12px; border:1px solid var(--border); background:white; color:var(--text); font-size:14px;"
-      onkeydown="handleFboArticleKey(event)"
-    >
-
-    <div class="count" id="fbo_val" style="font-size:28px; padding:12px 18px; pointer-events:none;">
-      0
+    <div class="fbo-header" onclick="document.getElementById('fboContent').classList.toggle('collapsed')">
+        <h4 style="margin:0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">ФБО</h4>
+        <span class="fbo-toggle-icon">▼</span>
     </div>
-  </div>
 
-  <div id="fboSelectedSuffix" style="font-size:12px; color:#64748b; margin-top:10px;">
-    Выберите S или F
-  </div>
-
-  <div id="fboArticlesList" style="margin-top:12px; display:flex; flex-direction:column; gap:8px;"></div>
+    <div id="fboContent" class="fbo-content"> <!-- Контент, который сворачивается -->
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top: 15px;">
+            <button id="fboBtnS" class="glass-btn" style="width:40px; padding:10px 0;" onclick="selectFboSuffix('S')">S</button>
+            <button id="fboBtnF" class="glass-btn" style="width:40px; padding:10px 0;" onclick="selectFboSuffix('F')">F</button>
+            
+            <input id="fboArticleInput" placeholder="Артикул" 
+                   style="flex:1; padding:12px; border-radius:12px; border:1px solid var(--border); background:white; color:var(--text); font-size:14px;"
+                   onkeydown="handleFboArticleKey(event)">
+            
+            <div class="count" id="fbo_val" style="font-size:24px; padding:10px 15px; pointer-events:none;">0</div>
+        </div>
+        
+        <div id="fboArticlesList" style="margin-top:12px; display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
 </div>
       <div class="card"><h4 style="margin:0 0 12px 0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">ОПТОВЫЕ ЗАКАЗЫ</h4>
         <div style="display:flex; gap:16px; align-items: center;">
@@ -1057,44 +1068,18 @@ function renderFboArticles(fboArticles) {
     if (!list) return;
 
     const articles = normalizeFboArticles(fboArticles);
-
     if (!articles.length) {
-        list.innerHTML = `
-            <div style="font-size:12px; color:#64748b; opacity:0.8;">
-                Артикулов ФБО пока нет
-            </div>
-        `;
+        list.innerHTML = `<div style="font-size:12px; color:#64748b; opacity:0.5;">Список пуст</div>`;
         return;
     }
 
     list.innerHTML = articles.map(item => {
-        const fullArticle = escapeHtml(item.fullArticle || `${item.article || ""}${item.suffix || ""}`);
-        const by = escapeHtml(item.by || "");
-        const time = item.at
-            ? new Date(item.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-            : "";
-
-        const deleteBtn = isGlobalParticipant || isAdmin
-            ? `
-                <button
-                    class="danger"
-                    style="padding:6px 10px; font-size:12px; box-shadow:none;"
-                    onclick="removeFboArticle('${escapeJsString(item.key)}')"
-                >
-                    удалить
-                </button>
-            `
-            : "";
-
+        const fullArt = escapeHtml(item.fullArticle || "");
         return `
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 12px; background:rgba(99,102,241,0.04); border:1px solid var(--border); border-radius:10px;">
-                <div style="min-width:0;">
-                    <div style="font-weight:800; color:var(--text); word-break:break-word;">${fullArticle}</div>
-                    <div style="font-size:11px; color:#64748b; margin-top:2px;">
-                        ${by ? `Добавил: ${by}` : ""}${time ? ` · ${time}` : ""}
-                    </div>
-                </div>
-                ${deleteBtn}
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(99,102,241,0.04); border-radius:10px;">
+                <div style="font-weight:800; color:var(--text);">${fullArt}</div>
+                <button class="danger" style="padding:4px 8px; font-size:11px; box-shadow:none;" 
+                        onclick="removeFboArticle('${escapeJsString(item.key)}')">удалить</button>
             </div>
         `;
     }).join("");
@@ -1102,71 +1087,41 @@ function renderFboArticles(fboArticles) {
 
 function addFboArticle() {
     if (!currentUser || !isGlobalParticipant) return;
-
     const input = document.getElementById("fboArticleInput");
-    if (!input) return;
-
     const rawArticle = input.value.trim();
 
-    if (!rawArticle) {
-        alert("Введите артикул");
-        return;
-    }
+    if (!rawArticle) return;
+    if (!currentFboSuffix) { alert("Сначала выберите S или F"); return; }
 
-    if (!currentFboSuffix) {
-        alert("Сначала выберите S или F");
-        return;
-    }
-
-    const articleId = db.ref("active_shift/fboArticles").push().key;
-    const now = Date.now();
     const fullArticle = `${rawArticle}${currentFboSuffix}`;
+    const articleId = db.ref("active_shift/fboArticles").push().key;
 
     db.ref("active_shift").transaction(shift => {
-        if (!shift || !shift.participants || !shift.participants[currentUser]) {
-            return;
-        }
-
-        const participants = Object.keys(shift.participants || {});
-        if (!participants.length) return shift;
-
+        if (!shift || !shift.participants || !shift.participants[currentUser]) return;
+        const participants = Object.keys(shift.participants);
         const share = 80 / participants.length;
-        const orderIncrement = participants.length === 1 ? 1 : 1 / participants.length;
+        const inc = participants.length === 1 ? 1 : 1 / participants.length;
 
         shift.fbo = (shift.fbo || 0) + 1;
-
         if (!shift.fboArticles) shift.fboArticles = {};
-
+        
+        // Записываем только сам артикул и тех, на кого делится зп
         shift.fboArticles[articleId] = {
-            article: rawArticle,
-            suffix: currentFboSuffix,
-            fullArticle,
-            by: currentUser,
-            at: now,
-            price: 80,
-            participants: participants.reduce((acc, name) => {
-                acc[name] = true;
-                return acc;
-            }, {}),
-            share,
-            orderIncrement
+            fullArticle: fullArticle,
+            share: share,
+            orderIncrement: inc,
+            participants: participants.reduce((acc, n) => { acc[n] = true; return acc; }, {})
         };
 
         participants.forEach(name => {
-            const part = shift.participants[name] = shift.participants[name] || createParticipantData();
-
+            const part = shift.participants[name];
             part.earned = (part.earned || 0) + share;
-            part.orders = (part.orders || 0) + orderIncrement;
-            part.fboOrders = (part.fboOrders || 0) + orderIncrement;
+            part.orders = (part.orders || 0) + inc;
+            part.fboOrders = (part.fboOrders || 0) + inc;
         });
-
         return shift;
     }).then(() => {
         input.value = "";
-        input.focus();
-    }).catch(err => {
-        console.error("addFboArticle error:", err);
-        alert("Ошибка при добавлении ФБО артикула");
     });
 }
 
@@ -1180,44 +1135,23 @@ function decreaseFboParticipantStats(part, share, orderDecrement) {
 
 function removeFboArticle(articleId) {
     if (!articleId) return;
-    if (!isGlobalParticipant && !isAdmin) return;
-
-    if (!confirm("Удалить этот ФБО артикул? Количество и зарплата уменьшатся.")) return;
-
     db.ref("active_shift").transaction(shift => {
-        if (!shift || !shift.fboArticles || !shift.fboArticles[articleId]) {
-            return shift;
-        }
-
+        if (!shift || !shift.fboArticles || !shift.fboArticles[articleId]) return shift;
+        
         const item = shift.fboArticles[articleId];
-
-        const affectedParticipants = item.participants
-            ? Object.keys(item.participants)
-            : Object.keys(shift.participants || {});
-
-        const participantsCount = Math.max(affectedParticipants.length, 1);
-
-        const share = Number(item.share || (80 / participantsCount));
-        const orderDecrement = Number(
-            item.orderIncrement || (participantsCount === 1 ? 1 : 1 / participantsCount)
-        );
+        const affected = item.participants ? Object.keys(item.participants) : Object.keys(shift.participants);
 
         shift.fbo = Math.max(0, (shift.fbo || 0) - 1);
-
-        affectedParticipants.forEach(name => {
-            if (shift.participants && shift.participants[name]) {
-                decreaseFboParticipantStats(shift.participants[name], share, orderDecrement);
-            } else if (shift.allParticipants && shift.allParticipants[name]) {
-                decreaseFboParticipantStats(shift.allParticipants[name], share, orderDecrement);
+        affected.forEach(name => {
+            const part = shift.participants[name] || shift.allParticipants[name];
+            if (part) {
+                part.earned = Math.max(0, (part.earned || 0) - (item.share || 0));
+                part.orders = Math.max(0, (part.orders || 0) - (item.orderIncrement || 0));
+                part.fboOrders = Math.max(0, (part.fboOrders || 0) - (item.orderIncrement || 0));
             }
         });
-
         delete shift.fboArticles[articleId];
-
         return shift;
-    }).catch(err => {
-        console.error("removeFboArticle error:", err);
-        alert("Ошибка при удалении ФБО артикула");
     });
 }
 
