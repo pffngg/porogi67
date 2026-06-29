@@ -2686,5 +2686,263 @@ function toggleAdminPanelMobile() {
 
 function logout() { localStorage.clear(); location.reload(); }
 </script>
+  <!-- START: fbo collapse + no-confirm + sanitization -->
+<style>
+/* FBO list compact / collapsible */
+.fbo-articles { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.fbo-article { background: #f1f5f9; color: var(--text); padding:6px 10px; border-radius:8px; font-size:13px; border:1px solid rgba(99,102,241,0.06); display:inline-flex; gap:8px; align-items:center; }
+.fbo-article .remove-btn { background: transparent; border: none; color: #dc2626; cursor:pointer; font-weight:700; padding:0 4px; }
+.fbo-articles.collapsed { max-height: 88px; overflow: hidden; position: relative; }
+.fbo-show-more { background: linear-gradient(135deg,#6366f1,#818cf8); color: #fff; padding:6px 10px; border-radius:8px; cursor:pointer; border:none; font-weight:700; }
+.fbo-meta { font-size:11px; color:#64748b; margin-top:6px; }
+@media (max-width:600px) {
+  .fbo-articles.collapsed { max-height: 72px; }
+}
+</style>
+
+<script>
+/*
+  Quick global behavior changes:
+  - disable native confirm dialogs (always "OK")
+  - sanitize fboArticles writes after they happen: remove addedBy/addedAt fields
+  - renderFboArticles: render collapsible short list into #fboArticlesList and return HTML string
+  - deleteFboArticle: remove an article immediately
+*/
+try {
+  // Override confirm so existing confirm(...) calls won't show dialogs and will return true immediately
+  window.confirm = function() { return true; };
+} catch(e) {
+  // ignore if not possible
+  console.warn('Could not override window.confirm', e);
+}
+
+// helper: escape HTML when inserting text
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"'`]/g, function(s){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;', '`':'&#96;'})[s]; });
+}
+
+// Sanitize fboArticles under active_shift: remove who/when metadata if present
+(function setupFboSanitizer() {
+  try {
+    const ref = db.ref('active_shift/fboArticles');
+    ref.on('child_added', snap => {
+      const val = snap.val() || {};
+      const updates = {};
+      if (val.addedBy !== undefined) updates.addedBy = null;
+      if (val.addedAt !== undefined) updates.addedAt = null;
+      if (val.who !== undefined) updates.who = null;
+      if (Object.keys(updates).length) {
+        db.ref(`active_shift/fboArticles/${snap.key}`).update(updates).catch(()=>{/*ignore*/});
+      }
+    });
+    ref.on('child_changed', snap => {
+      const val = snap.val() || {};
+      const updates = {};
+      if (val.addedBy !== undefined) updates.addedBy = null;
+      if (val.addedAt !== undefined) updates.addedAt = null;
+      if (val.who !== undefined) updates.who = null;
+      if (Object.keys(updates).length) {
+        db.ref(`active_shift/fboArticles/${snap.key}`).update(updates).catch(()=>{/*ignore*/});
+      }
+    });
+  } catch(e) {
+    console.warn('FBO sanitizer setup failed', e);
+  }
+})();
+
+// Sanitize already-pushed archived shifts (when new shift documents are created)
+(function sanitizeShiftsFboMeta() {
+  try {
+    const shiftsRef = db.ref('shifts');
+    shiftsRef.on('child_added', snap => {
+      const v = snap.val() || {};
+      if (!v.fboArticles) return;
+      Object.keys(v.fboArticles).forEach(k => {
+        const item = v.fboArticles[k] || {};
+        const updates = {};
+        if (item.addedBy !== undefined) updates.addedBy = null;
+        if (item.addedAt !== undefined) updates.addedAt = null;
+        if (item.who !== undefined) updates.who = null;
+        if (Object.keys(updates).length) {
+          db.ref(`shifts/${snap.key}/fboArticles/${k}`).update(updates).catch(()=>{/*ignore*/});
+        }
+      });
+    });
+  } catch(e) {
+    console.warn('Shifts sanitizer setup failed', e);
+  }
+})();
+
+// Delete an FBO article immediately (no confirm)
+function deleteFboArticle(key) {
+  if (!key) return;
+  db.ref(`active_shift/fboArticles/${key}`).remove().catch(err => console.error('deleteFboArticle', err));
+}
+
+// Render function for FBO articles.
+// articles: object map { key: { code: "...", suffix: "S" } } OR array OR simple map
+// Returns HTML string; also if #fboArticlesList exists, fills it.
+function renderFboArticles(articles) {
+  // normalize into array of { key, code, suffix }
+  const list = [];
+  if (!articles) articles = {};
+  if (Array.isArray(articles)) {
+    articles.forEach((it, i) => {
+      if (typeof it === 'object') list.push({ key: it.key || i, code: it.code || it.article || it.value || '', suffix: it.suffix || '' });
+      else list.push({ key: i, code: it, suffix: '' });
+    });
+  } else {
+    Object.keys(articles).forEach(k => {
+      const it = articles[k];
+      if (typeof it === 'object') {
+        list.push({ key: k, code: it.code || it.article || it.value || '', suffix: it.suffix || it.suf || '' });
+      } else {
+        list.push({ key: k, code: it, suffix: '' });
+      }
+    });
+  }
+
+  // Build HTML
+  const itemsHtml = list.map(it => {
+    const display = escapeHtml((it.suffix ? it.suffix + '-' : '') + it.code);
+    // removal button uses data-key attr
+    return `<span class="fbo-article" data-key="${escapeHtml(it.key)}">${display}<button class="remove-btn" title="Удалить" data-key="${escapeHtml(it.key)}">×</button></span>`;
+  });
+
+  const maxVisible = 5;
+  let html;
+  if (itemsHtml.length <= maxVisible) {
+    html = `<div class="fbo-articles" data-count="${itemsHtml.length}">${itemsHtml.join('')}</div>`;
+  } else {
+    // show first maxVisible, hide rest inside wrapper
+    const first = itemsHtml.slice(0, maxVisible).join('');
+    const rest = itemsHtml.slice(maxVisible).join('');
+    html = `
+      <div class="fbo-articles collapsed" data-count="${itemsHtml.length}">
+        ${first}
+        <div class="fbo-rest" style="display:inline-flex; gap:8px;">${rest}</div>
+      </div>
+      <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+        <button class="fbo-show-more" data-state="collapsed">Показать ещё (${itemsHtml.length - maxVisible})</button>
+      </div>
+    `;
+  }
+
+  // If active container exists, render into it and wire handlers
+  const container = document.getElementById('fboArticlesList');
+  if (container) {
+    container.innerHTML = html;
+
+    // attach delegated listener for remove buttons
+    container.querySelectorAll('.remove-btn').forEach(btn => {
+      btn.onclick = function(e) {
+        e.stopPropagation();
+        const k = this.getAttribute('data-key');
+        deleteFboArticle(k);
+      };
+    });
+
+    // attach show more toggle
+    const showBtn = container.querySelector('.fbo-show-more');
+    if (showBtn) {
+      showBtn.onclick = function() {
+        const state = this.getAttribute('data-state');
+        const parent = container.querySelector('.fbo-articles');
+        if (!parent) return;
+        if (state === 'collapsed') {
+          // expand
+          parent.classList.remove('collapsed');
+          this.setAttribute('data-state', 'expanded');
+          this.textContent = 'Свернуть';
+        } else {
+          parent.classList.add('collapsed');
+          this.setAttribute('data-state', 'collapsed');
+          // compute hidden count
+          const total = Number(parent.getAttribute('data-count') || 0);
+          this.textContent = `Показать ещё (${Math.max(0, total - ${maxVisible})})`;
+        }
+      };
+    }
+  }
+
+  return html;
+}
+
+// Make sure that any dynamically rendered history blocks using raw HTML with class names get toggles as well.
+// Observe #history for changes and post-process any fbo-like lists rendered there.
+(function watchHistoryForFboLists() {
+  try {
+    const history = document.getElementById('history');
+    if (!history) return;
+    const mo = new MutationObserver(() => {
+      // Find any long lines in history that look like FBO lists and make them collapsible if not already processed.
+      history.querySelectorAll('.history-details').forEach(details => {
+        if (details.dataset.fboProcessed) return;
+        // simple heuristic: find elements containing many comma-separated codes or many spans .fbo-article
+        const fboNodes = details.querySelectorAll('.fbo-article, .fbo-item, .fbo-list, [data-fbo="true"]');
+        if (fboNodes.length) {
+          // wrap them into a container with collapse/expand
+          const wrapper = document.createElement('div');
+          wrapper.className = 'fbo-articles collapsed';
+          // move found nodes into wrapper
+          fboNodes.forEach(n => wrapper.appendChild(n));
+          details.appendChild(wrapper);
+          const btn = document.createElement('button');
+          btn.className = 'fbo-show-more';
+          btn.textContent = 'Показать ещё';
+          btn.onclick = function() {
+            if (wrapper.classList.contains('collapsed')) {
+              wrapper.classList.remove('collapsed');
+              this.textContent = 'Свернуть';
+            } else {
+              wrapper.classList.add('collapsed');
+              this.textContent = 'Показать ещё';
+            }
+          };
+          details.appendChild(btn);
+          details.dataset.fboProcessed = '1';
+        } else {
+          // if there is just a long text node with many spaces/commas, try to split it
+          const txtNodes = Array.from(details.childNodes).filter(n => n.nodeType === Node.TEXT_NODE && n.textContent && n.textContent.split(/[,\s]+/).length > 10);
+          if (txtNodes.length) {
+            txtNodes.forEach(tn => {
+              const parts = tn.textContent.trim().split(/[\s,;]+/).filter(Boolean);
+              if (parts.length > 6) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'fbo-articles collapsed';
+                parts.forEach((p, i) => {
+                  const span = document.createElement('span');
+                  span.className = 'fbo-article';
+                  span.textContent = p;
+                  wrapper.appendChild(span);
+                });
+                tn.parentNode.replaceChild(wrapper, tn);
+                const btn = document.createElement('button');
+                btn.className = 'fbo-show-more';
+                btn.textContent = 'Показать ещё';
+                btn.onclick = function() {
+                  if (wrapper.classList.contains('collapsed')) {
+                    wrapper.classList.remove('collapsed'); this.textContent = 'Свернуть';
+                  } else { wrapper.classList.add('collapsed'); this.textContent = 'Показать ещё'; }
+                };
+                details.appendChild(btn);
+                details.dataset.fboProcessed = '1';
+              }
+            });
+          }
+        }
+      });
+    });
+    mo.observe(history, { childList: true, subtree: true, characterData: true });
+  } catch(e) {
+    console.warn('History watcher failed', e);
+  }
+})();
+
+// If other code calls renderFboArticles before this script is loaded, it will be overridden by this function (so it must be placed after main script).
+// End of block
+</script>
+<!-- END: fbo collapse + no-confirm + sanitization -->
 </body>
 </html>
