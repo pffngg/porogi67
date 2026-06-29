@@ -1381,61 +1381,121 @@ function leaveShift() {
 function toggleHistory() { const h = document.getElementById("history"); h.style.display = h.style.display==="none"?"block":"none"; }
 
 function listenHistory() {
+    const historyBox = document.getElementById("history");
+    if (!historyBox) return;
+
     db.ref("shifts").limitToLast(15).on("value", snap => {
         let html = "";
+
         snap.forEach(s => {
-            const d = s.val();
+            const d = s.val() || {};
+
             const fboArticles = normalizeFboArticles(d.fboArticles || {});
 
             const fboArticlesHtml = fboArticles.length
-    ? `
-        <div style="margin-top:10px;">
-            <b>Артикулы ФБО:</b>
-            <div style="margin-top:6px; display:flex; flex-direction:column; gap:5px;">
-                ${fboArticles.map(item => {
-                    const fullArticle = escapeHtml(item.fullArticle || `${item.article || ""}${item.suffix || ""}`);
-                    const by = escapeHtml(item.by || "");
-                    return `
-                        <div style="padding:6px 8px; background:rgba(99,102,241,0.06); border-radius:8px;">
-                            <b>${fullArticle}</b>${by ? ` <span style="opacity:0.65;">от ${by}</span>` : ""}
+                ? `
+                    <div style="margin-top:10px;">
+                        <b>Артикулы ФБО:</b>
+                        <div style="margin-top:6px; display:flex; flex-direction:column; gap:5px;">
+                            ${fboArticles.map(item => {
+                                const fullArticle = escapeHtml(item.fullArticle || `${item.article || ""}${item.suffix || ""}`);
+                                const by = escapeHtml(item.by || "");
+                                return `
+                                    <div style="padding:6px 8px; background:rgba(99,102,241,0.06); border-radius:8px;">
+                                        <b>${fullArticle}</b>${by ? ` <span style="opacity:0.65;">от ${by}</span>` : ""}
+                                    </div>
+                                `;
+                            }).join("")}
                         </div>
-                    `;
-                }).join("")}
-            </div>
-        </div>
-    `
-    : `
-        <div style="margin-top:10px; opacity:0.65;">
-            Артикулов ФБО нет
-        </div>
-    `;
+                    </div>
+                `
+                : `
+                    <div style="margin-top:10px; opacity:0.65;">
+                        Артикулов ФБО нет
+                    </div>
+                `;
 
-const detailsHtml = `
-    <div>СДЭК: ${d.cdek || 0}</div>
-    <div>ВБ/ОЗОН: ${d.wb || 0}</div>
-    <div>ДОСТАВКА: ${d.dost || 0}</div>
-    <div>ФБО: ${d.fbo || 0}</div>
-    <div>ОПТОВЫЕ: ${d.opt || 0}</div>
-    <div style="margin-top:6px;"><b>Заказы: ${d.total || 0}</b></div>
-    ${fboArticlesHtml}
-`;
+            const detailsHtml = `
+                <div>СДЭК: ${d.cdek || 0}</div>
+                <div>ВБ/ОЗОН: ${d.wb || 0}</div>
+                <div>ДОСТАВКА: ${d.dost || 0}</div>
+                <div>ФБО: ${d.fbo || 0}</div>
+                <div>ОПТОВЫЕ: ${d.opt || 0}</div>
+                <div style="margin-top:6px;"><b>Заказы: ${d.total || 0}</b></div>
+                ${fboArticlesHtml}
+            `;
+
+            // Безопасная обработка даты заголовка
+            const dateLabel = escapeHtml(
+                d.date ||
+                (d.start && String(d.start).includes(",")
+                    ? String(d.start).split(",")[0]
+                    : "без даты")
+            );
+
+            // Безопасная обработка времени начала
+            const startPart =
+                d.start && String(d.start).includes(",")
+                    ? String(d.start).split(",")[1].trim()
+                    : "";
+
+            // Безопасная обработка времени конца (главное исправление!)
+            const endPart =
+                d.end && String(d.end).includes(",")
+                    ? String(d.end).split(",")[1].trim()
+                    : "";
+
+            const timeLabel =
+                startPart || endPart
+                    ? `${startPart}${startPart && endPart ? " - " : ""}${endPart}`
+                    : "";
+
+            const deleteButton = isAdmin
+                ? `<button class="danger" style="position:absolute; right:10px; top:10px; padding:5px 10px;" onclick="event.stopPropagation(); if(confirm('Удалить смену из истории?')) db.ref('shifts/${escapeJsString(s.key)}').remove();">×</button>`
+                : "";
+
             html = `
-            <div class="card history-card" style="padding:15px; text-align:left;" onclick="toggleShiftDetails(this)">
-                <div style="padding-bottom: 32px;">
-                    <div><b style="font-size:16px;">Смена ${d.date || (d.start ? d.start.split(',')[0] : '')}</b></div>
+                <div class="card history-card" style="padding:15px; text-align:left;" onclick="toggleShiftDetails(this)">
+                    <div style="padding-bottom: 32px;">
+                        <div><b style="font-size:16px;">Смена ${dateLabel}</b></div>
+                    </div>
+
+                    <div style="margin: 8px 0; font-size: 14px; color:var(--text-secondary);">
+                        Общий заработок:
+                        <span style="color:var(--accent); font-weight:800; font-size:18px;">
+                            ${Math.round(Number(d.totalSalary || 0))}₽
+                        </span>
+                    </div>
+
+                    <div class="history-details" style="display:none; padding: 8px; background: rgba(99,102,241,0.04); border-radius: 8px; font-size: 13px;">
+                        ${detailsHtml}
+                    </div>
+
+                    ${deleteButton}
+
+                    <div class="history-arrow">▼</div>
+
+                    ${
+                        timeLabel
+                            ? `<small style="opacity:0.6; display:block; margin-top:8px;">${escapeHtml(timeLabel)}</small>`
+                            : ""
+                    }
                 </div>
-                <div style="margin: 8px 0; font-size: 14px; color:#ddd;">
-                    Общий заработок: <span style="color:var(--accent); font-weight:800; font-size:18px;">${Math.round(d.totalSalary || 0)}₽</span>
-                </div>
-                <div class="history-details" style="display:none; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 13px;">
-                    ${detailsHtml}
-                </div>
-                ${isAdmin ? `<button class="danger" style="position:absolute; right:10px; top:10px; padding:5px 10px;" onclick="event.stopPropagation(); db.ref('shifts/${s.key}').remove()">×</button>` : ''}
-                <div class="history-arrow">▼</div>
-                <small style="opacity:0.6; display:block; margin-top:8px;">${d.start ? d.start.split(',')[1].trim() + ' - ' : ''}${d.end.split(',')[1].trim()}</small>
-            </div>` + html;
+            ` + html;
         });
-        document.getElementById("history").innerHTML = html;
+
+        historyBox.innerHTML = html || `
+            <div class="card" style="text-align:center; color:var(--text-secondary);">
+                Истории смен пока нет
+            </div>
+        `;
+    }, err => {
+        console.error("listenHistory error:", err);
+        historyBox.innerHTML = `
+            <div class="card" style="color:#dc2626;">
+                Ошибка загрузки истории смен
+            </div>
+        `;
     });
 }
 
