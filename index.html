@@ -183,71 +183,76 @@
       letter-spacing: 0.5px;
     }
 
-    /* Поле ввода даты (стилизованное) */
-    .date-picker-area {
-      margin-top: 6px;
+    /* Скрытая админ-панель (только для разработчика) */
+    .admin-panel {
+      margin-top: 20px;
+      padding: 16px 20px;
+      background: rgba(0, 10, 30, 0.5);
+      border-radius: 40px;
+      border: 1px dashed rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(8px);
+      display: none; /* Скрыто по умолчанию */
+    }
+
+    .admin-panel.visible {
+      display: block;
+    }
+
+    .admin-panel label {
+      font-size: 0.85rem;
+      color: rgba(200, 225, 255, 0.5);
+      letter-spacing: 0.5px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .admin-panel .input-group {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 12px;
       flex-wrap: wrap;
-      background: rgba(0, 20, 40, 0.25);
-      padding: 12px 20px;
-      border-radius: 60px;
-      backdrop-filter: blur(6px);
-      border: 1px solid rgba(255, 255, 255, 0.04);
     }
 
-    .date-picker-area label {
-      font-size: 0.9rem;
-      color: rgba(200, 225, 255, 0.6);
-      letter-spacing: 0.5px;
-    }
-
-    .date-picker-area input[type="datetime-local"] {
-      background: rgba(0, 10, 25, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+    .admin-panel input[type="datetime-local"] {
+      background: rgba(0, 10, 25, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 40px;
-      padding: 10px 18px;
+      padding: 8px 16px;
       color: #d4eaff;
-      font-size: 0.95rem;
-      font-weight: 400;
+      font-size: 0.9rem;
       outline: none;
       transition: all 0.3s;
-      backdrop-filter: blur(4px);
-      width: 210px;
       font-family: inherit;
     }
 
-    .date-picker-area input[type="datetime-local"]:focus {
+    .admin-panel input[type="datetime-local"]:focus {
       border-color: #4c9aff;
-      box-shadow: 0 0 0 3px rgba(60, 150, 255, 0.2);
+      box-shadow: 0 0 0 3px rgba(60, 150, 255, 0.15);
     }
 
-    .date-picker-area input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-      filter: invert(0.8) sepia(1) hue-rotate(190deg) brightness(1.2);
-      cursor: pointer;
-    }
-
-    .btn-set {
-      background: rgba(60, 150, 255, 0.15);
-      border: 1px solid rgba(100, 180, 255, 0.2);
+    .admin-panel .btn-set {
+      background: rgba(60, 150, 255, 0.12);
+      border: 1px solid rgba(100, 180, 255, 0.15);
       color: #c6e0ff;
-      padding: 10px 24px;
+      padding: 8px 22px;
       border-radius: 40px;
       font-weight: 500;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       cursor: pointer;
       transition: all 0.25s ease;
-      backdrop-filter: blur(4px);
-      letter-spacing: 0.3px;
     }
 
-    .btn-set:hover {
-      background: rgba(60, 150, 255, 0.25);
+    .admin-panel .btn-set:hover {
+      background: rgba(60, 150, 255, 0.2);
       border-color: #4c9aff;
-      box-shadow: 0 0 20px rgba(60, 150, 255, 0.2);
-      transform: scale(1.02);
+    }
+
+    .admin-hint {
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.12);
+      margin-top: 10px;
+      letter-spacing: 0.5px;
     }
 
     /* сообщение о завершении */
@@ -280,7 +285,6 @@
       .timer-grid { gap: 10px; }
       .timer-item { min-width: 65px; padding: 10px 10px 6px; }
       .timer-number { font-size: 2.4rem; }
-      .date-picker-area input[type="datetime-local"] { width: 160px; }
       .end-date-block { font-size: 0.9rem; }
     }
   </style>
@@ -318,14 +322,17 @@
       <span class="date-value" id="endDateText">—</span>
     </div>
 
-    <!-- Управление датой -->
-    <div class="date-picker-area">
-      <label for="endDateTime">📅 Установить дату:</label>
-      <input type="datetime-local" id="endDateTime">
-      <button class="btn-set" id="setDateBtn">Применить</button>
+    <!-- Админ-панель (скрыта от обычных пользователей) -->
+    <div class="admin-panel" id="adminPanel">
+      <label>🔐 Администратор: изменить дату окончания</label>
+      <div class="input-group">
+        <input type="datetime-local" id="endDateTime">
+        <button class="btn-set" id="setDateBtn">Применить</button>
+      </div>
+      <div class="admin-hint">Доступно только разработчику (двойной клик по иконке ⚙️)</div>
     </div>
 
-    <!-- Сообщение, когда таймер истёк (по умолчанию скрыто) -->
+    <!-- Сообщение, когда таймер истёк -->
     <div id="finishedMessage" class="finished-message" style="display: none;">✅ Работы завершены!</div>
 
     <div class="footer-note">Следите за обновлениями</div>
@@ -334,6 +341,28 @@
   <script>
     (function() {
       "use strict";
+
+      // ---------- НАСТРОЙКА: ДАТА ОКОНЧАНИЯ (ИЗМЕНЯЙТЕ ЗДЕСЬ) ----------
+      // Формат: ГГГГ-ММ-ДДTЧЧ:ММ  (пример: "2026-07-05T18:30")
+      // Для удобства: сейчас стоит дата через 3 дня от текущего момента
+      // Вы можете заменить на любую другую, например: "2026-12-31T23:59"
+      // -----------------------------------------------------------------
+      function getDefaultEndDate() {
+        const d = new Date();
+        d.setDate(d.getDate() + 3);  // +3 дня
+        d.setHours(20, 0, 0, 0);     // 20:00
+        return d;
+      }
+
+      // ЗДЕСЬ МОЖНО УСТАНОВИТЬ СВОЮ ДАТУ (раскомментируйте и замените)
+      // const FIXED_END_DATE = new Date('2026-07-05T18:30:00');
+      // Если используете FIXED_END_DATE, закомментируйте getDefaultEndDate() ниже
+
+      // Используем динамическую дату (сейчас + 3 дня)
+      // Для фиксированной даты замените на: const END_DATE = new Date('2026-07-10T23:59:00');
+      const END_DATE = getDefaultEndDate();  // <-- меняйте здесь
+
+      // ----------------------------------------------------------------
 
       // DOM-элементы
       const daysEl = document.getElementById('days');
@@ -345,14 +374,14 @@
       const setDateBtn = document.getElementById('setDateBtn');
       const timerGrid = document.getElementById('timerGrid');
       const finishedMessage = document.getElementById('finishedMessage');
+      const adminPanel = document.getElementById('adminPanel');
+      const headerIcon = document.querySelector('.header-icon');
 
-      // Переменная для хранения конечной даты (объект Date)
-      let endDate = null;
+      // Текущая конечная дата (копия END_DATE, чтобы можно было менять через админку)
+      let endDate = new Date(END_DATE.getTime());
 
       // ID интервала
       let intervalId = null;
-
-      // Флаг, что таймер завершён (чтобы не обновлять)
       let isFinished = false;
 
       // ---------- Функции форматирования ----------
@@ -363,7 +392,6 @@
       // Обновление отображения таймера и даты
       function updateTimer() {
         if (!endDate) {
-          // Если дата не задана – показываем прочерки
           daysEl.textContent = '--';
           hoursEl.textContent = '--';
           minutesEl.textContent = '--';
@@ -375,19 +403,15 @@
         const now = new Date();
         const diff = endDate.getTime() - now.getTime();
 
-        // Если время истекло или дата в прошлом
         if (diff <= 0) {
-          // Останавливаем таймер, показываем сообщение
           if (!isFinished) {
             isFinished = true;
             if (intervalId) {
               clearInterval(intervalId);
               intervalId = null;
             }
-            // Прячем таймер, показываем "Работы завершены"
             timerGrid.style.display = 'none';
             finishedMessage.style.display = 'block';
-            // обновим текст даты
             endDateText.textContent = endDate.toLocaleString('ru-RU', {
               day: '2-digit', month: '2-digit', year: 'numeric',
               hour: '2-digit', minute: '2-digit'
@@ -396,73 +420,60 @@
           return;
         }
 
-        // Если таймер был скрыт (например, после завершения) – показываем
         if (isFinished) {
           isFinished = false;
           timerGrid.style.display = 'flex';
           finishedMessage.style.display = 'none';
         }
 
-        // Вычисляем дни, часы, минуты, секунды
         const totalSeconds = Math.floor(diff / 1000);
         const days = Math.floor(totalSeconds / 86400);
         const hours = Math.floor((totalSeconds % 86400) / 3600);
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const seconds = Math.floor(totalSeconds % 60);
 
-        // Обновляем DOM
         daysEl.textContent = padZero(days);
         hoursEl.textContent = padZero(hours);
         minutesEl.textContent = padZero(minutes);
         secondsEl.textContent = padZero(seconds);
 
-        // Обновляем отображение даты окончания
         endDateText.textContent = endDate.toLocaleString('ru-RU', {
           day: '2-digit', month: '2-digit', year: 'numeric',
           hour: '2-digit', minute: '2-digit'
         });
       }
 
-      // ---------- Установка новой даты ----------
+      // ---------- Установка новой даты (только через админку) ----------
       function setNewEndDate(dateString) {
-        if (!dateString) {
-          // Если строка пустая – игнорируем
-          return;
-        }
+        if (!dateString) return;
 
         const parsed = new Date(dateString);
-        // Проверка на валидность
         if (isNaN(parsed.getTime())) {
-          alert('Пожалуйста, выберите корректную дату и время.');
+          alert('Некорректная дата.');
           return;
         }
 
-        // Если дата в прошлом (относительно сейчас) – можно разрешить, но покажем 00:00:00 и потом завершим
-        // Но лучше всё равно установить, и таймер корректно отработает
         endDate = parsed;
 
-        // Если таймер остановлен (был завершён) – перезапускаем
         if (isFinished) {
           isFinished = false;
           timerGrid.style.display = 'flex';
           finishedMessage.style.display = 'none';
         }
 
-        // Если интервал не запущен – запускаем
         if (!intervalId) {
           intervalId = setInterval(updateTimer, 500);
         }
 
-        // Обновляем таймер сразу
         updateTimer();
 
-        // Также сохраняем в localStorage (опционально)
+        // Сохраняем в localStorage (чтобы не сбросить при перезагрузке)
         try {
           localStorage.setItem('maintenanceEndDate', dateString);
         } catch (e) { /* ignore */ }
       }
 
-      // ---------- Загрузка сохранённой даты из localStorage ----------
+      // ---------- Загрузка сохранённой даты (приоритет у localStorage) ----------
       function loadSavedDate() {
         try {
           const saved = localStorage.getItem('maintenanceEndDate');
@@ -470,13 +481,6 @@
             const parsed = new Date(saved);
             if (!isNaN(parsed.getTime())) {
               endDate = parsed;
-              // Устанавливаем значение в input
-              endDateTimeInput.value = saved;
-              // Запускаем таймер
-              if (!intervalId) {
-                intervalId = setInterval(updateTimer, 500);
-              }
-              updateTimer();
               return true;
             }
           }
@@ -484,48 +488,15 @@
         return false;
       }
 
-      // ---------- Обработчики событий ----------
-      // Кнопка "Применить"
-      setDateBtn.addEventListener('click', function() {
-        const val = endDateTimeInput.value;
-        if (!val) {
-          alert('Пожалуйста, выберите дату и время.');
-          return;
-        }
-        setNewEndDate(val);
-      });
+      // ---------- Показать/скрыть админ-панель (двойной клик по иконке) ----------
+      let clickCount = 0;
+      let clickTimer = null;
 
-      // Также можно по нажатию Enter в поле ввода
-      endDateTimeInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-          setDateBtn.click();
-        }
-      });
-
-      // ---------- Инициализация ----------
-      // Пробуем загрузить сохранённую дату
-      const hasSaved = loadSavedDate();
-
-      if (!hasSaved) {
-        // Если сохранённой нет – ставим дату по умолчанию: через 3 дня от текущего момента
-        const defaultDate = new Date();
-        defaultDate.setDate(defaultDate.getDate() + 3);
-        // Округляем до ближайшего часа (для красоты)
-        defaultDate.setMinutes(0, 0, 0);
-        // Форматируем для input datetime-local
-        const year = defaultDate.getFullYear();
-        const month = padZero(defaultDate.getMonth() + 1);
-        const day = padZero(defaultDate.getDate());
-        const hours = padZero(defaultDate.getHours());
-        const minutes = padZero(defaultDate.getMinutes());
-        const defaultStr = `${year}-${month}-${day}T${hours}:${minutes}`;
-
-        endDateTimeInput.value = defaultStr;
-        // Устанавливаем дату
-        setNewEndDate(defaultStr);
-      } else {
-        // Если загрузили, синхронизируем input с сохранённым значением
-        if (endDate) {
+      headerIcon.addEventListener('dblclick', function(e) {
+        e.preventDefault();
+        adminPanel.classList.toggle('visible');
+        // Если панель показана – синхронизируем input с текущей датой
+        if (adminPanel.classList.contains('visible') && endDate) {
           const d = endDate;
           const year = d.getFullYear();
           const month = padZero(d.getMonth() + 1);
@@ -534,29 +505,72 @@
           const minutes = padZero(d.getMinutes());
           endDateTimeInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
         }
+      });
+
+      // ---------- Обработчики админ-панели ----------
+      setDateBtn.addEventListener('click', function() {
+        const val = endDateTimeInput.value;
+        if (!val) {
+          alert('Выберите дату и время.');
+          return;
+        }
+        setNewEndDate(val);
+        // Скрываем панель после применения (опционально)
+        // adminPanel.classList.remove('visible');
+      });
+
+      endDateTimeInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          setDateBtn.click();
+        }
+      });
+
+      // ---------- Инициализация ----------
+      // Сначала пробуем загрузить из localStorage
+      const hasSaved = loadSavedDate();
+
+      if (!hasSaved) {
+        // Если нет сохранённой – используем END_DATE из конфига
+        endDate = new Date(END_DATE.getTime());
       }
 
-      // Дополнительно: если таймер уже завершён при загрузке – корректно отобразить
-      // Эту ситуацию обработает updateTimer() при первом вызове (если endDate в прошлом)
-      // Но чтобы точно сработало, вызовем ещё раз после инициализации
+      // Синхронизируем input с текущей датой (для админки)
+      if (endDate) {
+        const d = endDate;
+        const year = d.getFullYear();
+        const month = padZero(d.getMonth() + 1);
+        const day = padZero(d.getDate());
+        const hours = padZero(d.getHours());
+        const minutes = padZero(d.getMinutes());
+        endDateTimeInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+      }
+
+      // Запускаем таймер
+      if (!intervalId) {
+        intervalId = setInterval(updateTimer, 500);
+      }
+      updateTimer();
+
+      // Проверка на случай, если дата уже в прошлом
       setTimeout(() => {
         if (endDate) {
-          // Принудительно проверим состояние
           const now = new Date();
           if (endDate.getTime() <= now.getTime()) {
-            // Если дата в прошлом – триггерим завершение
-            // Просто вызовем updateTimer (он сам выставит isFinished)
             updateTimer();
           }
         }
       }, 100);
 
-      // На случай, если вкладка была скрыта и таймер "заснул" – обновим при фокусе
+      // Обновление при возвращении на вкладку
       document.addEventListener('visibilitychange', function() {
         if (!document.hidden && endDate) {
           updateTimer();
         }
       });
+
+      // ---------- Инструкция для разработчика ----------
+      console.log('🔧 Для изменения даты: дважды кликните по иконке ⚙️');
+      console.log(`📅 Текущая дата окончания: ${endDate ? endDate.toLocaleString() : 'не установлена'}`);
 
     })();
   </script>
