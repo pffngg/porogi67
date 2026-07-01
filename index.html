@@ -213,6 +213,60 @@ html.dark-mode #active-shift-info div, html.dark-mode #active-shift-info span { 
     </div>
 </div>
 
+<!-- ОПРОС ПОСЛЕ ЗАКРЫТИЯ СМЕНЫ -->
+<div id="surveyModal" class="modal-overlay">
+  <div class="modal-content" style="max-width:460px; text-align:left; max-height:90vh; overflow-y:auto;">
+    <h2 style="margin:0 0 20px 0; color:var(--accent); text-align:center;">Заполни отчёт</h2>
+
+    <!-- 1. Заявки в проблемы -->
+    <div style="margin-bottom:16px; display:flex; align-items:center; gap:12px; background:rgba(99,102,241,0.04); padding:12px 14px; border-radius:12px; border:1px solid var(--border); cursor:pointer;" onclick="toggleSurveyCheck('problems')">
+      <div id="surveyProblemsBox" style="width:26px; height:26px; border-radius:8px; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--accent); flex-shrink:0;"></div>
+      <div style="font-size:14px; font-weight:600;">Кидал заявки в проблемы</div>
+    </div>
+
+    <!-- 2. Печатал отчёт -->
+    <div style="margin-bottom:16px; display:flex; align-items:center; gap:12px; background:rgba(99,102,241,0.04); padding:12px 14px; border-radius:12px; border:1px solid var(--border); cursor:pointer;" onclick="toggleSurveyCheck('report')">
+      <div id="surveyReportBox" style="width:26px; height:26px; border-radius:8px; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--accent); flex-shrink:0;"></div>
+      <div style="font-size:14px; font-weight:600;">Печатал отчёт</div>
+    </div>
+
+    <!-- 3. Коробки ВБ -->
+    <div style="margin-bottom:16px;">
+      <label style="font-size:14px; font-weight:600; display:block; margin-bottom:8px;">Сколько коробок ВБ?</label>
+      <input id="surveyBoxes" type="number" min="0" placeholder="0" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); background:white; color:var(--text); font-size:14px;">
+    </div>
+
+    <!-- 4. Кто работал -->
+    <div style="margin-bottom:16px;">
+      <label style="font-size:14px; font-weight:600; display:block; margin-bottom:8px;">Кто работал?</label>
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <button id="surveyCntBtn1" class="glass-btn" style="flex:1;" onclick="setWorkersCount(1)">1</button>
+        <button id="surveyCntBtn2" class="glass-btn" style="flex:1;" onclick="setWorkersCount(2)">2</button>
+        <button id="surveyCntBtn3" class="glass-btn" style="flex:1;" onclick="setWorkersCount(3)">3</button>
+        <button id="surveyCntBtn4" class="glass-btn" style="flex:1;" onclick="setWorkersCount(4)">4</button>
+      </div>
+      <div id="surveyWorkersInputs" style="display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+
+    <!-- 5. Фото -->
+    <div style="margin-bottom:20px;">
+      <label style="font-size:14px; font-weight:600; display:block; margin-bottom:8px;">Фото к отчёту (необязательно)</label>
+      <input type="file" id="surveyPhotoInp" accept="image/*" style="display:none" onchange="prepareSurveyPhoto(this)">
+      <button class="glass-btn" style="width:100%;" onclick="document.getElementById('surveyPhotoInp').click()">📷 Прикрепить фото</button>
+      <div id="surveyPhotoPreview" style="margin-top:10px; display:none; position:relative;">
+        <img id="surveyPhotoImg" style="width:100%; border-radius:12px; max-height:200px; object-fit:cover;">
+        <div onclick="removeSurveyPhoto()" style="position:absolute; top:8px; right:8px; width:26px; height:26px; border-radius:50%; background:rgba(0,0,0,0.7); color:white; display:flex; align-items:center; justify-content:center; cursor:pointer;">×</div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px;">
+      <button class="glass-btn" style="flex:1; padding:14px;" onclick="skipSurvey()">Скип</button>
+      <button class="primary" style="flex:1; padding:14px;" onclick="submitSurvey()">Сохранить в отчёт</button>
+    </div>
+  </div>
+</div>
+
+
 <div id="profileModal" class="modal-overlay" onclick="if(event.target.id==='profileModal') document.getElementById('profileModal').style.display='none'">
     <div class="modal-content" onclick="event.stopPropagation()">
         <img id="profileAvatarPreview" class="avatar" style="width:100px; height:100px; margin-bottom:20px; cursor:pointer; border-width:3px;" onclick="triggerAvatarInput()">
@@ -285,7 +339,7 @@ html.dark-mode #active-shift-info div, html.dark-mode #active-shift-info span { 
             <button class="danger ctrl-btn" style="padding:12px 16px;" onclick="removeCounter('cdek')">−</button>
         </div>
         <div class="places-row">
-            <span class="places-label">📦 Места</span>
+            <span class="places-label">Места</span>
             <button class="glass-btn places-btn" onclick="addPlace('cdek')">+</button>
             <div class="count-sm" id="cdek_places_val" onclick="manualInputPlaces('cdek')">0</div>
             <button class="glass-btn places-btn" onclick="removePlace('cdek')">−</button>
@@ -312,7 +366,7 @@ html.dark-mode #active-shift-info div, html.dark-mode #active-shift-info span { 
             <button class="danger ctrl-btn" style="padding:12px 16px;" onclick="removeCounter('dost')">−</button>
         </div>
         <div class="places-row">
-            <span class="places-label">📦 Места</span>
+            <span class="places-label">Места</span>
             <button class="glass-btn places-btn" onclick="addPlace('dost')">+</button>
             <div class="count-sm" id="dost_places_val" onclick="manualInputPlaces('dost')">0</div>
             <button class="glass-btn places-btn" onclick="removePlace('dost')">−</button>
@@ -999,10 +1053,11 @@ function leaveShift() {
     allParticipants[currentUser] = currentMember;
     const participantCount = Object.keys(shift.participants).length;
 
-    if (participantCount <= 1) {
+        if (participantCount <= 1) {
       const numParts = Object.keys(allParticipants).length;
       const totalSalary = calculateTotalSalary(allParticipants);
-      db.ref("shifts").push({
+      const newRef = db.ref("shifts").push();
+      newRef.set({
         date: startT.toLocaleDateString(), total: totalCount, cdek: cdekCount, wb: wbCount, dost: dostCount, fbo: fboCount, opt: optCount,
         cdek_places: shift.cdek_places || cdekCount, dost_places: shift.dost_places || dostCount,
         total_places: totalPlaces,
@@ -1010,7 +1065,7 @@ function leaveShift() {
         totalSalary, numParticipants: numParts, participants: JSON.parse(JSON.stringify(allParticipants)),
         start: startT.toLocaleString(), end: endT.toLocaleString(), startTime: shift.startTime, endTime: Date.now(),
         closedBy: currentUser, closedAt: Date.now()
-      }).then(() => { db.ref("active_shift").remove(); });
+      }).then(() => { db.ref("active_shift").remove(); openSurveyModal(newRef.key); });
     } else {
       db.ref().update({
         "active_shift/allParticipants": allParticipants,
@@ -1038,7 +1093,8 @@ function closeShift() {
     document.getElementById("reportDetails").innerHTML = reportText;
     document.getElementById("reportModal").style.display = "flex";
 
-    db.ref("shifts").push({
+        const newRef = db.ref("shifts").push();
+    newRef.set({
       date: startT.toLocaleDateString(), total: totalCount, cdek: cdekCount, wb: wbCount, dost: dostCount, fbo: fboCount, opt: optCount,
       cdek_places: shift.cdek_places || cdekCount, dost_places: shift.dost_places || dostCount,
       total_places: totalPlaces,
@@ -1046,9 +1102,9 @@ function closeShift() {
       totalSalary, numParticipants: numParts, participants: JSON.parse(JSON.stringify(allParticipants)),
       start: startT.toLocaleString(), end: endT.toLocaleString(), startTime: shift.startTime, endTime: Date.now(),
       closedBy: currentUser, closedAt: Date.now()
-    }).then(() => { db.ref("active_shift").remove(); }).catch(err => { console.error("closeShift error:", err); alert("Ошибка при закрытии смены"); });
-  });
-}
+    }).then(() => { db.ref("active_shift").remove(); openSurveyModal(newRef.key); })
+      .catch(err => { console.error("closeShift error:", err); alert("Ошибка при закрытии смены"); });
+
 
 function closeShiftFromAdmin() {
   if (!isAdmin) return;
@@ -1073,10 +1129,121 @@ function closeShiftFromAdmin() {
       totalSalary, numParticipants: numParts, participants: JSON.parse(JSON.stringify(allParticipants)),
       start: startT.toLocaleString(), end: endT.toLocaleString(), startTime: shift.startTime, endTime: Date.now(),
       closedBy: currentUser, closedAt: Date.now()
-    }).then(() => { db.ref("active_shift").remove(); alert("✅ Смена закрыта админом и сохранена в архив"); })
-    .catch(err => { alert("❌ Ошибка при закрытии смены: " + err.message); });
+    }).then(() => { db.ref("active_shift").remove(); alert("✅ Смена закрыта админом и сохранена в архив") openSurveyModal(archiveKey); })
+    .catch(err => { alert("❌ Ошибка при закрытии смены: " + err.message);    }).then(() => { db.ref("active_shift").remove(); alert("✅ Смена закрыта админом и сохранена в архив"); openSurveyModal(archiveKey); })
+
   });
 }
+
+// ===================== ОПРОС ПОСЛЕ СМЕНЫ =====================
+
+let surveyState = { problems:false, report:false };
+let surveyPhoto = null;
+let pendingShiftKey = null; // ключ последней сохранённой смены
+
+function toggleSurveyCheck(type){
+  surveyState[type] = !surveyState[type];
+  const box = document.getElementById(type==='problems'?'surveyProblemsBox':'surveyReportBox');
+  if(surveyState[type]){ box.innerText='✓'; box.style.background='var(--accent)'; box.style.color='white'; }
+  else { box.innerText=''; box.style.background='transparent'; box.style.color='var(--accent)'; }
+}
+
+function setWorkersCount(n){
+  for(let i=1;i<=4;i++){
+    const b=document.getElementById('surveyCntBtn'+i);
+    if(b) b.className = (i===n)?'primary':'glass-btn';
+  }
+  const wrap=document.getElementById('surveyWorkersInputs');
+  let html='';
+  for(let i=1;i<=n;i++){
+    html+=`<input class="survey-worker" placeholder="Имя {i}" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); background:white; color:var(--text); font-size:14px;">`;
+  }
+  wrap.innerHTML=html;
+}
+
+function prepareSurveyPhoto(input){
+  const f=input.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const c=document.createElement('canvas');
+      const max=1000; let w=img.width,h=img.height;
+      if(w>h && w>max){ h*=max/w; w=max; } else if(h>max){ w*=max/h; h=max; }
+      c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
+      surveyPhoto=c.toDataURL('image/jpeg',0.7);
+      document.getElementById('surveyPhotoImg').src=surveyPhoto;
+      document.getElementById('surveyPhotoPreview').style.display='block';
+    };
+    img.src=e.target.result;
+  };
+  r.readAsDataURL(f);
+}
+
+function removeSurveyPhoto(){
+  surveyPhoto=null;
+  document.getElementById('surveyPhotoPreview').style.display='none';
+  document.getElementById('surveyPhotoInp').value='';
+}
+
+function openSurveyModal(shiftKey){
+  pendingShiftKey = shiftKey;
+  // сброс
+  surveyState={problems:false, report:false};
+  surveyPhoto=null;
+  document.getElementById('surveyProblemsBox').innerText='';
+  document.getElementById('surveyProblemsBox').style.background='transparent';
+  document.getElementById('surveyProblemsBox').style.color='var(--accent)';
+  document.getElementById('surveyReportBox').innerText='';
+  document.getElementById('surveyReportBox').style.background='transparent';
+  document.getElementById('surveyReportBox').style.color='var(--accent)';
+  document.getElementById('surveyBoxes').value='';
+  document.getElementById('surveyWorkersInputs').innerHTML='';
+  for(let i=1;i<=4;i++){ const b=document.getElementById('surveyCntBtn'+i); if(b) b.className='glass-btn'; }
+  removeSurveyPhoto();
+  document.getElementById('surveyModal').style.display='flex';
+}
+
+function buildSurveyText(problems, report, boxes, workers){
+  let line1;
+  if(problems && report) line1="Заявки в проблемы кидал, отчет печатал.";
+  else if(problems && !report) line1="Заявки в проблемы кидал, отчет не печатал.";
+  else if(!problems && report) line1="Заявки в проблемы не кидал, отчет печатал.";
+  else line1="Заявки в проблемы не кидал, отчет не печатал.";
+
+  let line2 = (boxes && parseInt(boxes)>0) ? `Упаковали ${parseInt(boxes)} коробок на ВБ.` : "Коробки на вб не упаковывали.";
+  let line3 = workers.length ? ("Работали "+workers.join(", ")+".") : "";
+  return [line1,line2,line3].filter(Boolean).join("\n");
+}
+
+function submitSurvey(){
+  if(!pendingShiftKey){ document.getElementById('surveyModal').style.display='none'; return; }
+  const boxes = document.getElementById('surveyBoxes').value;
+  const workers = Array.from(document.querySelectorAll('.survey-worker'))
+      .map(i=>i.value.trim()).filter(Boolean);
+  const surveyText = buildSurveyText(surveyState.problems, surveyState.report, boxes, workers);
+
+  const surveyData = {
+    problems: surveyState.problems,
+    report: surveyState.report,
+    wbBoxes: boxes ? parseInt(boxes) : 0,
+    workers: workers,
+    text: surveyText,
+    photo: surveyPhoto || null,
+    filledBy: currentUser,
+    at: Date.now()
+  };
+
+  db.ref(`shifts/${pendingShiftKey}/survey`).set(surveyData)
+    .then(()=>{ document.getElementById('surveyModal').style.display='none'; pendingShiftKey=null; })
+    .catch(err=>{ alert("Ошибка сохранения: "+err.message); });
+}
+
+function skipSurvey(){
+  document.getElementById('surveyModal').style.display='none';
+  pendingShiftKey=null;
+}
+
 
 // ===================== HISTORY =====================
 
@@ -1097,7 +1264,7 @@ function listenHistory() {
       const totalPlaces = d.total_places || (cdekPlaces + wbCount + dostPlaces + fboCount);
 
       const placesDetailHtml = `
-        <div style="margin-top:8px;"><b>📦 Места:</b></div>
+        <div style="margin-top:8px;"><b>Места:</b></div>
         <div>СДЭК: ${cdekPlaces} мест</div>
         <div>ВБ/ОЗОН: ${wbCount} мест</div>
         <div>ФБО: ${fboCount} мест</div>
@@ -1106,6 +1273,14 @@ function listenHistory() {
       `;
 
       const fboArticlesHtml = fboArticles.length ? `<div style="margin-top:10px;"><b>Артикулы ФБО:</b><div style="margin-top:6px; display:flex; flex-direction:column; gap:5px;">${fboArticles.map(item => `<div style="padding:6px 8px; background:rgba(99,102,241,0.06); border-radius:8px;"><b>${escapeHtml(item.fullArticle || '')}</b>${item.by ? ` <span style="opacity:0.65;">от ${escapeHtml(item.by)}</span>` : ''}</div>`).join("")}</div></div>` : '';
+
+const surveyHtml = d.survey ? `
+        <div style="margin-top:10px; padding:10px; background:rgba(16,185,129,0.08); border-radius:8px; border:1px solid rgba(16,185,129,0.2);">
+          <b>📝 Отчёт по смене:</b>
+          <div style="margin-top:6px; white-space:pre-line; line-height:1.5;">${escapeHtml(d.survey.text || '')}</div>
+          ${d.survey.photo ? `<img src="${d.survey.photo}" style="width:100%; border-radius:8px; margin-top:8px; cursor:pointer;" onclick="openFullImg('${d.survey.photo}')">` : ''}
+          ${d.survey.filledBy ? `<div style="margin-top:6px; font-size:11px; opacity:0.65;">Заполнил: ${escapeHtml(d.survey.filledBy)}</div>` : ''}
+        </div>` : '';
 
       const detailsHtml = `
         <div><b>📊 Заказы:</b></div>
@@ -1116,6 +1291,7 @@ function listenHistory() {
         <div style="margin-top:4px;"><b>Заказы: ${d.total || 0}</b></div>
         ${placesDetailHtml}
         ${fboArticlesHtml}
+        ${surveyHtml}
       `;
 
       const dateLabel = escapeHtml(d.date || (d.start && String(d.start).includes(",") ? String(d.start).split(",")[0] : "без даты"));
@@ -1300,28 +1476,68 @@ function exportShiftToImage(shiftData) {
   ctx.fillText(totalOrders, colX[1], y + 5);
   ctx.fillText(totalPlaces, colX[2], y + 5);
 
-  // Opt orders note
+    // Opt orders note
   y += 45;
   ctx.fillStyle = 'rgba(255,255,255,0.5)';
   ctx.font = '13px -apple-system, BlinkMacSystemFont, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(`Оптовые заказы: ${optCount}  •  Общий заработок: ${totalSalary} ₽`, width / 2, y);
+  ctx.fillText(`Оптовые заказы: {optCount}  •  Общий заработок: ${totalSalary} ₽`, width / 2, y);
 
-  // Bottom accent
-  ctx.fillStyle = accentGrad;
-  ctx.fillRect(0, height - 5, width, 5);
+  // Опрос (текст отчёта)
+  const survey = shiftData.survey;
+  if (survey && survey.text) {
+    y += 30;
+    ctx.strokeStyle = 'rgba(99, 102, 241, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(80, y); ctx.lineTo(width - 80, y); ctx.stroke();
+    y += 25;
+    ctx.fillStyle = '#a78bfa';
+    ctx.font = 'bold 13px -apple-system, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('ОТЧЁТ ПО СМЕНЕ', 80, y);
+    y += 24;
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '14px -apple-system, sans-serif';
+    survey.text.split('\n').forEach(line => {
+      ctx.fillText(line, 80, y);
+      y += 22;
+    });
+  }
 
-  // Footer
-  ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('POROGI67 • Система управления порогами • ' + new Date().toLocaleDateString(), width / 2, height - 15);
+  const finishDraw = () => {
+    // Bottom accent
+    ctx.fillStyle = accentGrad;
+    ctx.fillRect(0, height - 5, width, 5);
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('POROGI67 • Система управления порогами • ' + new Date().toLocaleDateString(), width / 2, height - 15);
 
-  // Download
-  const link = document.createElement('a');
-  link.download = `otchet_smena_${dateLabel.replace(/\./g, '_')}.png`;
-  link.href = canvas.toDataURL('image/png');
-  link.click();
+    const link = document.createElement('a');
+    link.download = `otchet_smena_${dateLabel.replace(/\./g, '_')}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
+
+  // Фото из опроса
+  if (survey && survey.photo) {
+    const photoImg = new Image();
+    photoImg.onload = () => {
+      const maxW = width - 160, maxH = 220;
+      let pw = photoImg.width, ph = photoImg.height;
+      const ratio = Math.min(maxW / pw, maxH / ph);
+      pw *= ratio; ph *= ratio;
+      const px = (width - pw) / 2;
+      const py = y + 10;
+      // расширяем canvas при необходимости — рисуем прямо
+      ctx.drawImage(photoImg, px, py, pw, ph);
+      finishDraw();
+    };
+    photoImg.onerror = finishDraw;
+    photoImg.src = survey.photo;
+  } else {
+    finishDraw();
+  }
 }
 
 // ===================== CHAT =====================
