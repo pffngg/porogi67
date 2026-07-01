@@ -152,6 +152,19 @@ td { background: white; }
 .cell-box:hover { transform: scale(1.1); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15); }
 .st-work { background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2); border: none; }
 
+/* Скролл для списка ФБО-артикулов */
+#fboArticlesWrapper::-webkit-scrollbar {
+    width: 5px;
+}
+#fboArticlesWrapper::-webkit-scrollbar-track {
+    background: rgba(99, 102, 241, 0.05);
+    border-radius: 8px;
+}
+#fboArticlesWrapper::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.25);
+    border-radius: 8px;
+}
+
 /* ЧАТ */
 #view-chat { display: none; flex-direction: column; height: 85vh; gap: 12px; }
 #chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
@@ -330,7 +343,7 @@ html.dark-mode #active-shift-info span {
 </head>
 
 <body>
-<div class="version-tag">test v 1.07 ad 10.04.26</div>
+<div class="version-tag">alfa v 1.09 FBO 01.07.26</div>
 
 <div id="context-menu"><div style="color:#ff3b30;" id="ctx-delete">Удалить</div></div>
 
@@ -428,24 +441,50 @@ html.dark-mode #active-shift-info span {
         </div>
       </div>
 <div class="card">
-    <div class="fbo-header" onclick="document.getElementById('fboContent').classList.toggle('collapsed')">
-        <h4 style="margin:0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">ФБО</h4>
-        <span class="fbo-toggle-icon">▼</span>
+    <h4 style="margin:0 0 10px 0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">ФБО</h4>
+
+    <!-- Размер -->
+    <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
+        <span style="font-size:12px; color:var(--text-secondary); min-width:42px;">Размер:</span>
+        <button id="fboBtnS" class="glass-btn fbo-control" style="width:40px; padding:8px 0;" onclick="selectFboOption('suffix','S')">S</button>
+        <button id="fboBtnF" class="glass-btn fbo-control" style="width:40px; padding:8px 0;" onclick="selectFboOption('suffix','F')">F</button>
+        <span id="fboLabelSuffix" style="font-size:12px; color:var(--accent); font-weight:600;"></span>
     </div>
 
-    <div id="fboContent" class="fbo-content"> <!-- Контент, который сворачивается -->
-        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top: 15px;">
-            <button id="fboBtnS" class="glass-btn" style="width:40px; padding:10px 0;" onclick="selectFboSuffix('S')">S</button>
-            <button id="fboBtnF" class="glass-btn" style="width:40px; padding:10px 0;" onclick="selectFboSuffix('F')">F</button>
-            
-            <input id="fboArticleInput" placeholder="Артикул" 
-                   style="flex:1; padding:12px; border-radius:12px; border:1px solid var(--border); background:white; color:var(--text); font-size:14px;"
-                   onkeydown="handleFboArticleKey(event)">
-            
-            <div class="count" id="fbo_val" style="font-size:24px; padding:10px 15px; pointer-events:none;">0</div>
-        </div>
-        
-        <div id="fboArticlesList" style="margin-top:12px; display:flex; flex-direction:column; gap:8px;"></div>
+    <!-- Металл -->
+    <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
+        <span style="font-size:12px; color:var(--text-secondary); min-width:42px;">Металл:</span>
+        <button id="fboBtnZinc" class="glass-btn fbo-control" style="padding:8px 14px;" onclick="selectFboOption('material','ЦИНК')">Цинк</button>
+        <button id="fboBtnHks" class="glass-btn fbo-control" style="padding:8px 14px;" onclick="selectFboOption('material','ХКС')">ХКС</button>
+        <span id="fboLabelMaterial" style="font-size:12px; color:var(--accent); font-weight:600;"></span>
+    </div>
+
+    <!-- Ширина -->
+    <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px; flex-wrap:wrap;">
+        <span style="font-size:12px; color:var(--text-secondary); min-width:42px;">Ширина:</span>
+        <button id="fboBtn1mm" class="glass-btn fbo-control" style="padding:8px 14px;" onclick="selectFboOption('width','1 ММ')">1 мм</button>
+        <button id="fboBtn15mm" class="glass-btn fbo-control" style="padding:8px 14px;" onclick="selectFboOption('width','1,5 ММ')">1,5 мм</button>
+        <span id="fboLabelWidth" style="font-size:12px; color:var(--accent); font-weight:600;"></span>
+    </div>
+
+    <!-- Артикул + счётчик -->
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <input id="fboArticleInput" placeholder="Артикул"
+               style="flex:1; min-width:100px; padding:12px; border-radius:12px; border:1px solid var(--border); background:white; color:var(--text); font-size:14px;"
+               onkeydown="handleFboArticleKey(event)">
+        <div class="count" id="fbo_val" style="font-size:22px; padding:10px 14px; pointer-events:none;">0</div>
+    </div>
+
+    <!-- Сворачиваемый список артикулов -->
+    <div class="fbo-articles-toggle" onclick="toggleFboArticles()"
+         style="display:flex; justify-content:space-between; align-items:center; padding:10px 0 6px; margin-top:8px; cursor:pointer; user-select:none; border-top:1px solid var(--border);">
+        <span style="font-size:12px; color:var(--text-secondary);">
+            Записанные артикулы (<span id="fboArticlesCount">0</span>)
+        </span>
+        <span id="fboToggleArrow" style="transition:transform 0.3s;">▼</span>
+    </div>
+    <div id="fboArticlesWrapper" style="max-height:250px; overflow-y:auto; transition:max-height 0.3s ease;">
+        <div id="fboArticlesList" style="display:flex; flex-direction:column; gap:8px; padding-top:4px;"></div>
     </div>
 </div>
       <div class="card"><h4 style="margin:0 0 12px 0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">ОПТОВЫЕ ЗАКАЗЫ</h4>
@@ -532,7 +571,7 @@ html.dark-mode #active-shift-info span {
         <!-- Active shift admin controls will be rendered here -->
       </div>
       <div class="card" style="padding:20px;">
-        <div style="font-size:18px; font-weight:800; margin-bottom:12px; color:var(--text);">🟢 Онлайн сейчас</div>
+        <div style="font-size:18px; font-weight:800; margin-bottom:12px; color:var(--text);">Онлайн сейчас</div>
         <div id="onlineUsersList" style="display:flex; flex-direction:column; gap:8px; color:var(--text);"></div>
       </div>
       <div class="card" style="padding:20px;">
@@ -881,7 +920,7 @@ document.getElementById("optDisplay").innerText = `Оптовые: ${shift.opt |
                 dostVal.style.pointerEvents = "none";
                 optVal.style.pointerEvents = "none";
 
-                document.getElementById("salaryDisplay").innerText = "Режим просмотра 👀";
+                document.getElementById("salaryDisplay").innerText = "Режим Куколда 👀";
             }
         } else {
     startBtnCont.style.display = "block";
@@ -1019,84 +1058,97 @@ function removeCounter(type) {
     });
 }
 
-function selectFboSuffix(suffix) {
-    currentFboSuffix = suffix;
+let currentFboSuffix = "";
+let currentFboMaterial = "";
+let currentFboWidth = "";
+let fboArticlesVisible = true;
 
-    const btnS = document.getElementById("fboBtnS");
-    const btnF = document.getElementById("fboBtnF");
-    const label = document.getElementById("fboSelectedSuffix");
-    const input = document.getElementById("fboArticleInput");
+function selectFboOption(type, value) {
+    if (!isGlobalParticipant) return;
 
-    if (btnS) btnS.className = suffix === "S" ? "primary fbo-control" : "glass-btn fbo-control";
-    if (btnF) btnF.className = suffix === "F" ? "primary fbo-control" : "glass-btn fbo-control";
-
-    if (label) {
-        label.innerText = `Выбрано: ${suffix}. Артикул будет сохранён с окончанием ${suffix}`;
+    if (type === 'suffix') {
+        currentFboSuffix = value;
+        document.getElementById('fboBtnS').className = value === 'S' ? 'primary fbo-control' : 'glass-btn fbo-control';
+        document.getElementById('fboBtnF').className = value === 'F' ? 'primary fbo-control' : 'glass-btn fbo-control';
+        document.getElementById('fboLabelSuffix').innerText = value;
+    } else if (type === 'material') {
+        currentFboMaterial = value;
+        document.getElementById('fboBtnZinc').className = value === 'ЦИНК' ? 'primary fbo-control' : 'glass-btn fbo-control';
+        document.getElementById('fboBtnHks').className = value === 'ХКС' ? 'primary fbo-control' : 'glass-btn fbo-control';
+        document.getElementById('fboLabelMaterial').innerText = value;
+    } else if (type === 'width') {
+        currentFboWidth = value;
+        document.getElementById('fboBtn1mm').className = value === '1 ММ' ? 'primary fbo-control' : 'glass-btn fbo-control';
+        document.getElementById('fboBtn15mm').className = value === '1,5 ММ' ? 'primary fbo-control' : 'glass-btn fbo-control';
+        document.getElementById('fboLabelWidth').innerText = value;
     }
 
+    const input = document.getElementById('fboArticleInput');
     if (input) input.focus();
 }
 
-function handleFboArticleKey(event) {
-    if (event.key === "Enter") {
-        event.preventDefault();
-        addFboArticle();
-    }
-}
-
 function setFboControlsEnabled(enabled) {
-    document.querySelectorAll(".fbo-control").forEach(el => {
+    document.querySelectorAll('.fbo-control').forEach(el => {
         el.disabled = !enabled;
-        el.style.opacity = enabled ? "1" : "0.55";
-        el.style.pointerEvents = enabled ? "auto" : "none";
+        el.style.opacity = enabled ? '1' : '0.55';
+        el.style.pointerEvents = enabled ? 'auto' : 'none';
     });
 }
 
 function normalizeFboArticles(fboArticles) {
     if (!fboArticles) return [];
-
     return Object.entries(fboArticles)
-        .map(([key, value]) => ({
-            key,
-            ...value
-        }))
+        .map(([key, value]) => ({ key, ...value }))
         .sort((a, b) => (a.at || 0) - (b.at || 0));
 }
 
 function renderFboArticles(fboArticles) {
-    const list = document.getElementById("fboArticlesList");
+    const list = document.getElementById('fboArticlesList');
+    const counter = document.getElementById('fboArticlesCount');
     if (!list) return;
 
     const articles = normalizeFboArticles(fboArticles);
+
+    if (counter) counter.innerText = articles.length;
+
     if (!articles.length) {
-        list.innerHTML = `<div style="font-size:12px; color:#64748b; opacity:0.5;">Список пуст</div>`;
+        list.innerHTML = `<div style="font-size:12px; color:var(--text-secondary); opacity:0.6; padding:8px;">Список пуст</div>`;
         return;
     }
 
     list.innerHTML = articles.map(item => {
-        const fullArt = escapeHtml(item.fullArticle || "");
+        const fullArt = escapeHtml(item.fullArticle || '');
         return `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(99,102,241,0.04); border-radius:10px;">
-                <div style="font-weight:800; color:var(--text);">${fullArt}</div>
-                <button class="danger" style="padding:4px 8px; font-size:11px; box-shadow:none;" 
-                        onclick="removeFboArticle('${escapeJsString(item.key)}')">удалить</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(99,102,241,0.04); border-radius:10px; border:1px solid var(--border);">
+                <div style="font-weight:800; color:var(--text); font-size:13px; word-break:break-all;">${fullArt}</div>
+                <button class="danger" style="padding:4px 8px; font-size:11px; box-shadow:none; flex-shrink:0; margin-left:8px;"
+                        onclick="removeFboArticle('${escapeJsString(item.key)}')">✕</button>
             </div>
         `;
-    }).join("");
+    }).join('');
+}
+
+function handleFboArticleKey(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        addFboArticle();
+    }
 }
 
 function addFboArticle() {
     if (!currentUser || !isGlobalParticipant) return;
-    const input = document.getElementById("fboArticleInput");
-    const rawArticle = input.value.trim();
+    const input = document.getElementById('fboArticleInput');
+    const rawArticle = (input?.value || '').trim();
 
     if (!rawArticle) return;
-    if (!currentFboSuffix) { alert("Сначала выберите S или F"); return; }
+    if (!currentFboSuffix) { alert('Выберите размер (S или F)'); return; }
+    if (!currentFboMaterial) { alert('Выберите металл (Цинк или ХКС)'); return; }
+    if (!currentFboWidth) { alert('Выберите ширину (1 мм или 1,5 мм)'); return; }
 
-    const fullArticle = `${rawArticle}${currentFboSuffix}`;
-    const articleId = db.ref("active_shift/fboArticles").push().key;
+    const fullArticle = `${rawArticle}${currentFboSuffix} ${currentFboMaterial} ${currentFboWidth}`;
+    const articleId = db.ref('active_shift/fboArticles').push().key;
 
-    db.ref("active_shift").transaction(shift => {
+    db.ref('active_shift').transaction(shift => {
         if (!shift || !shift.participants || !shift.participants[currentUser]) return;
         const participants = Object.keys(shift.participants);
         const share = 80 / participants.length;
@@ -1104,13 +1156,17 @@ function addFboArticle() {
 
         shift.fbo = (shift.fbo || 0) + 1;
         if (!shift.fboArticles) shift.fboArticles = {};
-        
-        // Записываем только сам артикул и тех, на кого делится зп
+
         shift.fboArticles[articleId] = {
             fullArticle: fullArticle,
+            suffix: currentFboSuffix,
+            material: currentFboMaterial,
+            width: currentFboWidth,
             share: share,
             orderIncrement: inc,
-            participants: participants.reduce((acc, n) => { acc[n] = true; return acc; }, {})
+            participants: participants.reduce((acc, n) => { acc[n] = true; return acc; }, {}),
+            by: currentUser,
+            at: Date.now()
         };
 
         participants.forEach(name => {
@@ -1121,23 +1177,15 @@ function addFboArticle() {
         });
         return shift;
     }).then(() => {
-        input.value = "";
+        if (input) input.value = '';
     });
-}
-
-function decreaseFboParticipantStats(part, share, orderDecrement) {
-    if (!part) return;
-
-    part.earned = Math.max(0, (part.earned || 0) - share);
-    part.orders = Math.max(0, (part.orders || 0) - orderDecrement);
-    part.fboOrders = Math.max(0, (part.fboOrders || 0) - orderDecrement);
 }
 
 function removeFboArticle(articleId) {
     if (!articleId) return;
-    db.ref("active_shift").transaction(shift => {
+    db.ref('active_shift').transaction(shift => {
         if (!shift || !shift.fboArticles || !shift.fboArticles[articleId]) return shift;
-        
+
         const item = shift.fboArticles[articleId];
         const affected = item.participants ? Object.keys(item.participants) : Object.keys(shift.participants);
 
@@ -1153,6 +1201,30 @@ function removeFboArticle(articleId) {
         delete shift.fboArticles[articleId];
         return shift;
     });
+}
+
+function toggleFboArticles() {
+    const wrapper = document.getElementById('fboArticlesWrapper');
+    const arrow = document.getElementById('fboToggleArrow');
+    if (!wrapper || !arrow) return;
+
+    fboArticlesVisible = !fboArticlesVisible;
+    if (fboArticlesVisible) {
+        wrapper.style.maxHeight = '250px';
+        wrapper.style.opacity = '1';
+        arrow.style.transform = 'rotate(0deg)';
+    } else {
+        wrapper.style.maxHeight = '0';
+        wrapper.style.opacity = '0';
+        arrow.style.transform = 'rotate(-90deg)';
+    }
+
+function decreaseFboParticipantStats(part, share, orderDecrement) {
+    if (!part) return;
+
+    part.earned = Math.max(0, (part.earned || 0) - share);
+    part.orders = Math.max(0, (part.orders || 0) - orderDecrement);
+    part.fboOrders = Math.max(0, (part.fboOrders || 0) - orderDecrement);
 }
 
 function manualInput(type) {
@@ -1910,7 +1982,7 @@ function renderActiveShiftAdmin(shift) {
                 </div>
 
                 <button class="danger" style="width:100%; padding:10px; font-size:14px; font-weight:600;" onclick="closeShiftFromAdmin()">
-                    ⛔ Закрыть смену для всех
+                     Закрыть смену для всех
                 </button>
             </div>
         </div>
