@@ -200,7 +200,7 @@ html.dark-mode #active-shift-info div, html.dark-mode #active-shift-info span { 
 </head>
 
 <body>
-<div class="version-tag">alfa v 1.10 PLACES 01.07.26</div>
+<div class="version-tag">alfa v 1.11 FIXED 01.07.26</div>
 
 <div id="context-menu"><div style="color:#ff3b30;" id="ctx-delete">Удалить</div></div>
 
@@ -218,25 +218,21 @@ html.dark-mode #active-shift-info div, html.dark-mode #active-shift-info span { 
   <div class="modal-content" style="max-width:460px; text-align:left; max-height:90vh; overflow-y:auto;">
     <h2 style="margin:0 0 20px 0; color:var(--accent); text-align:center;">Заполни отчёт</h2>
 
-    <!-- 1. Заявки в проблемы -->
     <div style="margin-bottom:16px; display:flex; align-items:center; gap:12px; background:rgba(99,102,241,0.04); padding:12px 14px; border-radius:12px; border:1px solid var(--border); cursor:pointer;" onclick="toggleSurveyCheck('problems')">
       <div id="surveyProblemsBox" style="width:26px; height:26px; border-radius:8px; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--accent); flex-shrink:0;"></div>
       <div style="font-size:14px; font-weight:600;">Кидал заявки в проблемы</div>
     </div>
 
-    <!-- 2. Печатал отчёт -->
     <div style="margin-bottom:16px; display:flex; align-items:center; gap:12px; background:rgba(99,102,241,0.04); padding:12px 14px; border-radius:12px; border:1px solid var(--border); cursor:pointer;" onclick="toggleSurveyCheck('report')">
       <div id="surveyReportBox" style="width:26px; height:26px; border-radius:8px; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--accent); flex-shrink:0;"></div>
       <div style="font-size:14px; font-weight:600;">Печатал отчёт</div>
     </div>
 
-    <!-- 3. Коробки ВБ -->
     <div style="margin-bottom:16px;">
       <label style="font-size:14px; font-weight:600; display:block; margin-bottom:8px;">Сколько коробок ВБ?</label>
       <input id="surveyBoxes" type="number" min="0" placeholder="0" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); background:white; color:var(--text); font-size:14px;">
     </div>
 
-    <!-- 4. Кто работал -->
     <div style="margin-bottom:16px;">
       <label style="font-size:14px; font-weight:600; display:block; margin-bottom:8px;">Кто работал?</label>
       <div style="display:flex; gap:8px; margin-bottom:12px;">
@@ -248,7 +244,6 @@ html.dark-mode #active-shift-info div, html.dark-mode #active-shift-info span { 
       <div id="surveyWorkersInputs" style="display:flex; flex-direction:column; gap:8px;"></div>
     </div>
 
-    <!-- 5. Фото -->
     <div style="margin-bottom:20px;">
       <label style="font-size:14px; font-weight:600; display:block; margin-bottom:8px;">Фото к отчёту (необязательно)</label>
       <input type="file" id="surveyPhotoInp" accept="image/*" style="display:none" onchange="prepareSurveyPhoto(this)">
@@ -265,7 +260,6 @@ html.dark-mode #active-shift-info div, html.dark-mode #active-shift-info span { 
     </div>
   </div>
 </div>
-
 
 <div id="profileModal" class="modal-overlay" onclick="if(event.target.id==='profileModal') document.getElementById('profileModal').style.display='none'">
     <div class="modal-content" onclick="event.stopPropagation()">
@@ -325,10 +319,9 @@ html.dark-mode #active-shift-info div, html.dark-mode #active-shift-info span { 
     <div id="startBtnCont"><button class="primary" style="width: 100%; padding: 28px; font-size: 18px; font-weight:700;" onclick="startShift()">КРУТИТЬ ПОРОГИ</button></div>
 
     <div id="work" style="display:none;">
-
-      <div id="active-shift-info" style="margin-bottom: 16px; padding: 16px; border-radius: 12px; font-size: 14px;">
+       <div id="active-shift-info" style="margin-bottom: 16px; padding: 16px; border-radius: 12px; font-size: 14px;">
         <div id="shift-participants"></div>
-      </div>
+       </div>
 
       <!-- СДЭК -->
       <div class="card">
@@ -377,46 +370,46 @@ html.dark-mode #active-shift-info div, html.dark-mode #active-shift-info span { 
       <div class="card">
     <h4 style="margin:0 0 10px 0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">ФБО</h4>
 
-    <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
+     <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
         <span style="font-size:12px; color:var(--text-secondary); min-width:42px;">Размер:</span>
         <button id="fboBtnS" class="glass-btn fbo-control" style="width:40px; padding:8px 0;" onclick="selectFboOption('suffix','S')">S</button>
         <button id="fboBtnF" class="glass-btn fbo-control" style="width:40px; padding:8px 0;" onclick="selectFboOption('suffix','F')">F</button>
         <span id="fboLabelSuffix" style="font-size:12px; color:var(--accent); font-weight:600;"></span>
-    </div>
+     </div>
 
-    <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
+     <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
         <span style="font-size:12px; color:var(--text-secondary); min-width:42px;">Металл:</span>
         <button id="fboBtnZinc" class="glass-btn fbo-control" style="padding:8px 14px;" onclick="selectFboOption('material','ЦИНК')">Цинк</button>
         <button id="fboBtnHks" class="glass-btn fbo-control" style="padding:8px 14px;" onclick="selectFboOption('material','ХКС')">ХКС</button>
         <span id="fboLabelMaterial" style="font-size:12px; color:var(--accent); font-weight:600;"></span>
-    </div>
+     </div>
 
-    <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px; flex-wrap:wrap;">
+     <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px; flex-wrap:wrap;">
         <span style="font-size:12px; color:var(--text-secondary); min-width:42px;">Ширина:</span>
         <button id="fboBtn1mm" class="glass-btn fbo-control" style="padding:8px 14px;" onclick="selectFboOption('width','1 ММ')">1 мм</button>
         <button id="fboBtn15mm" class="glass-btn fbo-control" style="padding:8px 14px;" onclick="selectFboOption('width','1,5 ММ')">1,5 мм</button>
         <span id="fboLabelWidth" style="font-size:12px; color:var(--accent); font-weight:600;"></span>
-    </div>
+     </div>
 
-    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+     <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
         <input id="fboArticleInput" placeholder="Артикул"
                style="flex:1; min-width:100px; padding:12px; border-radius:12px; border:1px solid var(--border); background:white; color:var(--text); font-size:14px;"
                onkeydown="handleFboArticleKey(event)">
         <div class="count" id="fbo_val" style="font-size:22px; padding:10px 14px; pointer-events:none;">0</div>
-    </div>
+     </div>
 
-    <div style="font-size:11px; color:var(--text-secondary); margin-top:6px; opacity:0.7;">мест = заказов</div>
+     <div style="font-size:11px; color:var(--text-secondary); margin-top:6px; opacity:0.7;">мест = заказов</div>
 
-    <div class="fbo-articles-toggle" onclick="toggleFboArticles()"
+     <div class="fbo-articles-toggle" onclick="toggleFboArticles()"
          style="display:flex; justify-content:space-between; align-items:center; padding:10px 0 6px; margin-top:8px; cursor:pointer; user-select:none; border-top:1px solid var(--border);">
         <span style="font-size:12px; color:var(--text-secondary);">
             Записанные артикулы (<span id="fboArticlesCount">0</span>)
         </span>
         <span id="fboToggleArrow" style="transition:transform 0.3s;">▼</span>
-    </div>
-    <div id="fboArticlesWrapper" style="max-height:250px; overflow-y:auto; transition:max-height 0.3s ease;">
+     </div>
+     <div id="fboArticlesWrapper" style="max-height:250px; overflow-y:auto; transition:max-height 0.3s ease;">
         <div id="fboArticlesList" style="display:flex; flex-direction:column; gap:8px; padding-top:4px;"></div>
-    </div>
+     </div>
       </div>
 
       <!-- ОПТОВЫЕ -->
@@ -574,7 +567,7 @@ if(currentUser) showApp();
 function login() {
   const n = document.getElementById("nameInput").value.trim();
   if (!n) return;
-  if (/[.$#[\]/]/.test(n)) { alert("Имя не должно содержать символы . $ # [ ] /"); return; }
+  if (/[.#[\]/]/.test(n)) { alert("Имя не должно содержать символы . $ # [ ] /"); return; }
   if (document.getElementById("codeInput").value !== "67") return;
 
   getMyIp().then(ip => {
@@ -714,7 +707,6 @@ function addCounter(type) {
     if (!shift || !shift.participants || !shift.participants[currentUser]) return;
     if (!["cdek", "wb", "dost", "opt"].includes(type)) return;
     shift[type] = (shift[type] || 0) + 1;
-    // Автоматически +1 место для cdek и dost
     if (type === 'cdek') shift.cdek_places = (shift.cdek_places || 0) + 1;
     if (type === 'dost') shift.dost_places = (shift.dost_places || 0) + 1;
     const parts = Object.keys(shift.participants);
@@ -739,7 +731,6 @@ function removeCounter(type) {
     if (!shift || !shift.participants || !shift.participants[currentUser] || !shift[type] || shift[type] <= 0) return;
     if (!["cdek", "wb", "dost", "opt"].includes(type)) return;
     shift[type]--;
-    // Автоматически -1 место для cdek и dost (но не ниже 0)
     if (type === 'cdek') shift.cdek_places = Math.max(0, (shift.cdek_places || 0) - 1);
     if (type === 'dost') shift.dost_places = Math.max(0, (shift.dost_places || 0) - 1);
     const parts = Object.keys(shift.participants);
@@ -989,7 +980,7 @@ function manualInput(type) {
     const shift = snap.val();
     if (!shift || !shift.participants || !shift.participants[currentUser]) return;
     let currentVal = shift[type] || 0;
-    let v = prompt("Введи новое количество заказов:", currentVal);
+    let v = prompt("Введи новое количество заказов для " + type.toUpperCase() + ":", currentVal);
     if (v && !isNaN(v)) {
       let newVal = parseInt(v);
       let diff = newVal - currentVal;
@@ -1053,7 +1044,7 @@ function leaveShift() {
     allParticipants[currentUser] = currentMember;
     const participantCount = Object.keys(shift.participants).length;
 
-        if (participantCount <= 1) {
+    if (participantCount <= 1) {
       const numParts = Object.keys(allParticipants).length;
       const totalSalary = calculateTotalSalary(allParticipants);
       const newRef = db.ref("shifts").push();
@@ -1093,7 +1084,7 @@ function closeShift() {
     document.getElementById("reportDetails").innerHTML = reportText;
     document.getElementById("reportModal").style.display = "flex";
 
-        const newRef = db.ref("shifts").push();
+    const newRef = db.ref("shifts").push();
     newRef.set({
       date: startT.toLocaleDateString(), total: totalCount, cdek: cdekCount, wb: wbCount, dost: dostCount, fbo: fboCount, opt: optCount,
       cdek_places: shift.cdek_places || cdekCount, dost_places: shift.dost_places || dostCount,
@@ -1104,8 +1095,10 @@ function closeShift() {
       closedBy: currentUser, closedAt: Date.now()
     }).then(() => { db.ref("active_shift").remove(); openSurveyModal(newRef.key); })
       .catch(err => { console.error("closeShift error:", err); alert("Ошибка при закрытии смены"); });
+  });
+}
 
-
+// ===================== ADMIN CLOSE SHIFT (standalone) =====================
 function closeShiftFromAdmin() {
   if (!isAdmin) return;
   if (!confirm("Закрыть активную смену для всех?")) return;
@@ -1129,9 +1122,13 @@ function closeShiftFromAdmin() {
       totalSalary, numParticipants: numParts, participants: JSON.parse(JSON.stringify(allParticipants)),
       start: startT.toLocaleString(), end: endT.toLocaleString(), startTime: shift.startTime, endTime: Date.now(),
       closedBy: currentUser, closedAt: Date.now()
-    }).then(() => { db.ref("active_shift").remove(); alert("✅ Смена закрыта админом и сохранена в архив") openSurveyModal(archiveKey); })
-    .catch(err => { alert("❌ Ошибка при закрытии смены: " + err.message);    }).then(() => { db.ref("active_shift").remove(); alert("✅ Смена закрыта админом и сохранена в архив"); openSurveyModal(archiveKey); })
-
+    }).then(() => {
+      db.ref("active_shift").remove();
+      alert("✅ Смена закрыта админом и сохранена в архив");
+      openSurveyModal(archiveKey);
+    }).catch(err => {
+      alert("❌ Ошибка при закрытии смены: " + err.message);
+    });
   });
 }
 
@@ -1139,7 +1136,7 @@ function closeShiftFromAdmin() {
 
 let surveyState = { problems:false, report:false };
 let surveyPhoto = null;
-let pendingShiftKey = null; // ключ последней сохранённой смены
+let pendingShiftKey = null;
 
 function toggleSurveyCheck(type){
   surveyState[type] = !surveyState[type];
@@ -1156,7 +1153,7 @@ function setWorkersCount(n){
   const wrap=document.getElementById('surveyWorkersInputs');
   let html='';
   for(let i=1;i<=n;i++){
-    html+=`<input class="survey-worker" placeholder="Имя {i}" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); background:white; color:var(--text); font-size:14px;">`;
+    html+=`<input class="survey-worker" placeholder="Имя ${i}" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); background:white; color:var(--text); font-size:14px;">`;
   }
   wrap.innerHTML=html;
 }
@@ -1188,7 +1185,6 @@ function removeSurveyPhoto(){
 
 function openSurveyModal(shiftKey){
   pendingShiftKey = shiftKey;
-  // сброс
   surveyState={problems:false, report:false};
   surveyPhoto=null;
   document.getElementById('surveyProblemsBox').innerText='';
@@ -1244,7 +1240,6 @@ function skipSurvey(){
   pendingShiftKey=null;
 }
 
-
 // ===================== HISTORY =====================
 
 function toggleHistory() { const h = document.getElementById("history"); h.style.display = h.style.display === "none" ? "block" : "none"; }
@@ -1274,7 +1269,7 @@ function listenHistory() {
 
       const fboArticlesHtml = fboArticles.length ? `<div style="margin-top:10px;"><b>Артикулы ФБО:</b><div style="margin-top:6px; display:flex; flex-direction:column; gap:5px;">${fboArticles.map(item => `<div style="padding:6px 8px; background:rgba(99,102,241,0.06); border-radius:8px;"><b>${escapeHtml(item.fullArticle || '')}</b>${item.by ? ` <span style="opacity:0.65;">от ${escapeHtml(item.by)}</span>` : ''}</div>`).join("")}</div></div>` : '';
 
-const surveyHtml = d.survey ? `
+      const surveyHtml = d.survey ? `
         <div style="margin-top:10px; padding:10px; background:rgba(16,185,129,0.08); border-radius:8px; border:1px solid rgba(16,185,129,0.2);">
           <b>📝 Отчёт по смене:</b>
           <div style="margin-top:6px; white-space:pre-line; line-height:1.5;">${escapeHtml(d.survey.text || '')}</div>
@@ -1284,10 +1279,10 @@ const surveyHtml = d.survey ? `
 
       const detailsHtml = `
         <div><b>📊 Заказы:</b></div>
-        <div>СДЭК: ${d.cdek || 0} заказов / ${cdekPlaces} ${cdekPlaces === (d.cdek||0) ? 'мест' : (cdekPlaces + ' мест')}</div>
+        <div>СДЭК: ${d.cdek || 0} заказов / ${cdekPlaces} мест</div>
         <div>ВБ/ОЗОН: ${wbCount} заказов / мест</div>
         <div>ФБО: ${fboCount} заказов / мест</div>
-        <div>Доставка: ${d.dost || 0} заказов / ${dostPlaces} ${dostPlaces === (d.dost||0) ? 'мест' : (dostPlaces + ' мест')}</div>
+        <div>Доставка: ${d.dost || 0} заказов / ${dostPlaces} мест</div>
         <div style="margin-top:4px;"><b>Заказы: ${d.total || 0}</b></div>
         ${placesDetailHtml}
         ${fboArticlesHtml}
@@ -1352,7 +1347,6 @@ function exportShiftToImage(shiftData) {
   canvas.height = height;
   const ctx = canvas.getContext('2d');
 
-  // Background gradient
   const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
   bgGrad.addColorStop(0, '#0f172a');
   bgGrad.addColorStop(0.4, '#1e293b');
@@ -1360,7 +1354,6 @@ function exportShiftToImage(shiftData) {
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, width, height);
 
-  // Decorative lines
   ctx.strokeStyle = 'rgba(99, 102, 241, 0.15)';
   ctx.lineWidth = 1;
   for (let i = 0; i < 8; i++) {
@@ -1370,7 +1363,6 @@ function exportShiftToImage(shiftData) {
     ctx.stroke();
   }
 
-  // Accent top bar
   const accentGrad = ctx.createLinearGradient(0, 0, width, 0);
   accentGrad.addColorStop(0, '#6366f1');
   accentGrad.addColorStop(0.5, '#818cf8');
@@ -1378,7 +1370,6 @@ function exportShiftToImage(shiftData) {
   ctx.fillStyle = accentGrad;
   ctx.fillRect(0, 0, width, 5);
 
-  // Logo / Title
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, sans-serif';
   ctx.textAlign = 'center';
@@ -1388,12 +1379,10 @@ function exportShiftToImage(shiftData) {
   ctx.font = '14px -apple-system, BlinkMacSystemFont, sans-serif';
   ctx.fillText('ОТЧЁТ О СМЕНЕ', width / 2, 85);
 
-  // Date & Time
   ctx.fillStyle = 'rgba(255,255,255,0.65)';
   ctx.font = '13px -apple-system, BlinkMacSystemFont, sans-serif';
   ctx.fillText(`${dateLabel}  •  ${startTime.split(',')[1] || ''} - ${endTime.split(',')[1] || ''}`, width / 2, 110);
 
-  // Divider
   ctx.strokeStyle = 'rgba(99, 102, 241, 0.3)';
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -1401,10 +1390,8 @@ function exportShiftToImage(shiftData) {
   ctx.lineTo(width - 80, 130);
   ctx.stroke();
 
-  // Table header
   const tableStartY = 160;
   const colX = [80, 280, 420, 560, 680];
-  const colW = [200, 140, 140, 120, 40];
 
   ctx.fillStyle = 'rgba(99, 102, 241, 0.2)';
   ctx.fillRect(60, tableStartY - 10, width - 120, 36);
@@ -1418,7 +1405,6 @@ function exportShiftToImage(shiftData) {
   ctx.fillText('МЕСТ', colX[2], tableStartY + 15);
   ctx.fillText('СТАТУС', colX[3], tableStartY + 15);
 
-  // Data rows
   const rows = [
     { cat: 'СДЭК', orders: cdekCount, places: cdekPlaces, note: cdekPlaces !== cdekCount ? `${cdekPlaces} мест` : 'мест = заказов' },
     { cat: 'ВБ / ОЗОН', orders: wbCount, places: wbCount, note: 'мест = заказов' },
@@ -1451,7 +1437,6 @@ function exportShiftToImage(shiftData) {
     y += 42;
   });
 
-  // Divider before totals
   ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -1461,7 +1446,6 @@ function exportShiftToImage(shiftData) {
 
   y += 25;
 
-  // Totals row
   ctx.fillStyle = 'rgba(99, 102, 241, 0.25)';
   ctx.fillRect(60, y - 14, width - 120, 42);
 
@@ -1476,14 +1460,12 @@ function exportShiftToImage(shiftData) {
   ctx.fillText(totalOrders, colX[1], y + 5);
   ctx.fillText(totalPlaces, colX[2], y + 5);
 
-    // Opt orders note
   y += 45;
   ctx.fillStyle = 'rgba(255,255,255,0.5)';
   ctx.font = '13px -apple-system, BlinkMacSystemFont, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(`Оптовые заказы: {optCount}  •  Общий заработок: ${totalSalary} ₽`, width / 2, y);
+  ctx.fillText(`Оптовые заказы: ${optCount}  •  Общий заработок: ${totalSalary} ₽`, width / 2, y);
 
-  // Опрос (текст отчёта)
   const survey = shiftData.survey;
   if (survey && survey.text) {
     y += 30;
@@ -1505,7 +1487,6 @@ function exportShiftToImage(shiftData) {
   }
 
   const finishDraw = () => {
-    // Bottom accent
     ctx.fillStyle = accentGrad;
     ctx.fillRect(0, height - 5, width, 5);
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
@@ -1519,7 +1500,6 @@ function exportShiftToImage(shiftData) {
     link.click();
   };
 
-  // Фото из опроса
   if (survey && survey.photo) {
     const photoImg = new Image();
     photoImg.onload = () => {
@@ -1529,7 +1509,6 @@ function exportShiftToImage(shiftData) {
       pw *= ratio; ph *= ratio;
       const px = (width - pw) / 2;
       const py = y + 10;
-      // расширяем canvas при необходимости — рисуем прямо
       ctx.drawImage(photoImg, px, py, pw, ph);
       finishDraw();
     };
@@ -1891,7 +1870,9 @@ function toggleWorkCell(path, name, day, isWork) {
 
 function setupPresence() {
   if (!currentUser) return;
-  const r = db.ref(`presence/${currentUser}`); r.set("online").catch(e => {}); r.onDisconnect().remove();
+  const r = db.ref(`presence/${currentUser}`);
+  r.set("online").catch(e => {});
+  r.onDisconnect().remove();
   let presenceFirst = true;
   db.ref("presence").on("value", snap => {
     latestPresence = snap.val() || {};
