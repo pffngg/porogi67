@@ -53,6 +53,18 @@ let fboArticlesVisible = true;
 // Эта функция вызывается из auth-v9.js после успешного входа
 function showApp() {
     console.log('🚀 Запуск приложения...');
+
+    // Защита: если имя пользователя ещё не загружено, ждём
+if (!window.currentUserName) {
+    console.warn('⏳ currentUserName ещё не установлен, жду...');
+    const check = setInterval(() => {
+        if (window.currentUserName) {
+            clearInterval(check);
+            showApp(); // перезапускаем
+        }
+    }, 100);
+    return;
+}
     
     initTheme();
     
