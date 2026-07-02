@@ -10,15 +10,14 @@ import {
     sendEmailVerification,
     applyActionCode,
     updateProfile
-} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-
+} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js';
 import {
     ref as dbRef,
     update as dbUpdate,
     set as dbSet,
     remove as dbRemove,
     get as dbGet
-} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js';
 
 const auth = window.auth;
 const db = window.db;
