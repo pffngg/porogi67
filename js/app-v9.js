@@ -905,6 +905,12 @@ function toggleHistory() {
 function listenHistory() {
     const historyBox = document.getElementById("history");
     if (!historyBox) return;
+    function removeShift(shiftKey) {
+    if (confirm('Удалить смену из истории?')) {
+        remove(ref(db, 'shifts/' + shiftKey));
+    }
+}
+window.removeShift = removeShift;
     
     const shiftsQuery = query(ref(db, "shifts"), limitToLast(15));
     onValue(shiftsQuery, snap => {
