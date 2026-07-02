@@ -107,6 +107,9 @@ dbGet(dbRef(db, `users/${emailName}`)).then(snap => {
 
 // UI функции
 function showLoginForm() {
+    document.getElementById('btn-show-login').classList.add('active');
+    document.getElementById('btn-show-register').classList.remove('active');
+    
     document.getElementById('authButtons').style.display = 'none';
     document.getElementById('authFormsContainer').style.display = 'block';
     document.getElementById('loginForm').style.display = 'flex';
@@ -115,6 +118,9 @@ function showLoginForm() {
 }
 
 function showRegisterForm() {
+    document.getElementById('btn-show-login').classList.remove('active');
+    document.getElementById('btn-show-register').classList.add('active');
+    
     document.getElementById('authButtons').style.display = 'none';
     document.getElementById('authFormsContainer').style.display = 'block';
     document.getElementById('loginForm').style.display = 'none';
@@ -123,12 +129,16 @@ function showRegisterForm() {
 }
 
 function backToButtons() {
+    document.getElementById('btn-show-login').classList.add('active');
+    document.getElementById('btn-show-register').classList.remove('active');
+    
     document.getElementById('authButtons').style.display = 'flex';
     document.getElementById('authFormsContainer').style.display = 'none';
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('registerForm').style.display = 'none';
     document.getElementById('verifyForm').style.display = 'none';
-
+    
+    // Очищаем поля
     document.getElementById('loginEmail').value = '';
     document.getElementById('loginPassword').value = '';
     document.getElementById('regName').value = '';
