@@ -1,76 +1,160 @@
+// js/auth.js
+// Модуль авторизации — регистрация и вход через email/пароль
 
- function login() {
-            const n = document.getElementById("nameInput").value.trim();
-            if (!n) return;
-            if (/[.#[\]/]/.test(n)) { alert("Имя не должно содержать символы . $ # [ ] /"); return; }
-            if (document.getElementById("codeInput").value !== "67") return;
+// Инициализируем Firebase Auth (использует твою старую конфигурацию из app.js)
+// Эта строка должна быть после того, как firebase.initializeApp() уже вызван в app.js
+let auth;
 
-            getMyIp().then(ip => {
-                if (!ip) { alert("Не удалось определить IP. Попробуйте снова."); return; }
-                const ipKey = dbKey(ip);
-                db.ref(`blocked_ips/${ipKey}`).once("value").then(snap => {
-                    if (snap.exists() && n.toLowerCase() !== "дениска") {
-                        alert("Ваш IP заблокирован. Обратитесь к администратору.");
-                        return;
-                    }
-                    localStorage.setItem("userName", n);
-                    localStorage.setItem("userIp", ip);
-                    db.ref(`users/${n}`).update({ ip, lastSeen: Date.now() });
-                    location.reload();
+// Инициализация auth (вызывается из app.js после инициализации Firebase)
+function initAuth() {
+    auth = firebase.auth(); // Используем auth из старой библиотеки 8.x, она совместима
+}
+
+// Текущий пользователь
+let currentUser = null;
+let currentUserName = null;
+
+// Слушатель изменений авторизации
+function listenAuthChanges() {
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            // Пользователь вошел
+            currentUser = user;
+            currentUserName = user.displayName || user.email.split('@')[0];
+            
+            // Сохраняем email как идентификатор
+            localStorage.setItem('userEmail', user.email);
+            
+            // Обновляем данные пользователя в БД
+            const userRef = firebase.database().ref(`users/${currentUserName}`);
+            userRef.update({
+                email: user.email,
+                uid: user.uid,
+                lastSeen: Date.now()
+            });
+            
+            // Показываем приложение
+            showApp();
+        } else {
+            // Пользователь вышел
+            currentUser = null;
+            currentUserName = null;
+            localStorage.removeItem('userEmail');
+            
+            // Показываем экран входа
+            document.getElementById('login').style.display = 'flex';
+            document.getElementById('app').style.display = 'none';
+        }
+    });
+}
+
+// Регистрация нового пользователя
+function register() {
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value;
+    
+    // Проверки
+    if (!name || !email || !password) {
+        alert('Заполни все поля');
+        return;
+    }
+    
+    if (!email.includes('@')) {
+        alert('Введи нормальную почту');
+        return;
+    }
+    
+    if (password.length < 6) {
+        alert('Пароль должен быть минимум 6 символов');
+        return;
+    }
+    
+    if (/[.#[\]/]/.test(name)) {
+        alert('Имя не должно содержать символы . $ # [ ] /');
+        return;
+    }
+    
+    // Создаем пользователя в Firebase Auth
+    auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            const user = userCredential.user;
+            
+            // Сохраняем имя пользователя в профиле
+            return user.updateProfile({
+                displayName: name
+            }).then(() => {
+                // Создаем запись в БД
+                return firebase.database().ref(`users/${name}`).set({
+                    email: email,
+                    uid: user.uid,
+                    name: name,
+                    createdAt: Date.now()
                 });
             });
-        }
+        })
+        .then(() => {
+            alert('Регистрация успешна! Сейчас войдем...');
+            // После регистрации пользователь автоматически войдет,
+            // сработает onAuthStateChanged и вызовет showApp()
+        })
+        .catch((error) => {
+            // Обработка ошибок
+            if (error.code === 'auth/email-already-in-use') {
+                alert('Эта почта уже зарегистрирована');
+            } else if (error.code === 'auth/weak-password') {
+                alert('Пароль слишком слабый');
+            } else {
+                alert('Ошибка: ' + error.message);
+            }
+        });
+}
 
- function showApp() {
-            initTheme();
-            document.getElementById("login").style.display = "none";
-            document.getElementById("app").style.display = "block";
-            document.getElementById("btn-settings").style.display = "none";
-            document.getElementById("adminPanel").style.display = "none";
-            document.getElementById("adminUsersPanel").style.display = "none";
+// Вход существующего пользователя
+function login() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    
+    if (!email || !password) {
+        alert('Заполни почту и пароль');
+        return;
+    }
+    
+    auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            // Успешный вход, onAuthStateChanged сам вызовет showApp()
+        })
+        .catch((error) => {
+            if (error.code === 'auth/user-not-found') {
+                alert('Пользователь с такой почтой не найден');
+            } else if (error.code === 'auth/wrong-password') {
+                alert('Неверный пароль');
+            } else {
+                alert('Ошибка входа: ' + error.message);
+            }
+        });
+}
 
-            db.ref("admins").on("value", snap => {
-                const admins = snap.val() || {};
-                isAdmin = !!admins[currentUser] || currentUser.toLowerCase() === "дениска";
-                document.getElementById("userTag").innerText = isAdmin ? "⭐" + currentUser : "@" + currentUser
-                    .toLowerCase();
-                document.getElementById("btn-settings").style.display = isAdmin ? "inline-flex" : "none";
-                document.getElementById("adminPanel").style.display = isAdmin ? "flex" : "none";
-                document.getElementById("adminUsersPanel").style.display = isAdmin ? "block" : "none";
-                const appSidebar = document.getElementById("app-sidebar");
-                if (appSidebar) { appSidebar.style.display = isAdmin ? "block" : "none"; }
-                if (isAdmin && !adminListenersInitialized) { listenAdminUsers();
-                    adminListenersInitialized = true; }
-            });
+// Выход
+function logout() {
+    localStorage.clear();
+    auth.signOut().then(() => {
+        // onAuthStateChanged сам покажет экран входа
+    });
+}
 
-            db.ref("users").on("value", snap => {
-                latestUsers = snap.val() || {};
-                userAvatars = latestUsers;
-                const myAv = userAvatars[currentUser]?.avatar ||
-                    "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-                document.getElementById("myAvatar").src = myAv;
-                const profileAvatar = document.getElementById("profileAvatarPreview");
-                if (profileAvatar) profileAvatar.src = myAv;
-                renderOnlineUsers();
-            });
+// Показать форму входа
+function showLoginForm() {
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('btn-show-login').className = 'primary';
+    document.getElementById('btn-show-register').className = 'glass-btn';
+}
 
-            db.ref("muted_users").on("value", snap => {
-                mutedUsers = snap.val() || {};
-                isMuted = !!mutedUsers[currentUser];
-                renderMuteState();
-                if (isAdmin) { renderAdminUsers(latestUsers, currentBlockedIps, currentAdmins); }
-            });
-
-            setupPresence();
-            listenChat();
-            renderSched();
-            listenHistory();
-            listenActiveShift();
-            fetchAndStoreMyIp();
-
-            window.onclick = () => { const menu = document.getElementById("context-menu"); if (menu) menu.style.display =
-                    "none"; };
-        }
-
- function logout() { localStorage.clear();
-            location.reload(); }
+// Показать форму регистрации
+function showRegisterForm() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'block';
+    document.getElementById('btn-show-login').className = 'glass-btn';
+    document.getElementById('btn-show-register').className = 'primary';
+}
