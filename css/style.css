@@ -1046,48 +1046,68 @@
             }
         }
 
-/* Стили для кнопок переключения Войти/Регистрация */
+/* ============================================ */
+/* КНОПКИ ВОЙТИ / РЕГИСТРАЦИЯ                   */
+/* ============================================ */
+
 .auth-switch-btn {
-    background: var(--card-bg);
-    border: 2px solid var(--border);
-    color: var(--text);
-    border-radius: 12px;
-    padding: 14px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    opacity: 0.6;
+    background: var(--card-bg) !important;
+    background-image: none !important;
+    border: 2px solid var(--border) !important;
+    color: var(--text) !important;
+    border-radius: 12px !important;
+    padding: 14px !important;
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    opacity: 0.6 !important;
+    box-shadow: none !important;
 }
 
 .auth-switch-btn:hover {
-    opacity: 1;
-    border-color: var(--accent);
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
-    transform: translateY(-1px);
+    opacity: 1 !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15) !important;
+    transform: translateY(-1px) !important;
+    background: var(--card-bg) !important;
+    background-image: none !important;
+    color: var(--text) !important;
 }
 
 .auth-switch-btn.active {
-    opacity: 1;
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
+    opacity: 1 !important;
+    background: var(--card-bg) !important;
+    background-image: none !important;
+    color: var(--text) !important;
+    border-color: var(--accent) !important;
+    border-width: 2px !important;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25) !important;
+}
+
+.auth-switch-btn.active:hover {
+    background: var(--card-bg) !important;
+    background-image: none !important;
+    color: var(--text) !important;
 }
 
 /* Тёмная тема */
 html.dark-mode .auth-switch-btn {
-    background: var(--card-bg);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: var(--text);
+    background: var(--card-bg) !important;
+    background-image: none !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text) !important;
 }
 
 html.dark-mode .auth-switch-btn:hover {
-    border-color: var(--accent);
+    border-color: var(--accent) !important;
+    background: var(--card-bg) !important;
+    background-image: none !important;
 }
 
 html.dark-mode .auth-switch-btn.active {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
+    background: var(--card-bg) !important;
+    background-image: none !important;
+    color: var(--text) !important;
+    border-color: var(--accent) !important;
 }
