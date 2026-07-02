@@ -957,8 +957,8 @@ function listenHistory() {
             const endPart = d.end && String(d.end).includes(",") ? String(d.end).split(",")[1].trim() : "";
             const timeLabel = startPart || endPart ? `${startPart}${startPart && endPart ? " - " : ""}${endPart}` : "";
             
-            const deleteButton = isAdmin ? 
-                `<button class="danger" style="position:absolute; right:10px; top:10px; padding:5px 10px; z-index:2;" onclick="event.stopPropagation(); if(confirm('Удалить смену из истории?')) remove(ref(db, 'shifts/${escapeJsString(s.key)}'));">×</button>` : "";
+           const deleteButton = isAdmin ? 
+    `<button class="danger" style="position:absolute; right:10px; top:10px; padding:5px 10px; z-index:2;" onclick="event.stopPropagation(); removeShiftFromHistory('${escapeJsString(s.key)}')">×</button>` : "";
             
             html = `<div class="card history-card" style="padding:15px; text-align:left;" onclick="toggleShiftDetails(this)">
                 <div style="padding-bottom:32px;"><div><b style="font-size:16px;">Смена ${dateLabel}</b></div></div>
