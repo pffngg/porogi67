@@ -1,5 +1,4 @@
- <script>
-        const firebaseConfig = {
+const firebaseConfig = {
             apiKey: "AIzaSyA41nDX13dsMuPNJkckCMQz8bfim3Hscxs",
             authDomain: "porog-lol.firebaseapp.com",
             databaseURL: "https://porog-lol-default-rtdb.europe-west1.firebasedatabase.app",
