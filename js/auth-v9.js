@@ -19,7 +19,6 @@ import {
     get as dbGet
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
-// Берём готовый auth и db из глобальной области
 const auth = window.auth;
 const db = window.db;
 
@@ -29,35 +28,35 @@ let tempEmail = null;
 let tempPassword = null;
 let tempName = null;
 
-// Слушатель авторизации
 function listenAuthChanges() {
     onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUser = user;
             currentUserName = user.displayName || user.email.split('@')[0];
+            window.currentUserName = currentUserName;
             localStorage.setItem('userEmail', user.email);
 
-            // Обновляем данные в БД (новый синтаксис)
             dbUpdate(dbRef(db, `users/${currentUserName}`), {
                 email: user.email,
                 uid: user.uid,
                 lastSeen: Date.now()
             });
 
-            // Безопасный вызов showApp (дождёмся загрузки app-v9.js)
-if (typeof showApp === 'function') {
-    showApp();
-} else {
-    const checkApp = setInterval(() => {
-        if (typeof showApp === 'function') {
-            clearInterval(checkApp);
-            showApp();
-        }
-    }, 100);
-}
+            // Безопасный вызов showApp
+            if (typeof showApp === 'function') {
+                showApp();
+            } else {
+                const checkApp = setInterval(() => {
+                    if (typeof showApp === 'function') {
+                        clearInterval(checkApp);
+                        showApp();
+                    }
+                }, 100);
+            }
         } else {
             currentUser = null;
             currentUserName = null;
+            window.currentUserName = null;
             localStorage.removeItem('userEmail');
 
             document.getElementById('login').style.display = 'flex';
@@ -66,8 +65,7 @@ if (typeof showApp === 'function') {
     });
 }
 
-// ==================== UI ФУНКЦИИ ====================
-
+// UI функции
 function showLoginForm() {
     document.getElementById('authButtons').style.display = 'none';
     document.getElementById('authFormsContainer').style.display = 'block';
@@ -106,45 +104,29 @@ function backToRegister() {
     tempName = null;
 }
 
-// ==================== ГЛАЗИК (ЗАМОК) ====================
-
 function togglePasswordVisibility(inputId, iconId) {
     const input = document.getElementById(inputId);
     const icon = document.getElementById(iconId);
     if (!input || !icon) return;
-
     if (input.type === 'password') {
         input.type = 'text';
-        icon.textContent = '🔓'; // открытый замок
+        icon.textContent = '🔓';
     } else {
         input.type = 'password';
-        icon.textContent = '🔒'; // закрытый замок
+        icon.textContent = '🔒';
     }
 }
 
-// ==================== АВТОРИЗАЦИЯ ====================
-
+// Авторизация
 function register() {
     const name = document.getElementById('regName').value.trim();
     const email = document.getElementById('regEmail').value.trim();
     const password = document.getElementById('regPassword').value;
 
-    if (!name || !email || !password) {
-        alert('Заполни все поля');
-        return;
-    }
-    if (!email.includes('@')) {
-        alert('Введи нормальную почту');
-        return;
-    }
-    if (password.length < 4) {
-        alert('Пароль должен быть минимум 4 символа');
-        return;
-    }
-    if (/[.#[\]/]/.test(name)) {
-        alert('Имя не должно содержать символы . $ # [ ] /');
-        return;
-    }
+    if (!name || !email || !password) { alert('Заполни все поля'); return; }
+    if (!email.includes('@')) { alert('Введи нормальную почту'); return; }
+    if (password.length < 4) { alert('Пароль должен быть минимум 4 символа'); return; }
+    if (/[.#[\]/]/.test(name)) { alert('Имя не должно содержать символы . $ # [ ] /'); return; }
 
     tempEmail = email;
     tempPassword = password;
@@ -153,9 +135,7 @@ function register() {
     createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
             const user = userCredential.user;
-            return user.updateProfile({ displayName: name }).then(() => {
-                return sendEmailVerification(user);
-            });
+            return user.updateProfile({ displayName: name }).then(() => sendEmailVerification(user));
         })
         .then(() => {
             document.getElementById('registerForm').style.display = 'none';
@@ -165,54 +145,34 @@ function register() {
             alert('На твою почту отправлен код подтверждения. Проверь папку "Входящие" и "Спам".');
         })
         .catch((error) => {
-            if (error.code === 'auth/email-already-in-use') {
-                alert('Эта почта уже зарегистрирована');
-            } else if (error.code === 'auth/weak-password') {
-                alert('Пароль слишком слабый (минимум 4 символа)');
-            } else if (error.code === 'auth/invalid-email') {
-                alert('Некорректный email');
-            } else {
-                alert('Ошибка регистрации: ' + error.message);
-            }
-            tempEmail = null;
-            tempPassword = null;
-            tempName = null;
+            if (error.code === 'auth/email-already-in-use') alert('Эта почта уже зарегистрирована');
+            else if (error.code === 'auth/weak-password') alert('Пароль слишком слабый (минимум 4 символа)');
+            else if (error.code === 'auth/invalid-email') alert('Некорректный email');
+            else alert('Ошибка регистрации: ' + error.message);
+            tempEmail = null; tempPassword = null; tempName = null;
         });
 }
 
 function confirmCode() {
     const code = document.getElementById('verifyCode').value.trim();
-    if (!code || code.length < 6) {
-        alert('Введи код из письма (6 цифр)');
-        return;
-    }
+    if (!code || code.length < 6) { alert('Введи код из письма (6 цифр)'); return; }
 
     applyActionCode(auth, code)
-        .then(() => {
-            // Создаем запись в БД (новый синтаксис)
-            return dbSet(dbRef(db, `users/${tempName}`), {
-                email: tempEmail,
-                uid: auth.currentUser.uid,
-                name: tempName,
-                emailVerified: true,
-                createdAt: Date.now()
-            });
-        })
+        .then(() => dbSet(dbRef(db, `users/${tempName}`), {
+            email: tempEmail,
+            uid: auth.currentUser.uid,
+            name: tempName,
+            emailVerified: true,
+            createdAt: Date.now()
+        }))
         .then(() => {
             alert('✅ Почта подтверждена! Добро пожаловать, ' + tempName + '!');
-            tempEmail = null;
-            tempPassword = null;
-            tempName = null;
+            tempEmail = null; tempPassword = null; tempName = null;
         })
         .catch((error) => {
-            if (error.code === 'auth/invalid-action-code') {
-                alert('Неверный код. Проверь письмо и попробуй снова.');
-            } else if (error.code === 'auth/expired-action-code') {
-                alert('Код просрочен. Запроси новый.');
-                backToRegister();
-            } else {
-                alert('Ошибка подтверждения: ' + error.message);
-            }
+            if (error.code === 'auth/invalid-action-code') alert('Неверный код. Проверь письмо и попробуй снова.');
+            else if (error.code === 'auth/expired-action-code') { alert('Код просрочен. Запроси новый.'); backToRegister(); }
+            else alert('Ошибка подтверждения: ' + error.message);
         });
 }
 
@@ -220,64 +180,47 @@ function login() {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
 
-    if (!email || !password) {
-        alert('Заполни почту и пароль');
-        return;
-    }
+    if (!email || !password) { alert('Заполни почту и пароль'); return; }
 
     signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
             const user = userCredential.user;
             currentUserName = user.displayName || user.email.split('@')[0];
+            window.currentUserName = currentUserName;
         })
         .catch((error) => {
-            if (error.code === 'auth/user-not-found') {
-                alert('Пользователь с такой почтой не найден');
-            } else if (error.code === 'auth/wrong-password') {
-                alert('Неверный пароль');
-            } else if (error.code === 'auth/invalid-email') {
-                alert('Некорректный email');
-            } else if (error.code === 'auth/too-many-requests') {
-                alert('Слишком много попыток. Попробуй позже.');
-            } else {
-                alert('Ошибка входа: ' + error.message);
-            }
+            if (error.code === 'auth/user-not-found') alert('Пользователь с такой почтой не найден');
+            else if (error.code === 'auth/wrong-password') alert('Неверный пароль');
+            else if (error.code === 'auth/invalid-email') alert('Некорректный email');
+            else if (error.code === 'auth/too-many-requests') alert('Слишком много попыток. Попробуй позже.');
+            else alert('Ошибка входа: ' + error.message);
         });
 }
 
 function logout() {
     localStorage.clear();
-    signOut(auth).catch((error) => {
-        console.error('Ошибка выхода:', error);
-    });
+    signOut(auth).catch(console.error);
 }
 
-// ============================================================
-// ПРИВЯЗКА КНОПОК
-// ============================================================
-
-document.addEventListener('DOMContentLoaded', function () {
-    console.log('✅ DOM готов, привязываем кнопки');
+// Привязка кнопок (устойчивая к асинхронной загрузке модуля)
+function bindButtons() {
     console.log('🔗 Привязываем кнопки авторизации...');
 
     document.getElementById('btn-show-login')?.addEventListener('click', showLoginForm);
     document.getElementById('btn-show-register')?.addEventListener('click', showRegisterForm);
 
-    // Кнопки "Назад" в формах
     document.querySelectorAll('#loginForm .glass-btn, #registerForm .glass-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             backToButtons();
         });
     });
-    console.log('Кнопка входа найдена:', loginButton);
 
-    // Кнопка "Назад" в верификации
     const verifyBackBtn = document.querySelector('#verifyForm .glass-btn');
     if (verifyBackBtn) verifyBackBtn.addEventListener('click', backToRegister);
 
-    // Кнопки "Войти" и "Зарегистрироваться"
     const loginButton = document.querySelector('#loginForm .primary');
+    console.log('Кнопка входа найдена:', loginButton);
     if (loginButton) loginButton.addEventListener('click', login);
 
     const registerButton = document.querySelector('#registerForm .primary');
@@ -286,25 +229,31 @@ document.addEventListener('DOMContentLoaded', function () {
     const verifyButton = document.querySelector('#verifyForm .primary');
     if (verifyButton) verifyButton.addEventListener('click', confirmCode);
 
-    // Глазики-замки
     const lockLogin = document.getElementById('toggleLoginPassword');
     if (lockLogin) lockLogin.addEventListener('click', () => togglePasswordVisibility('loginPassword', 'toggleLoginPassword'));
 
     const lockReg = document.getElementById('toggleRegPassword');
     if (lockReg) lockReg.addEventListener('click', () => togglePasswordVisibility('regPassword', 'toggleRegPassword'));
 
-    // Enter в полях
     document.getElementById('loginPassword')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
     document.getElementById('regPassword')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') register(); });
     document.getElementById('verifyCode')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') confirmCode(); });
 
-    // Запускаем слушатель авторизации
-    listenAuthChanges();
-
     console.log('✅ Кнопки привязаны');
-});
+}
 
-// Экспортируем в глобальную область (для обратной совместимости)
+// Проверка готовности DOM
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        bindButtons();
+        listenAuthChanges();
+    });
+} else {
+    bindButtons();
+    listenAuthChanges();
+}
+
+// Экспорт функций в глобальную область
 window.showLoginForm = showLoginForm;
 window.showRegisterForm = showRegisterForm;
 window.backToButtons = backToButtons;
