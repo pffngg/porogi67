@@ -1751,4 +1751,6 @@ function exportShiftToImage(shiftData) {
 // ЗАПУСК
 // ============================================================
 
+window.showApp = showApp;
+
 console.log('📦 app-v9.js загружен, ждем авторизацию...');
