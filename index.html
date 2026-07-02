@@ -117,7 +117,7 @@
             
             <div style="position:relative; width:100%;">
                 <input id="loginPassword" type="password" placeholder="Пароль" style="padding:14px 50px 14px 16px; border-radius:12px; border:1px solid var(--border); background:var(--card-bg); color:var(--text); font-size:14px; text-align:center; width:100%; box-sizing:border-box;" onkeydown="if(event.key==='Enter'){ login(); }">
-                <span id="toggleLoginPassword" onclick="togglePasswordVisibility('loginPassword', 'toggleLoginPassword')" style="position:absolute; right:14px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:20px; user-select:none; color:var(--text-secondary);">👁️</span>
+                <span id="toggleLoginPassword" style="position:absolute; right:14px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:20px; user-select:none; color:var(--text-secondary);">🔒</span>
             </div>
             
             <button class="primary" style="width:100%; padding:14px;" onclick="login()">Войти</button>
@@ -133,7 +133,7 @@
             
             <div style="position:relative; width:100%;">
                 <input id="regPassword" type="password" placeholder="Пароль (мин. 4 символа)" style="padding:14px 50px 14px 16px; border-radius:12px; border:1px solid var(--border); background:var(--card-bg); color:var(--text); font-size:14px; text-align:center; width:100%; box-sizing:border-box;">
-                <span id="toggleRegPassword" onclick="togglePasswordVisibility('regPassword', 'toggleRegPassword')" style="position:absolute; right:14px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:20px; user-select:none; color:var(--text-secondary);">👁️</span>
+                <span id="toggleRegPassword" style="position:absolute; right:14px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:20px; user-select:none; color:var(--text-secondary);">🔒</span>
             </div>
             
             <button id="regBtn" class="primary" style="width:100%; padding:14px;" onclick="register()">Зарегистрироваться</button>
@@ -351,23 +351,29 @@
 
     <script src="js/utils.js"></script>
     
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-        import { getDatabase } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyA41nDX13dsMuPNJkckCMQz8bfim3Hscxs",
-            authDomain: "porog-lol.firebaseapp.com",
-            databaseURL: "https://porog-lol-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "porog-lol"
-        };
-        
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        window.db = db;
-        
-        console.log('✅ Firebase 10 инициализирован');
-    </script>
+   <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getDatabase } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+    import { getAuth } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyA41nDX13dsMuPNJkckCMQz8bfim3Hscxs",
+        authDomain: "porog-lol.firebaseapp.com",
+        databaseURL: "https://porog-lol-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "porog-lol"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+
+    // Делаем доступными глобально
+    window.db = db;
+    window.auth = auth;
+    window.firebaseApp = app;
+
+    console.log('✅ Firebase 10 (app, db, auth) инициализированы');
+</script>
     
     <script type="module" src="js/auth-v9.js"></script>
     <script src="js/app-v9.js"></script>
