@@ -1,60 +1,111 @@
-// js/auth.js
-// Модуль авторизации — регистрация и вход через email/пароль
+// js/auth-v9.js
+// Модуль авторизации — Firebase 9.x (модульный синтаксис)
+// Регистрация с подтверждением почты через код
 
-// Инициализируем Firebase Auth (использует твою старую конфигурацию из app.js)
-// Эта строка должна быть после того, как firebase.initializeApp() уже вызван в app.js
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendEmailVerification, applyActionCode } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
 let auth;
-
-// Инициализация auth (вызывается из app.js после инициализации Firebase)
-function initAuth() {
-    auth = firebase.auth(); // Используем auth из старой библиотеки 8.x, она совместима
-}
-
-// Текущий пользователь
 let currentUser = null;
 let currentUserName = null;
+let tempEmail = null;
+let tempPassword = null;
+let tempName = null;
 
-// Слушатель изменений авторизации
+// Инициализация auth
+function initAuth() {
+    auth = getAuth();
+    console.log('✅ Auth v9 инициализирован');
+}
+
+// Слушатель авторизации
 function listenAuthChanges() {
-    auth.onAuthStateChanged((user) => {
+    onAuthStateChanged(auth, (user) => {
         if (user) {
-            // Пользователь вошел
             currentUser = user;
             currentUserName = user.displayName || user.email.split('@')[0];
-            
-            // Сохраняем email как идентификатор
             localStorage.setItem('userEmail', user.email);
             
-            // Обновляем данные пользователя в БД
-            const userRef = firebase.database().ref(`users/${currentUserName}`);
-            userRef.update({
+            // Обновляем данные в БД
+            firebase.database().ref(`users/${currentUserName}`).update({
                 email: user.email,
                 uid: user.uid,
                 lastSeen: Date.now()
             });
             
-            // Показываем приложение
             showApp();
         } else {
-            // Пользователь вышел
             currentUser = null;
             currentUserName = null;
             localStorage.removeItem('userEmail');
             
-            // Показываем экран входа
             document.getElementById('login').style.display = 'flex';
             document.getElementById('app').style.display = 'none';
         }
     });
 }
 
-// Регистрация нового пользователя
+// ==================== UI ФУНКЦИИ ====================
+
+function showLoginForm() {
+    document.getElementById('authButtons').style.display = 'none';
+    document.getElementById('authFormsContainer').style.display = 'block';
+    document.getElementById('loginForm').style.display = 'flex';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('verifyForm').style.display = 'none';
+}
+
+function showRegisterForm() {
+    document.getElementById('authButtons').style.display = 'none';
+    document.getElementById('authFormsContainer').style.display = 'block';
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'flex';
+    document.getElementById('verifyForm').style.display = 'none';
+}
+
+function backToButtons() {
+    document.getElementById('authButtons').style.display = 'flex';
+    document.getElementById('authFormsContainer').style.display = 'none';
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('verifyForm').style.display = 'none';
+    
+    // Очищаем поля
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('regName').value = '';
+    document.getElementById('regEmail').value = '';
+    document.getElementById('regPassword').value = '';
+}
+
+function backToRegister() {
+    document.getElementById('registerForm').style.display = 'flex';
+    document.getElementById('verifyForm').style.display = 'none';
+    tempEmail = null;
+    tempPassword = null;
+    tempName = null;
+}
+
+function togglePasswordVisibility(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.textContent = '👁️‍🗨️'; // открытый глаз
+    } else {
+        input.type = 'password';
+        icon.textContent = '👁️'; // закрытый глаз
+    }
+}
+
+// ==================== АВТОРИЗАЦИЯ ====================
+
+// Регистрация (шаг 1: отправляем код)
 function register() {
     const name = document.getElementById('regName').value.trim();
     const email = document.getElementById('regEmail').value.trim();
     const password = document.getElementById('regPassword').value;
     
-    // Проверки
     if (!name || !email || !password) {
         alert('Заполни все поля');
         return;
@@ -65,8 +116,8 @@ function register() {
         return;
     }
     
-    if (password.length < 6) {
-        alert('Пароль должен быть минимум 6 символов');
+    if (password.length < 4) {
+        alert('Пароль должен быть минимум 4 символа');
         return;
     }
     
@@ -75,42 +126,98 @@ function register() {
         return;
     }
     
-    // Создаем пользователя в Firebase Auth
-    auth.createUserWithEmailAndPassword(email, password)
+    // Сохраняем временные данные
+    tempEmail = email;
+    tempPassword = password;
+    tempName = name;
+    
+    // Отправляем письмо с подтверждением
+    const actionCodeSettings = {
+        url: window.location.href,
+        handleCodeInApp: true
+    };
+    
+    // Создаем пользователя
+    createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
             const user = userCredential.user;
             
-            // Сохраняем имя пользователя в профиле
-            return user.updateProfile({
-                displayName: name
-            }).then(() => {
-                // Создаем запись в БД
-                return firebase.database().ref(`users/${name}`).set({
-                    email: email,
-                    uid: user.uid,
-                    name: name,
-                    createdAt: Date.now()
-                });
+            // Сохраняем имя
+            return user.updateProfile({ displayName: name }).then(() => {
+                // Отправляем письмо с верификацией
+                return sendEmailVerification(user);
             });
         })
         .then(() => {
-            alert('Регистрация успешна! Сейчас войдем...');
-            // После регистрации пользователь автоматически войдет,
-            // сработает onAuthStateChanged и вызовет showApp()
+            // Показываем форму ввода кода
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('verifyForm').style.display = 'flex';
+            document.getElementById('verifyEmailDisplay').textContent = email;
+            document.getElementById('verifyCode').focus();
+            
+            alert('На твою почту отправлен код подтверждения. Проверь папку "Входящие" и "Спам".');
         })
         .catch((error) => {
-            // Обработка ошибок
             if (error.code === 'auth/email-already-in-use') {
                 alert('Эта почта уже зарегистрирована');
             } else if (error.code === 'auth/weak-password') {
-                alert('Пароль слишком слабый');
+                alert('Пароль слишком слабый (минимум 4 символа)');
+            } else if (error.code === 'auth/invalid-email') {
+                alert('Некорректный email');
             } else {
-                alert('Ошибка: ' + error.message);
+                alert('Ошибка регистрации: ' + error.message);
+            }
+            tempEmail = null;
+            tempPassword = null;
+            tempName = null;
+        });
+}
+
+// Подтверждение кода (шаг 2)
+function confirmCode() {
+    const code = document.getElementById('verifyCode').value.trim();
+    
+    if (!code || code.length < 6) {
+        alert('Введи код из письма (6 цифр)');
+        return;
+    }
+    
+    // Применяем код подтверждения
+    applyActionCode(auth, code)
+        .then(() => {
+            // Почта подтверждена!
+            // Создаем запись в БД
+            return firebase.database().ref(`users/${tempName}`).set({
+                email: tempEmail,
+                uid: auth.currentUser.uid,
+                name: tempName,
+                emailVerified: true,
+                createdAt: Date.now()
+            });
+        })
+        .then(() => {
+            alert('✅ Почта подтверждена! Добро пожаловать, ' + tempName + '!');
+            
+            // Очищаем временные данные
+            tempEmail = null;
+            tempPassword = null;
+            tempName = null;
+            
+            // Пользователь уже вошел, onAuthStateChanged вызовет showApp()
+        })
+        .catch((error) => {
+            if (error.code === 'auth/invalid-action-code') {
+                alert('Неверный код. Проверь письмо и попробуй снова.');
+            } else if (error.code === 'auth/expired-action-code') {
+                alert('Код просрочен. Запроси новый.');
+                backToRegister();
+            } else {
+                alert('Ошибка подтверждения: ' + error.message);
             }
         });
 }
 
-// Вход существующего пользователя
+// Вход
 function login() {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
@@ -120,15 +227,20 @@ function login() {
         return;
     }
     
-    auth.signInWithEmailAndPassword(email, password)
+    signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
-            // Успешный вход, onAuthStateChanged сам вызовет showApp()
+            const user = userCredential.user;
+            currentUserName = user.displayName || user.email.split('@')[0];
         })
         .catch((error) => {
             if (error.code === 'auth/user-not-found') {
                 alert('Пользователь с такой почтой не найден');
             } else if (error.code === 'auth/wrong-password') {
                 alert('Неверный пароль');
+            } else if (error.code === 'auth/invalid-email') {
+                alert('Некорректный email');
+            } else if (error.code === 'auth/too-many-requests') {
+                alert('Слишком много попыток. Попробуй позже.');
             } else {
                 alert('Ошибка входа: ' + error.message);
             }
@@ -138,23 +250,7 @@ function login() {
 // Выход
 function logout() {
     localStorage.clear();
-    auth.signOut().then(() => {
-        // onAuthStateChanged сам покажет экран входа
+    signOut(auth).catch((error) => {
+        console.error('Ошибка выхода:', error);
     });
-}
-
-// Показать форму входа
-function showLoginForm() {
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('registerForm').style.display = 'none';
-    document.getElementById('btn-show-login').className = 'primary';
-    document.getElementById('btn-show-register').className = 'glass-btn';
-}
-
-// Показать форму регистрации
-function showRegisterForm() {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('registerForm').style.display = 'block';
-    document.getElementById('btn-show-login').className = 'glass-btn';
-    document.getElementById('btn-show-register').className = 'primary';
 }
