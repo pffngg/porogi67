@@ -1803,6 +1803,7 @@ window.setMode = setMode;
 window.changeMonth = changeMonth;
 window.toggleWorkCell = toggleWorkCell;
 window.refreshAdminData = refreshAdminData;
+window.toggleShiftDetails = toggleShiftDetails;
 
 // Функции из auth-v9.js тоже продублируем на всякий случай
 window.showLoginForm = showLoginForm;
