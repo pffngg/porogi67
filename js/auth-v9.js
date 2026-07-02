@@ -270,6 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
             backToButtons();
         });
     });
+    console.log('Кнопка входа найдена:', loginButton);
 
     // Кнопка "Назад" в верификации
     const verifyBackBtn = document.querySelector('#verifyForm .glass-btn');
