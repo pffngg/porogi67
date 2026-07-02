@@ -32,8 +32,48 @@ function listenAuthChanges() {
     onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUser = user;
-            currentUserName = user.displayName || user.email.split('@')[0];
-            window.currentUserName = currentUserName;
+const emailName = user.email.split('@')[0];
+
+// Пробуем взять имя из базы данных
+dbGet(dbRef(db, `users/${emailName}`)).then(snap => {
+    if (snap.exists() && snap.val().name) {
+        // Имя есть в базе
+        currentUserName = snap.val().name;
+    } else if (user.displayName) {
+        // Имя есть в Firebase Auth
+        currentUserName = user.displayName;
+    } else {
+        // Fallback на email
+        currentUserName = emailName;
+    }
+    window.currentUserName = currentUserName;
+    localStorage.setItem('userEmail', user.email);
+    
+    // Обновляем данные в БД
+    dbUpdate(dbRef(db, `users/${currentUserName}`), {
+        email: user.email,
+        uid: user.uid,
+        lastSeen: Date.now()
+    });
+    
+    // Показываем приложение
+    if (typeof window.showApp === 'function') {
+        window.showApp();
+    } else {
+        const check = setInterval(() => {
+            if (typeof window.showApp === 'function') {
+                clearInterval(check);
+                window.showApp();
+            }
+        }, 100);
+    }
+}).catch(() => {
+    // Ошибка запроса — используем fallback
+    currentUserName = user.displayName || emailName;
+    window.currentUserName = currentUserName;
+    
+    if (typeof window.showApp === 'function') window.showApp();
+});
             localStorage.setItem('userEmail', user.email);
 
             dbUpdate(dbRef(db, `users/${currentUserName}`), {
@@ -186,8 +226,21 @@ function login() {
     signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
             const user = userCredential.user;
-            currentUserName = user.displayName || user.email.split('@')[0];
-            window.currentUserName = currentUserName;
+            const emailName = user.email.split('@')[0];
+dbGet(dbRef(db, `users/${emailName}`)).then(snap => {
+    if (snap.exists() && snap.val().name) {
+        currentUserName = snap.val().name;
+    } else {
+        currentUserName = user.displayName || emailName;
+    }
+    window.currentUserName = currentUserName;
+    
+    if (typeof window.showApp === 'function') window.showApp();
+}).catch(() => {
+    currentUserName = user.displayName || emailName;
+    window.currentUserName = currentUserName;
+    if (typeof window.showApp === 'function') window.showApp();
+});
         })
         .catch((error) => {
             if (error.code === 'auth/user-not-found') alert('Пользователь с такой почтой не найден');
