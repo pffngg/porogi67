@@ -14,7 +14,7 @@ const db = window.db;
 // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
 // ============================================================
 
-// currentUser и currentUserName теперь из auth-v9.js (глобальные)
+// currentUser и window.currentUserName теперь из auth-v9.js (глобальные)
 // isAdmin — будем определять по БД
 let isAdmin = false;
 let scheduleDate = new Date();
@@ -66,9 +66,9 @@ function showApp() {
     // Определяем, является ли пользователь админом
     onValue(ref(db, "admins"), snap => {
         const admins = snap.val() || {};
-        isAdmin = !!admins[currentUserName] || currentUserName.toLowerCase() === "дениска";
+        isAdmin = !!admins[window.currentUserName] || window.currentUserName.toLowerCase() === "дениска";
         
-        document.getElementById("userTag").innerText = isAdmin ? "⭐" + currentUserName : "@" + currentUserName.toLowerCase();
+        document.getElementById("userTag").innerText = isAdmin ? "⭐" + window.currentUserName : "@" + window.currentUserName.toLowerCase();
         document.getElementById("btn-settings").style.display = isAdmin ? "inline-flex" : "none";
         document.getElementById("adminPanel").style.display = isAdmin ? "flex" : "none";
         document.getElementById("adminUsersPanel").style.display = isAdmin ? "block" : "none";
@@ -84,7 +84,7 @@ function showApp() {
         latestUsers = snap.val() || {};
         userAvatars = latestUsers;
         
-        const myAv = userAvatars[currentUserName]?.avatar || 
+        const myAv = userAvatars[window.currentUserName]?.avatar || 
             "https://cdn-icons-png.flaticon.com/512/149/149071.png";
         document.getElementById("myAvatar").src = myAv;
         
@@ -97,7 +97,7 @@ function showApp() {
     // Слушаем муты
     onValue(ref(db, "muted_users"), snap => {
         mutedUsers = snap.val() || {};
-        isMuted = !!mutedUsers[currentUserName];
+        isMuted = !!mutedUsers[window.currentUserName];
         renderMuteState();
         if (isAdmin) { 
             renderAdminUsers(latestUsers, currentBlockedIps, currentAdmins); 
@@ -135,8 +135,8 @@ function getMyIp() {
 function fetchAndStoreMyIp() { 
     return getMyIp().then(ip => { 
         currentIp = ip || ""; 
-        if (currentUserName && currentIp) { 
-            update(ref(db, `users/${currentUserName}`), { ip: currentIp, lastSeen: Date.now() }); 
+        if (window.currentUserName && currentIp) { 
+            update(ref(db, `users/${window.currentUserName}`), { ip: currentIp, lastSeen: Date.now() }); 
         } 
         return currentIp; 
     }); 
@@ -167,8 +167,8 @@ function switchTab(t) {
         
         get(query(ref(db, "chat_v4"), limitToLast(10))).then(snap => {
             snap.forEach(s => { 
-                if (s.val().name !== currentUserName) 
-                    update(ref(db, "chat_v4/" + s.key + "/readBy"), { [currentUserName]: true }); 
+                if (s.val().name !== window.currentUserName) 
+                    update(ref(db, "chat_v4/" + s.key + "/readBy"), { [window.currentUserName]: true }); 
             });
         });
         
@@ -238,7 +238,7 @@ function listenActiveShift() {
             document.getElementById("optDisplay").innerText = `Оптовые: ${shift.opt || 0}`;
 
             const parts = shift.participants || {};
-            isGlobalParticipant = parts[currentUserName] !== undefined;
+            isGlobalParticipant = parts[window.currentUserName] !== undefined;
 
             let partsText = "<b style='color:var(--accent);'>🟢 Смена в эфире:</b><br><br>";
             Object.keys(parts).forEach(p => {
@@ -257,7 +257,7 @@ function listenActiveShift() {
                 document.getElementById("dost_val").style.pointerEvents = "auto";
                 document.getElementById("opt_val").style.pointerEvents = "auto";
                 document.getElementById("salaryDisplay").innerText = 
-                    `Моя доля: ${Number(parts[currentUserName].earned || 0).toFixed(0)}₽`;
+                    `Моя доля: ${Number(parts[window.currentUserName].earned || 0).toFixed(0)}₽`;
             } else {
                 ctrls.forEach(b => b.style.display = "none");
                 setFboControlsEnabled(false);
@@ -289,16 +289,16 @@ function startShift() {
         cdek: 0, wb: 0, dost: 0, fbo: 0, opt: 0,
         cdek_places: 0, dost_places: 0,
         fboArticles: {},
-        participants: { [currentUserName]: participant },
-        allParticipants: { [currentUserName]: participant }
+        participants: { [window.currentUserName]: participant },
+        allParticipants: { [window.currentUserName]: participant }
     });
 }
 
 function addCounter(type) {
-    if (!type || !currentUserName) return;
+    if (!type || !window.currentUserName) return;
     
     runTransaction(ref(db, "active_shift"), shift => {
-        if (!shift || !shift.participants || !shift.participants[currentUserName]) return;
+        if (!shift || !shift.participants || !shift.participants[window.currentUserName]) return;
         if (!["cdek", "wb", "dost", "opt"].includes(type)) return;
         
         shift[type] = (shift[type] || 0) + 1;
@@ -323,10 +323,10 @@ function addCounter(type) {
 }
 
 function removeCounter(type) {
-    if (!type || !currentUserName) return;
+    if (!type || !window.currentUserName) return;
     
     runTransaction(ref(db, "active_shift"), shift => {
-        if (!shift || !shift.participants || !shift.participants[currentUserName] || !shift[type] || shift[type] <= 0) return;
+        if (!shift || !shift.participants || !shift.participants[window.currentUserName] || !shift[type] || shift[type] <= 0) return;
         if (!["cdek", "wb", "dost", "opt"].includes(type)) return;
         
         shift[type]--;
@@ -356,7 +356,7 @@ function manualInput(type) {
     
     get(ref(db, "active_shift")).then(snap => {
         const shift = snap.val();
-        if (!shift || !shift.participants || !shift.participants[currentUserName]) return;
+        if (!shift || !shift.participants || !shift.participants[window.currentUserName]) return;
         
         let currentVal = shift[type] || 0;
         let v = prompt("Введи новое количество заказов для " + type.toUpperCase() + ":", currentVal);
@@ -366,7 +366,7 @@ function manualInput(type) {
             
             if (diff !== 0) {
                 runTransaction(ref(db, "active_shift"), s => {
-                    if (!s || !s.participants || !s.participants[currentUserName]) return;
+                    if (!s || !s.participants || !s.participants[window.currentUserName]) return;
                     
                     const oldCdekPlaces = s.cdek_places || s.cdek || 0;
                     const oldDostPlaces = s.dost_places || s.dost || 0;
@@ -399,24 +399,24 @@ function manualInput(type) {
 // ============================================================
 
 function addPlace(type) {
-    if (!type || !currentUserName || !isGlobalParticipant) return;
+    if (!type || !window.currentUserName || !isGlobalParticipant) return;
     if (type !== 'cdek' && type !== 'dost') return;
     const placeField = type + '_places';
     
     runTransaction(ref(db, "active_shift"), shift => {
-        if (!shift || !shift.participants || !shift.participants[currentUserName]) return;
+        if (!shift || !shift.participants || !shift.participants[window.currentUserName]) return;
         shift[placeField] = (shift[placeField] || 0) + 1;
         return shift;
     });
 }
 
 function removePlace(type) {
-    if (!type || !currentUserName || !isGlobalParticipant) return;
+    if (!type || !window.currentUserName || !isGlobalParticipant) return;
     if (type !== 'cdek' && type !== 'dost') return;
     const placeField = type + '_places';
     
     runTransaction(ref(db, "active_shift"), shift => {
-        if (!shift || !shift.participants || !shift.participants[currentUserName]) return;
+        if (!shift || !shift.participants || !shift.participants[window.currentUserName]) return;
         if (!shift[placeField] || shift[placeField] <= 0) return;
         shift[placeField]--;
         return shift;
@@ -429,7 +429,7 @@ function manualInputPlaces(type) {
     
     get(ref(db, "active_shift")).then(snap => {
         const shift = snap.val();
-        if (!shift || !shift.participants || !shift.participants[currentUserName]) return;
+        if (!shift || !shift.participants || !shift.participants[window.currentUserName]) return;
         
         let currentVal = shift[placeField] || 0;
         let v = prompt("Введи новое количество мест для " + type.toUpperCase() + ":", currentVal);
@@ -509,7 +509,7 @@ function handleFboArticleKey(event) {
 }
 
 function addFboArticle() {
-    if (!currentUserName || !isGlobalParticipant) return;
+    if (!window.currentUserName || !isGlobalParticipant) return;
     
     const input = document.getElementById('fboArticleInput');
     const rawArticle = (input?.value || '').trim();
@@ -522,7 +522,7 @@ function addFboArticle() {
     const articleId = push(ref(db, 'active_shift/fboArticles')).key;
     
    runTransaction(ref(db, 'active_shift'), shift => {
-        if (!shift || !shift.participants || !shift.participants[currentUserName]) return;
+        if (!shift || !shift.participants || !shift.participants[window.currentUserName]) return;
         
         const participants = Object.keys(shift.participants);
         const share = 80 / participants.length;
@@ -534,7 +534,7 @@ function addFboArticle() {
             fullArticle, suffix: currentFboSuffix, material: currentFboMaterial,
             width: currentFboWidth, share, orderIncrement: inc, 
             participants: participants.reduce((acc, n) => { acc[n] = true; return acc; }, {}), 
-            by: currentUserName, at: Date.now() 
+            by: window.currentUserName, at: Date.now() 
         };
         
         participants.forEach(name => {
@@ -586,7 +586,7 @@ function toggleFboArticles() {
 // ============================================================
 
 function joinShift() {
-    if (!currentUserName) { alert("Ошибка: пользователь не авторизован"); return; }
+    if (!window.currentUserName) { alert("Ошибка: пользователь не авторизован"); return; }
     
     get(ref(db, "active_shift/participants")).then(snap => {
         const participants = snap.val() || {};
@@ -596,20 +596,20 @@ function joinShift() {
             alert("Нет активной смены для присоединения.");
             return;
         }
-        if (participants[currentUserName]) {
+        if (participants[window.currentUserName]) {
             alert("Вы уже участвуете в этой смене.");
             return;
         }
         
-        const requestRef = ref(db, `join_requests/${creator}/${currentUserName}`);
-        set(requestRef, { requester: currentUserName, timestamp: Date.now() });
+        const requestRef = ref(db, `join_requests/${creator}/${window.currentUserName}`);
+        set(requestRef, { requester: window.currentUserName, timestamp: Date.now() });
         alert("Запрос на присоединение отправлен.");
         listenForJoinResponse(creator);
     });
 }
 
 function listenForJoinResponse(creator) {
-    const responseRef = ref(db, `join_responses/${currentUserName}`);
+    const responseRef = ref(db, `join_responses/${window.currentUserName}`);
     
     onValue(responseRef, snap => {
         const response = snap.val();
@@ -623,8 +623,8 @@ function listenForJoinResponse(creator) {
                     
                     const participantData = createParticipantData(Date.now());
                     update(ref(db), {
-                        [`active_shift/participants/${currentUserName}`]: participantData,
-                        [`active_shift/allParticipants/${currentUserName}`]: participantData
+                        [`active_shift/participants/${window.currentUserName}`]: participantData,
+                        [`active_shift/allParticipants/${window.currentUserName}`]: participantData
                     });
                 });
                 alert("Ваш запрос одобрен!");
@@ -633,19 +633,19 @@ function listenForJoinResponse(creator) {
             }
             
             remove(responseRef);
-            remove(ref(db, `join_requests/${creator}/${currentUserName}`));
+            remove(ref(db, `join_requests/${creator}/${window.currentUserName}`));
         }
     });
 }
 
 function leaveShift() {
-    if (!currentUserName) { alert("Ошибка: пользователь не авторизован"); return; }
+    if (!window.currentUserName) { alert("Ошибка: пользователь не авторизован"); return; }
     
     get(ref(db, "active_shift")).then(snap => {
         const shift = snap.val();
-        if (!shift || !shift.participants || !shift.participants[currentUserName]) return;
+        if (!shift || !shift.participants || !shift.participants[window.currentUserName]) return;
         
-        const currentMember = shift.participants[currentUserName];
+        const currentMember = shift.participants[window.currentUserName];
         const myEarned = currentMember.earned || 0;
         const cdekCount = shift.cdek || 0, wbCount = shift.wb || 0, 
               dostCount = shift.dost || 0, optCount = shift.opt || 0, fboCount = shift.fbo || 0;
@@ -659,7 +659,7 @@ function leaveShift() {
         document.getElementById("reportModal").style.display = "flex";
         
         const allParticipants = { ...(shift.allParticipants || {}), ...(shift.participants || {}) };
-        allParticipants[currentUserName] = currentMember;
+        allParticipants[window.currentUserName] = currentMember;
         
         const participantCount = Object.keys(shift.participants).length;
         
@@ -678,7 +678,7 @@ function leaveShift() {
                 participants: JSON.parse(JSON.stringify(allParticipants)),
                 start: startT.toLocaleString(), end: endT.toLocaleString(),
                 startTime: shift.startTime, endTime: Date.now(),
-                closedBy: currentUserName, closedAt: Date.now()
+                closedBy: window.currentUserName, closedAt: Date.now()
             }).then(() => { 
                 remove(ref(db, "active_shift"));
                 openSurveyModal(newRef.key); 
@@ -686,14 +686,14 @@ function leaveShift() {
         } else {
             update(ref(db), {
                 "active_shift/allParticipants": allParticipants,
-                [`active_shift/participants/${currentUserName}`]: null
+                [`active_shift/participants/${window.currentUserName}`]: null
             });
         }
     });
 }
 
 function closeShift() {
-    if (!currentUserName || !isAdmin) return;
+    if (!window.currentUserName || !isAdmin) return;
     if (!confirm("Закрыть смену для всех?")) return;
     
     get(ref(db, "active_shift")).then(snap => {
@@ -727,7 +727,7 @@ function closeShift() {
             participants: JSON.parse(JSON.stringify(allParticipants)),
             start: startT.toLocaleString(), end: endT.toLocaleString(),
             startTime: shift.startTime, endTime: Date.now(),
-            closedBy: currentUserName, closedAt: Date.now()
+            closedBy: window.currentUserName, closedAt: Date.now()
         }).then(() => {
             remove(ref(db, "active_shift"));
             alert("✅ Смена закрыта и сохранена в архив");
@@ -766,7 +766,7 @@ function closeShiftFromAdmin() {
             participants: JSON.parse(JSON.stringify(allParticipants)),
             start: startT.toLocaleString(), end: endT.toLocaleString(),
             startTime: shift.startTime, endTime: Date.now(),
-            closedBy: currentUserName, closedAt: Date.now()
+            closedBy: window.currentUserName, closedAt: Date.now()
         }).then(() => {
             remove(ref(db, "active_shift"));
             alert("✅ Смена закрыта админом и сохранена в архив");
@@ -880,7 +880,7 @@ function submitSurvey() {
         problems: surveyState.problems, report: surveyState.report,
         wbBoxes: boxes ? parseInt(boxes) : 0, workers: workers,
         text: surveyText, photo: surveyPhoto || null,
-        filledBy: currentUserName, at: Date.now()
+        filledBy: window.currentUserName, at: Date.now()
     };
     
     set(ref(db, `shifts/${pendingShiftKey}/survey`), surveyData)
@@ -1006,7 +1006,7 @@ function listenChat() {
             const m = s.val(); 
             if (m && m.name && m.time) { 
                 msgs.push({ key: s.key, msg: m }); 
-                if (m.time > lastChatViewTime && m.name !== currentUserName) unread++; 
+                if (m.time > lastChatViewTime && m.name !== window.currentUserName) unread++; 
             } 
         });
         
@@ -1021,8 +1021,8 @@ function listenChat() {
         if (currentTab === 'chat') {
             get(query(ref(db, "chat_v4"), limitToLast(1))).then(snap => {
                 snap.forEach(s => { 
-                    if (s.val() && s.val().name !== currentUserName) 
-                        update(ref(db, "chat_v4/" + s.key + "/readBy"), { [currentUserName]: true }); 
+                    if (s.val() && s.val().name !== window.currentUserName) 
+                        update(ref(db, "chat_v4/" + s.key + "/readBy"), { [window.currentUserName]: true }); 
                 });
             });
         }
@@ -1031,7 +1031,7 @@ function listenChat() {
 
 function appendMsgUI(key, m, scroll) {
     const box = document.getElementById("chat-messages");
-    const isMe = m.name === currentUserName;
+    const isMe = m.name === window.currentUserName;
     const wrapper = document.createElement("div");
     wrapper.className = `msg-wrapper ${isMe ? "me-wrapper" : ""}`;
     wrapper.dataset.key = key;
@@ -1172,7 +1172,7 @@ function sendChat() {
     if (!text && !pendingPhotos.length) return;
     
     push(ref(db, "chat_v4"), { 
-        name: currentUserName, text: text, 
+        name: window.currentUserName, text: text, 
         images: pendingPhotos.length ? pendingPhotos : null,
         time: Date.now() 
     });
@@ -1199,7 +1199,7 @@ function openFullImg(s) {
 
 function showCtx(e, k, a) { 
     e.preventDefault(); 
-    if (!isAdmin && a !== currentUserName) return; 
+    if (!isAdmin && a !== window.currentUserName) return; 
     const m = document.getElementById("context-menu");
     m.style.display = "block";
     m.style.left = e.pageX + "px";
@@ -1214,8 +1214,8 @@ function showCtx(e, k, a) {
 // ============================================================
 
 function setupPresence() { 
-    if (!currentUserName) return; 
-    const r = ref(db, `presence/${currentUserName}`);
+    if (!window.currentUserName) return; 
+    const r = ref(db, `presence/${window.currentUserName}`);
     set(r, "online").catch(e => {});
     onDisconnect(r).remove(); 
     
@@ -1283,10 +1283,10 @@ function initTheme() {
 // ПРОФИЛЬ
 // ============================================================
 
-function showProfileModal(userName = currentUserName) { 
+function showProfileModal(userName = window.currentUserName) { 
     cancelAvatarEdit();
     profileViewUser = userName;
-    profileEditable = userName === currentUserName;
+    profileEditable = userName === window.currentUserName;
     document.getElementById("profileName").innerText = userName + (profileEditable ? "" : " (просмотр)");
     document.getElementById("profileRole").innerText = profileEditable ? (isAdmin ? "Администратор" : "") : (userAvatars[userName]?.admin ? "Администратор" : ""); 
     
@@ -1299,7 +1299,7 @@ function showProfileModal(userName = currentUserName) {
     document.getElementById("profileModal").style.display = "flex"; 
 }
 
-function loadProfileStats(userName = currentUserName) { 
+function loadProfileStats(userName = window.currentUserName) { 
     get(query(ref(db, "shifts"))).then(snap => { 
         let totalSalary = 0, shiftsCount = 0, totalOrders = 0, totalOpt = 0, totalFbo = 0;
         snap.forEach(child => { 
@@ -1363,7 +1363,7 @@ function saveAvatar() {
     if (!avatarEditorImage) return; 
     const canvas = document.getElementById('avatarCanvas'); 
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-    set(ref(db, `users/${currentUserName}/avatar`), dataUrl);
+    set(ref(db, `users/${window.currentUserName}/avatar`), dataUrl);
     document.getElementById('myAvatar').src = dataUrl;
     document.getElementById('profileAvatarPreview').src = dataUrl;
     cancelAvatarEdit(); 
@@ -1472,7 +1472,7 @@ function toggleMuteUser(name) {
     if (!trimmed) return; 
     const mutePath = ref(db, `muted_users/${trimmed}`); 
     if (mutedUsers[trimmed]) { remove(mutePath); } 
-    else { set(mutePath, { mutedBy: currentUserName, at: Date.now() }); } 
+    else { set(mutePath, { mutedBy: window.currentUserName, at: Date.now() }); } 
 }
 
 function deleteUser(name) { 
@@ -1546,7 +1546,7 @@ function renderBlockedIps(blocked) {
 function blockIp(ipKey) { 
     const ip = dbKeyToValue(ipKey); 
     if (!ipKey || !confirm(`Блокировать IP ${ip}?`)) return; 
-    set(ref(db, `blocked_ips/${ipKey}`), { blockedBy: currentUserName, at: Date.now() }); 
+    set(ref(db, `blocked_ips/${ipKey}`), { blockedBy: window.currentUserName, at: Date.now() }); 
 }
 
 function unblockIp(ipKey) { 
