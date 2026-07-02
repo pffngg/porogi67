@@ -4,10 +4,9 @@
 
 // Импортируем все нужные функции Firebase 10
 import { 
-    ref, set, push, onValue, update, remove, transaction, 
+    ref, set, push, onValue, update, remove, runTransaction, 
     onDisconnect, query, limitToLast, get 
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js';
-
 // db доступен глобально через window.db (настроен в index.html)
 const db = window.db;
 
