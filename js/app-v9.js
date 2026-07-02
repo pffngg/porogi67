@@ -1752,4 +1752,66 @@ function exportShiftToImage(shiftData) {
 
 window.showApp = showApp;
 
+// ============================================================
+// ЭКСПОРТ ФУНКЦИЙ В ГЛОБАЛЬНУЮ ОБЛАСТЬ (для onclick в HTML)
+// ============================================================
+window.startShift = startShift;
+window.addCounter = addCounter;
+window.removeCounter = removeCounter;
+window.manualInput = manualInput;
+window.addPlace = addPlace;
+window.removePlace = removePlace;
+window.manualInputPlaces = manualInputPlaces;
+window.selectFboOption = selectFboOption;
+window.handleFboArticleKey = handleFboArticleKey;
+window.addFboArticle = addFboArticle;
+window.removeFboArticle = removeFboArticle;
+window.toggleFboArticles = toggleFboArticles;
+window.joinShift = joinShift;
+window.leaveShift = leaveShift;
+window.closeShift = closeShift;
+window.closeShiftFromAdmin = closeShiftFromAdmin;
+window.toggleSurveyCheck = toggleSurveyCheck;
+window.setWorkersCount = setWorkersCount;
+window.prepareSurveyPhoto = prepareSurveyPhoto;
+window.removeSurveyPhoto = removeSurveyPhoto;
+window.submitSurvey = submitSurvey;
+window.skipSurvey = skipSurvey;
+window.toggleHistory = toggleHistory;
+window.exportShiftToImage = exportShiftToImage;
+window.openFullImg = openFullImg;
+window.sendChat = sendChat;
+window.handleChatKey = handleChatKey;
+window.removePreviewPhoto = removePreviewPhoto;
+window.switchTab = switchTab;
+window.toggleTheme = toggleTheme;
+window.showProfileModal = showProfileModal;
+window.triggerAvatarInput = triggerAvatarInput;
+window.uploadAvatar = uploadAvatar;
+window.cancelAvatarEdit = cancelAvatarEdit;
+window.saveAvatar = saveAvatar;
+window.zoomAvatar = zoomAvatar;
+window.toggleMuteUser = toggleMuteUser;
+window.deleteUser = deleteUser;
+window.addNewAdmin = addNewAdmin;
+window.removeAdmin = removeAdmin;
+window.blockIp = blockIp;
+window.unblockIp = unblockIp;
+window.deleteStaff = deleteStaff;
+window.addNewStaff = addNewStaff;
+window.setMode = setMode;
+window.changeMonth = changeMonth;
+window.toggleWorkCell = toggleWorkCell;
+window.refreshAdminData = refreshAdminData;
+
+// Функции из auth-v9.js тоже продублируем на всякий случай
+window.showLoginForm = showLoginForm;
+window.showRegisterForm = showRegisterForm;
+window.backToButtons = backToButtons;
+window.login = login;
+window.register = register;
+window.confirmCode = confirmCode;
+window.logout = logout;
+window.togglePasswordVisibility = togglePasswordVisibility;
+
 console.log('📦 app-v9.js загружен, ждем авторизацию...');
