@@ -1061,12 +1061,11 @@
     font-weight: 600 !important;
     cursor: pointer !important;
     transition: all 0.3s ease !important;
-    opacity: 0.6 !important;
+    opacity: 1 !important;
     box-shadow: none !important;
 }
 
 .auth-switch-btn:hover {
-    opacity: 1 !important;
     border-color: var(--accent) !important;
     box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15) !important;
     transform: translateY(-1px) !important;
@@ -1075,20 +1074,20 @@
     color: var(--text) !important;
 }
 
+/* Убираем стиль active — обе кнопки всегда одинаковые */
 .auth-switch-btn.active {
     opacity: 1 !important;
     background: var(--card-bg) !important;
     background-image: none !important;
     color: var(--text) !important;
-    border-color: var(--accent) !important;
+    border-color: var(--border) !important;
     border-width: 2px !important;
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25) !important;
+    box-shadow: none !important;
 }
 
 .auth-switch-btn.active:hover {
-    background: var(--card-bg) !important;
-    background-image: none !important;
-    color: var(--text) !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15) !important;
 }
 
 /* Тёмная тема */
@@ -1109,5 +1108,50 @@ html.dark-mode .auth-switch-btn.active {
     background: var(--card-bg) !important;
     background-image: none !important;
     color: var(--text) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.dark-mode .auth-switch-btn.active:hover {
     border-color: var(--accent) !important;
+}
+И убери класс active из HTML
+Поменяй кнопки в index.html на:
+
+html
+<div id="authButtons" style="display:flex; gap:12px; justify-content:center; width:100%; max-width:320px;">
+    <button id="btn-show-login" class="auth-switch-btn" style="flex:1; padding:14px; font-size:15px;">Войти</button>
+    <button id="btn-show-register" class="auth-switch-btn" style="flex:1; padding:14px; font-size:15px;">Регистрация</button>
+</div>
+И обнови функции в auth-v9.js
+Найди showLoginForm, showRegisterForm и backToButtons и убери строки с classList.add('active') и classList.remove('active'):
+
+javascript
+function showLoginForm() {
+    document.getElementById('authButtons').style.display = 'none';
+    document.getElementById('authFormsContainer').style.display = 'block';
+    document.getElementById('loginForm').style.display = 'flex';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('verifyForm').style.display = 'none';
+}
+
+function showRegisterForm() {
+    document.getElementById('authButtons').style.display = 'none';
+    document.getElementById('authFormsContainer').style.display = 'block';
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'flex';
+    document.getElementById('verifyForm').style.display = 'none';
+}
+
+function backToButtons() {
+    document.getElementById('authButtons').style.display = 'flex';
+    document.getElementById('authFormsContainer').style.display = 'none';
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('verifyForm').style.display = 'none';
+    
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('regName').value = '';
+    document.getElementById('regEmail').value = '';
+    document.getElementById('regPassword').value = '';
 }
