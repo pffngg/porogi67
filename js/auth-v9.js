@@ -8,7 +8,8 @@ import {
     signOut,
     onAuthStateChanged,
     sendEmailVerification,
-    applyActionCode
+    applyActionCode,
+    updateProfile
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 import {
@@ -125,7 +126,7 @@ function register() {
 
     if (!name || !email || !password) { alert('Заполни все поля'); return; }
     if (!email.includes('@')) { alert('Введи нормальную почту'); return; }
-    if (password.length < 4) { alert('Пароль должен быть минимум 4 символа'); return; }
+    if (password.length < 6) { alert('Пароль должен быть минимум 6 символов'); return; }
     if (/[.#[\]/]/.test(name)) { alert('Имя не должно содержать символы . $ # [ ] /'); return; }
 
     tempEmail = email;
@@ -134,8 +135,9 @@ function register() {
 
     createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
-            const user = userCredential.user;
-            return user.updateProfile({ displayName: name }).then(() => sendEmailVerification(user));
+            // Используем функцию updateProfile из Firebase
+            return updateProfile(userCredential.user, { displayName: name })
+                .then(() => sendEmailVerification(userCredential.user));
         })
         .then(() => {
             document.getElementById('registerForm').style.display = 'none';
@@ -146,7 +148,7 @@ function register() {
         })
         .catch((error) => {
             if (error.code === 'auth/email-already-in-use') alert('Эта почта уже зарегистрирована');
-            else if (error.code === 'auth/weak-password') alert('Пароль слишком слабый (минимум 4 символа)');
+            else if (error.code === 'auth/weak-password') alert('Пароль слишком слабый (минимум 6 символов)');
             else if (error.code === 'auth/invalid-email') alert('Некорректный email');
             else alert('Ошибка регистрации: ' + error.message);
             tempEmail = null; tempPassword = null; tempName = null;
