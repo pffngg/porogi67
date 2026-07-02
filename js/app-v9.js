@@ -1755,6 +1755,7 @@ window.showApp = showApp;
 // ============================================================
 // ЭКСПОРТ ФУНКЦИЙ В ГЛОБАЛЬНУЮ ОБЛАСТЬ (для onclick в HTML)
 // ============================================================
+window.removeFb = remove;
 window.startShift = startShift;
 window.addCounter = addCounter;
 window.removeCounter = removeCounter;
