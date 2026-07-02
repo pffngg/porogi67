@@ -297,7 +297,7 @@ function startShift() {
 function addCounter(type) {
     if (!type || !currentUserName) return;
     
-    transaction(ref(db, "active_shift"), shift => {
+    runTransaction(ref(db, "active_shift"), shift => {
         if (!shift || !shift.participants || !shift.participants[currentUserName]) return;
         if (!["cdek", "wb", "dost", "opt"].includes(type)) return;
         
@@ -325,7 +325,7 @@ function addCounter(type) {
 function removeCounter(type) {
     if (!type || !currentUserName) return;
     
-    transaction(ref(db, "active_shift"), shift => {
+    runTransaction(ref(db, "active_shift"), shift => {
         if (!shift || !shift.participants || !shift.participants[currentUserName] || !shift[type] || shift[type] <= 0) return;
         if (!["cdek", "wb", "dost", "opt"].includes(type)) return;
         
@@ -365,7 +365,7 @@ function manualInput(type) {
             let diff = newVal - currentVal;
             
             if (diff !== 0) {
-                transaction(ref(db, "active_shift"), s => {
+                runTransaction(ref(db, "active_shift"), s => {
                     if (!s || !s.participants || !s.participants[currentUserName]) return;
                     
                     const oldCdekPlaces = s.cdek_places || s.cdek || 0;
@@ -403,7 +403,7 @@ function addPlace(type) {
     if (type !== 'cdek' && type !== 'dost') return;
     const placeField = type + '_places';
     
-    transaction(ref(db, "active_shift"), shift => {
+    runTransaction(ref(db, "active_shift"), shift => {
         if (!shift || !shift.participants || !shift.participants[currentUserName]) return;
         shift[placeField] = (shift[placeField] || 0) + 1;
         return shift;
@@ -415,7 +415,7 @@ function removePlace(type) {
     if (type !== 'cdek' && type !== 'dost') return;
     const placeField = type + '_places';
     
-    transaction(ref(db, "active_shift"), shift => {
+    runTransaction(ref(db, "active_shift"), shift => {
         if (!shift || !shift.participants || !shift.participants[currentUserName]) return;
         if (!shift[placeField] || shift[placeField] <= 0) return;
         shift[placeField]--;
@@ -521,7 +521,7 @@ function addFboArticle() {
     const fullArticle = `${rawArticle}${currentFboSuffix} ${currentFboMaterial} ${currentFboWidth}`;
     const articleId = push(ref(db, 'active_shift/fboArticles')).key;
     
-    transaction(ref(db, 'active_shift'), shift => {
+   runTransaction(ref(db, 'active_shift'), shift => {
         if (!shift || !shift.participants || !shift.participants[currentUserName]) return;
         
         const participants = Object.keys(shift.participants);
@@ -550,7 +550,7 @@ function addFboArticle() {
 function removeFboArticle(articleId) {
     if (!articleId) return;
     
-    transaction(ref(db, 'active_shift'), shift => {
+    runTransaction(ref(db, 'active_shift'), shift => {
         if (!shift || !shift.fboArticles || !shift.fboArticles[articleId]) return shift;
         
         const item = shift.fboArticles[articleId];
