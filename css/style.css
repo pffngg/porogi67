@@ -827,7 +827,7 @@
         html.dark-mode #profileStats,
         html.dark-mode #profileName,
         html.dark-mode #profileRole,
-        html.dark-mode #presence-mini {
+        html.dark-mode #presence-mini { 
             color: #f1f5f9;
             background: #334155 !important;
             border-color: rgba(255, 255, 255, 0.1) !important;
@@ -1154,4 +1154,8 @@ function backToButtons() {
     document.getElementById('regName').value = '';
     document.getElementById('regEmail').value = '';
     document.getElementById('regPassword').value = '';
+}
+
+#presence-mini {
+    display: none !important;
 }
