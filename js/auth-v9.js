@@ -32,9 +32,30 @@ function listenAuthChanges() {
     onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUser = user;
+            
+            // Если почта не подтверждена — НЕ пускаем на сайт
+            if (!user.emailVerified) {
+                console.log('⏳ Почта не подтверждена, ждём...');
+                
+                // Показываем форму подтверждения
+                document.getElementById('authButtons').style.display = 'none';
+                document.getElementById('authFormsContainer').style.display = 'block';
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'none';
+                document.getElementById('verifyForm').style.display = 'flex';
+                document.getElementById('verifyEmailDisplay').textContent = user.email;
+                
+                // Сохраняем временные данные для confirmCode
+                tempEmail = user.email;
+                // Имя берём из displayName, если есть
+                tempName = user.displayName || user.email.split('@')[0];
+                
+                return; // Выходим, не пускаем на сайт
+            }
+            
+            // Почта подтверждена — пускаем
             const emailName = user.email.split('@')[0];
 
-            // Пробуем взять имя из базы данных
             dbGet(dbRef(db, `users/${emailName}`)).then(snap => {
                 if (snap.exists() && snap.val().name) {
                     currentUserName = snap.val().name;
@@ -46,14 +67,12 @@ function listenAuthChanges() {
                 window.currentUserName = currentUserName;
                 localStorage.setItem('userEmail', user.email);
 
-                // Обновляем данные в БД
                 dbUpdate(dbRef(db, `users/${currentUserName}`), {
                     email: user.email,
                     uid: user.uid,
                     lastSeen: Date.now()
                 });
 
-                // Показываем приложение
                 if (typeof window.showApp === 'function') {
                     window.showApp();
                 } else {
@@ -183,21 +202,42 @@ function confirmCode() {
     if (!code || code.length < 6) { alert('Введи код из письма (6 цифр)'); return; }
 
     applyActionCode(auth, code)
-        .then(() => dbSet(dbRef(db, `users/${tempName}`), {
-            email: tempEmail,
-            uid: auth.currentUser.uid,
-            name: tempName,
-            emailVerified: true,
-            createdAt: Date.now()
-        }))
+        .then(() => {
+            // Сохраняем пользователя в БД
+            return dbSet(dbRef(db, `users/${tempName}`), {
+                email: tempEmail,
+                uid: auth.currentUser.uid,
+                name: tempName,
+                emailVerified: true,
+                createdAt: Date.now()
+            });
+        })
         .then(() => {
             alert('✅ Почта подтверждена! Добро пожаловать, ' + tempName + '!');
-            tempEmail = null; tempPassword = null; tempName = null;
+            
+            // Устанавливаем имя
+            currentUserName = tempName;
+            window.currentUserName = tempName;
+            localStorage.setItem('userEmail', tempEmail);
+            
+            tempEmail = null;
+            tempPassword = null;
+            tempName = null;
+            
+            // Принудительно пускаем на сайт
+            if (typeof window.showApp === 'function') {
+                window.showApp();
+            }
         })
         .catch((error) => {
-            if (error.code === 'auth/invalid-action-code') alert('Неверный код. Проверь письмо и попробуй снова.');
-            else if (error.code === 'auth/expired-action-code') { alert('Код просрочен. Запроси новый.'); backToRegister(); }
-            else alert('Ошибка подтверждения: ' + error.message);
+            if (error.code === 'auth/invalid-action-code') {
+                alert('Неверный код. Проверь письмо и попробуй снова.');
+            } else if (error.code === 'auth/expired-action-code') {
+                alert('Код просрочен. Запроси новый.');
+                backToRegister();
+            } else {
+                alert('Ошибка подтверждения: ' + error.message);
+            }
         });
 }
 
