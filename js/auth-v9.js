@@ -11,11 +11,11 @@ import {
     applyActionCode,
     updateProfile
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js';
+
 import {
     ref as dbRef,
     update as dbUpdate,
     set as dbSet,
-    remove as dbRemove,
     get as dbGet
 } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js';
 
@@ -32,67 +32,43 @@ function listenAuthChanges() {
     onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUser = user;
-const emailName = user.email.split('@')[0];
+            const emailName = user.email.split('@')[0];
 
-// Пробуем взять имя из базы данных
-dbGet(dbRef(db, `users/${emailName}`)).then(snap => {
-    if (snap.exists() && snap.val().name) {
-        // Имя есть в базе
-        currentUserName = snap.val().name;
-    } else if (user.displayName) {
-        // Имя есть в Firebase Auth
-        currentUserName = user.displayName;
-    } else {
-        // Fallback на email
-        currentUserName = emailName;
-    }
-    window.currentUserName = currentUserName;
-    localStorage.setItem('userEmail', user.email);
-    
-    // Обновляем данные в БД
-    dbUpdate(dbRef(db, `users/${currentUserName}`), {
-        email: user.email,
-        uid: user.uid,
-        lastSeen: Date.now()
-    });
-    
-    // Показываем приложение
-    if (typeof window.showApp === 'function') {
-        window.showApp();
-    } else {
-        const check = setInterval(() => {
-            if (typeof window.showApp === 'function') {
-                clearInterval(check);
-                window.showApp();
-            }
-        }, 100);
-    }
-}).catch(() => {
-    // Ошибка запроса — используем fallback
-    currentUserName = user.displayName || emailName;
-    window.currentUserName = currentUserName;
-    
-    if (typeof window.showApp === 'function') window.showApp();
-});
-            localStorage.setItem('userEmail', user.email);
+            // Пробуем взять имя из базы данных
+            dbGet(dbRef(db, `users/${emailName}`)).then(snap => {
+                if (snap.exists() && snap.val().name) {
+                    currentUserName = snap.val().name;
+                } else if (user.displayName) {
+                    currentUserName = user.displayName;
+                } else {
+                    currentUserName = emailName;
+                }
+                window.currentUserName = currentUserName;
+                localStorage.setItem('userEmail', user.email);
 
-            dbUpdate(dbRef(db, `users/${currentUserName}`), {
-                email: user.email,
-                uid: user.uid,
-                lastSeen: Date.now()
+                // Обновляем данные в БД
+                dbUpdate(dbRef(db, `users/${currentUserName}`), {
+                    email: user.email,
+                    uid: user.uid,
+                    lastSeen: Date.now()
+                });
+
+                // Показываем приложение
+                if (typeof window.showApp === 'function') {
+                    window.showApp();
+                } else {
+                    const check = setInterval(() => {
+                        if (typeof window.showApp === 'function') {
+                            clearInterval(check);
+                            window.showApp();
+                        }
+                    }, 100);
+                }
+            }).catch(() => {
+                currentUserName = user.displayName || emailName;
+                window.currentUserName = currentUserName;
+                if (typeof window.showApp === 'function') window.showApp();
             });
-
-            // Безопасный вызов showApp
-            if (typeof showApp === 'function') {
-                showApp();
-            } else {
-                const checkApp = setInterval(() => {
-                    if (typeof showApp === 'function') {
-                        clearInterval(checkApp);
-                        showApp();
-                    }
-                }, 100);
-            }
         } else {
             currentUser = null;
             currentUserName = null;
@@ -109,7 +85,7 @@ dbGet(dbRef(db, `users/${emailName}`)).then(snap => {
 function showLoginForm() {
     document.getElementById('btn-show-login').classList.add('active');
     document.getElementById('btn-show-register').classList.remove('active');
-    
+
     document.getElementById('authButtons').style.display = 'none';
     document.getElementById('authFormsContainer').style.display = 'block';
     document.getElementById('loginForm').style.display = 'flex';
@@ -120,7 +96,7 @@ function showLoginForm() {
 function showRegisterForm() {
     document.getElementById('btn-show-login').classList.remove('active');
     document.getElementById('btn-show-register').classList.add('active');
-    
+
     document.getElementById('authButtons').style.display = 'none';
     document.getElementById('authFormsContainer').style.display = 'block';
     document.getElementById('loginForm').style.display = 'none';
@@ -131,14 +107,13 @@ function showRegisterForm() {
 function backToButtons() {
     document.getElementById('btn-show-login').classList.add('active');
     document.getElementById('btn-show-register').classList.remove('active');
-    
+
     document.getElementById('authButtons').style.display = 'flex';
     document.getElementById('authFormsContainer').style.display = 'none';
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('registerForm').style.display = 'none';
     document.getElementById('verifyForm').style.display = 'none';
-    
-    // Очищаем поля
+
     document.getElementById('loginEmail').value = '';
     document.getElementById('loginPassword').value = '';
     document.getElementById('regName').value = '';
@@ -184,7 +159,6 @@ function register() {
 
     createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
-            // Используем функцию updateProfile из Firebase
             return updateProfile(userCredential.user, { displayName: name })
                 .then(() => sendEmailVerification(userCredential.user));
         })
@@ -237,20 +211,20 @@ function login() {
         .then((userCredential) => {
             const user = userCredential.user;
             const emailName = user.email.split('@')[0];
-dbGet(dbRef(db, `users/${emailName}`)).then(snap => {
-    if (snap.exists() && snap.val().name) {
-        currentUserName = snap.val().name;
-    } else {
-        currentUserName = user.displayName || emailName;
-    }
-    window.currentUserName = currentUserName;
-    
-    if (typeof window.showApp === 'function') window.showApp();
-}).catch(() => {
-    currentUserName = user.displayName || emailName;
-    window.currentUserName = currentUserName;
-    if (typeof window.showApp === 'function') window.showApp();
-});
+
+            dbGet(dbRef(db, `users/${emailName}`)).then(snap => {
+                if (snap.exists() && snap.val().name) {
+                    currentUserName = snap.val().name;
+                } else {
+                    currentUserName = user.displayName || emailName;
+                }
+                window.currentUserName = currentUserName;
+                if (typeof window.showApp === 'function') window.showApp();
+            }).catch(() => {
+                currentUserName = user.displayName || emailName;
+                window.currentUserName = currentUserName;
+                if (typeof window.showApp === 'function') window.showApp();
+            });
         })
         .catch((error) => {
             if (error.code === 'auth/user-not-found') alert('Пользователь с такой почтой не найден');
@@ -266,7 +240,7 @@ function logout() {
     signOut(auth).catch(console.error);
 }
 
-// Привязка кнопок (устойчивая к асинхронной загрузке модуля)
+// Привязка кнопок
 function bindButtons() {
     console.log('🔗 Привязываем кнопки авторизации...');
 
@@ -284,7 +258,6 @@ function bindButtons() {
     if (verifyBackBtn) verifyBackBtn.addEventListener('click', backToRegister);
 
     const loginButton = document.querySelector('#loginForm .primary');
-    console.log('Кнопка входа найдена:', loginButton);
     if (loginButton) loginButton.addEventListener('click', login);
 
     const registerButton = document.querySelector('#registerForm .primary');
