@@ -1045,3 +1045,49 @@
                 opacity: 1;
             }
         }
+
+/* Стили для кнопок переключения Войти/Регистрация */
+.auth-switch-btn {
+    background: var(--card-bg);
+    border: 2px solid var(--border);
+    color: var(--text);
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0.6;
+}
+
+.auth-switch-btn:hover {
+    opacity: 1;
+    border-color: var(--accent);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
+    transform: translateY(-1px);
+}
+
+.auth-switch-btn.active {
+    opacity: 1;
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
+}
+
+/* Тёмная тема */
+html.dark-mode .auth-switch-btn {
+    background: var(--card-bg);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+}
+
+html.dark-mode .auth-switch-btn:hover {
+    border-color: var(--accent);
+}
+
+html.dark-mode .auth-switch-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
