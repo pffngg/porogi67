@@ -901,17 +901,17 @@ function toggleHistory() {
     const h = document.getElementById("history");
     h.style.display = h.style.display === "none" ? "block" : "none"; 
 }
-
-function listenHistory() {
-    const historyBox = document.getElementById("history");
-    if (!historyBox) return;
-    function removeShift(shiftKey) {
+// Функция для удаления смены из истории (вызывается из HTML)
+function removeShiftFromHistory(shiftKey) {
     if (confirm('Удалить смену из истории?')) {
         remove(ref(db, 'shifts/' + shiftKey));
     }
 }
-window.removeShift = removeShift;
-    
+window.removeShiftFromHistory = removeShiftFromHistory;
+
+function listenHistory() {
+    const historyBox = document.getElementById("history");
+    if (!historyBox) return;
     const shiftsQuery = query(ref(db, "shifts"), limitToLast(15));
     onValue(shiftsQuery, snap => {
         let html = "";
