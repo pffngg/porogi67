@@ -44,7 +44,17 @@ function listenAuthChanges() {
                 lastSeen: Date.now()
             });
 
+            // Безопасный вызов showApp (дождёмся загрузки app-v9.js)
+if (typeof showApp === 'function') {
+    showApp();
+} else {
+    const checkApp = setInterval(() => {
+        if (typeof showApp === 'function') {
+            clearInterval(checkApp);
             showApp();
+        }
+    }, 100);
+}
         } else {
             currentUser = null;
             currentUserName = null;
