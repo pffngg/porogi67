@@ -6,7 +6,7 @@
 import { 
     ref, set, push, onValue, update, remove, transaction, 
     onDisconnect, query, limitToLast, get 
-} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+} from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js';
 
 // db доступен глобально через window.db (настроен в index.html)
 const db = window.db;
