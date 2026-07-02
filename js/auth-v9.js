@@ -257,6 +257,7 @@ function logout() {
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('✅ DOM готов, привязываем кнопки');
     console.log('🔗 Привязываем кнопки авторизации...');
 
     document.getElementById('btn-show-login')?.addEventListener('click', showLoginForm);
