@@ -1,24 +1,20 @@
 // js/auth-v9.js
 // Модуль авторизации — Firebase 10.x
-// Регистрация с подтверждением почты через код
+// Использует window.auth, window.db
 
 import { 
-    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword, signInWithEmailAndPassword, 
     signOut, onAuthStateChanged, sendEmailVerification, applyActionCode 
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
-let auth;
+// Берём готовый auth из глобальной области
+const auth = window.auth;
+
 let currentUser = null;
 let currentUserName = null;
 let tempEmail = null;
 let tempPassword = null;
 let tempName = null;
-
-// Инициализация auth
-function initAuth() {
-    auth = getAuth();
-    console.log('✅ Auth v9 инициализирован');
-}
 
 // Слушатель авторизации
 function listenAuthChanges() {
@@ -28,7 +24,7 @@ function listenAuthChanges() {
             currentUserName = user.displayName || user.email.split('@')[0];
             localStorage.setItem('userEmail', user.email);
             
-            // Обновляем данные в БД (используем старый синтаксис для совместимости)
+            // Обновляем данные в БД (старый синтаксис совместим)
             firebase.database().ref(`users/${currentUserName}`).update({
                 email: user.email,
                 uid: user.uid,
@@ -72,7 +68,6 @@ function backToButtons() {
     document.getElementById('registerForm').style.display = 'none';
     document.getElementById('verifyForm').style.display = 'none';
     
-    // Очищаем поля
     document.getElementById('loginEmail').value = '';
     document.getElementById('loginPassword').value = '';
     document.getElementById('regName').value = '';
@@ -88,22 +83,24 @@ function backToRegister() {
     tempName = null;
 }
 
+// ==================== ГЛАЗИК (ЗАМОК) ====================
+
 function togglePasswordVisibility(inputId, iconId) {
     const input = document.getElementById(inputId);
     const icon = document.getElementById(iconId);
+    if (!input || !icon) return;
     
     if (input.type === 'password') {
         input.type = 'text';
-        icon.textContent = '👁️‍🗨️'; // открытый глаз
+        icon.textContent = '🔓'; // открытый замок
     } else {
         input.type = 'password';
-        icon.textContent = '👁️'; // закрытый глаз
+        icon.textContent = '🔒'; // закрытый замок
     }
 }
 
 // ==================== АВТОРИЗАЦИЯ ====================
 
-// Регистрация (шаг 1: создаем пользователя и отправляем код)
 function register() {
     const name = document.getElementById('regName').value.trim();
     const email = document.getElementById('regEmail').value.trim();
@@ -113,45 +110,35 @@ function register() {
         alert('Заполни все поля');
         return;
     }
-    
     if (!email.includes('@')) {
         alert('Введи нормальную почту');
         return;
     }
-    
     if (password.length < 4) {
         alert('Пароль должен быть минимум 4 символа');
         return;
     }
-    
     if (/[.#[\]/]/.test(name)) {
         alert('Имя не должно содержать символы . $ # [ ] /');
         return;
     }
     
-    // Сохраняем временные данные
     tempEmail = email;
     tempPassword = password;
     tempName = name;
     
-    // Создаем пользователя
     createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
             const user = userCredential.user;
-            
-            // Сохраняем имя
             return user.updateProfile({ displayName: name }).then(() => {
-                // Отправляем письмо с верификацией
                 return sendEmailVerification(user);
             });
         })
         .then(() => {
-            // Показываем форму ввода кода
             document.getElementById('registerForm').style.display = 'none';
             document.getElementById('verifyForm').style.display = 'flex';
             document.getElementById('verifyEmailDisplay').textContent = email;
             document.getElementById('verifyCode').focus();
-            
             alert('На твою почту отправлен код подтверждения. Проверь папку "Входящие" и "Спам".');
         })
         .catch((error) => {
@@ -170,20 +157,15 @@ function register() {
         });
 }
 
-// Подтверждение кода (шаг 2)
 function confirmCode() {
     const code = document.getElementById('verifyCode').value.trim();
-    
     if (!code || code.length < 6) {
         alert('Введи код из письма (6 цифр)');
         return;
     }
     
-    // Применяем код подтверждения
     applyActionCode(auth, code)
         .then(() => {
-            // Почта подтверждена!
-            // Создаем запись в БД
             return firebase.database().ref(`users/${tempName}`).set({
                 email: tempEmail,
                 uid: auth.currentUser.uid,
@@ -194,13 +176,9 @@ function confirmCode() {
         })
         .then(() => {
             alert('✅ Почта подтверждена! Добро пожаловать, ' + tempName + '!');
-            
-            // Очищаем временные данные
             tempEmail = null;
             tempPassword = null;
             tempName = null;
-            
-            // Пользователь уже вошел, onAuthStateChanged вызовет showApp()
         })
         .catch((error) => {
             if (error.code === 'auth/invalid-action-code') {
@@ -214,7 +192,6 @@ function confirmCode() {
         });
 }
 
-// Вход
 function login() {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
@@ -244,7 +221,6 @@ function login() {
         });
 }
 
-// Выход
 function logout() {
     localStorage.clear();
     signOut(auth).catch((error) => {
@@ -253,76 +229,48 @@ function logout() {
 }
 
 // ============================================================
-// ПРИВЯЗКА КНОПОК (addEventListener)
+// ПРИВЯЗКА КНОПОК
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🔗 Привязываем кнопки авторизации...');
     
-    // Кнопки переключения форм
-    const btnShowLogin = document.getElementById('btn-show-login');
-    const btnShowRegister = document.getElementById('btn-show-register');
+    document.getElementById('btn-show-login')?.addEventListener('click', showLoginForm);
+    document.getElementById('btn-show-register')?.addEventListener('click', showRegisterForm);
     
-    if (btnShowLogin) btnShowLogin.addEventListener('click', showLoginForm);
-    if (btnShowRegister) btnShowRegister.addEventListener('click', showRegisterForm);
-    
-    // Кнопки "Назад"
-    const backButtons = document.querySelectorAll('#loginForm .glass-btn, #registerForm .glass-btn');
-    backButtons.forEach(btn => {
-        btn.addEventListener('click', function(e) {
+    // Кнопки "Назад" в формах
+    document.querySelectorAll('#loginForm .glass-btn, #registerForm .glass-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
             e.preventDefault();
             backToButtons();
         });
     });
     
-    // Кнопка "Назад" из формы верификации
+    // Кнопка "Назад" в верификации
     const verifyBackBtn = document.querySelector('#verifyForm .glass-btn');
     if (verifyBackBtn) verifyBackBtn.addEventListener('click', backToRegister);
     
-    // Кнопки входа и регистрации
-    const loginBtns = document.querySelectorAll('#loginForm .primary');
-    loginBtns.forEach(btn => {
-        if (btn.textContent.includes('Войти')) {
-            btn.addEventListener('click', login);
-        }
-    });
+    // Кнопки "Войти" и "Зарегистрироваться"
+    const loginButton = document.querySelector('#loginForm .primary');
+    if (loginButton) loginButton.addEventListener('click', login);
     
-    const regBtns = document.querySelectorAll('#registerForm .primary');
-    regBtns.forEach(btn => {
-        if (btn.textContent.includes('Зарегистрироваться')) {
-            btn.addEventListener('click', register);
-        }
-    });
+    const registerButton = document.querySelector('#registerForm .primary');
+    if (registerButton) registerButton.addEventListener('click', register);
     
-    // Кнопка подтверждения кода
-    const verifyBtn = document.querySelector('#verifyForm .primary');
-    if (verifyBtn) verifyBtn.addEventListener('click', confirmCode);
+    const verifyButton = document.querySelector('#verifyForm .primary');
+    if (verifyButton) verifyButton.addEventListener('click', confirmCode);
     
-    // Глазики для паролей
-    const toggleLoginPw = document.getElementById('toggleLoginPassword');
-    if (toggleLoginPw) {
-        toggleLoginPw.addEventListener('click', function() {
-            togglePasswordVisibility('loginPassword', 'toggleLoginPassword');
-        });
-    }
+    // Глазики-замки
+    const lockLogin = document.getElementById('toggleLoginPassword');
+    if (lockLogin) lockLogin.addEventListener('click', () => togglePasswordVisibility('loginPassword', 'toggleLoginPassword'));
     
-    const toggleRegPw = document.getElementById('toggleRegPassword');
-    if (toggleRegPw) {
-        toggleRegPw.addEventListener('click', function() {
-            togglePasswordVisibility('regPassword', 'toggleRegPassword');
-        });
-    }
+    const lockReg = document.getElementById('toggleRegPassword');
+    if (lockReg) lockReg.addEventListener('click', () => togglePasswordVisibility('regPassword', 'toggleRegPassword'));
     
     // Enter в полях
-    document.getElementById('loginPassword')?.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') login();
-    });
-    document.getElementById('regPassword')?.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') register();
-    });
-    document.getElementById('verifyCode')?.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') confirmCode();
-    });
+    document.getElementById('loginPassword')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
+    document.getElementById('regPassword')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') register(); });
+    document.getElementById('verifyCode')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') confirmCode(); });
     
     // Запускаем слушатель авторизации
     listenAuthChanges();
@@ -330,10 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Кнопки привязаны');
 });
 
-// ============================================================
-// ЭКСПОРТ ФУНКЦИЙ (делаем доступными глобально)
-// ============================================================
-
+// Экспортируем в глобальную область (для кнопки "Выйти" и т.д.)
 window.showLoginForm = showLoginForm;
 window.showRegisterForm = showRegisterForm;
 window.backToButtons = backToButtons;
