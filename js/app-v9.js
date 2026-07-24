@@ -512,16 +512,74 @@ function renderFboArticles(fboArticles) {
     }
     
     list.innerHTML = articles.map(item => {
-        const fullArt = escapeHtml(item.fullArticle || '');
-        return `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(99,102,241,0.04); border-radius:10px; border:1px solid var(--border);">
-            <div style="font-weight:800; color:var(--text); font-size:13px; word-break:break-all;">${fullArt}</div>
-            <button class="danger" style="padding:4px 8px; font-size:11px; box-shadow:none; flex-shrink:0; margin-left:8px;" onclick="removeFboArticle('${escapeJsString(item.key)}')">✕</button>
-        </div>`;
-    }).join('');
-}
+    const fullArt = escapeHtml(item.fullArticle || '');
+    return `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(99,102,241,0.04); border-radius:10px; border:1px solid var(--border);">
+        <div style="font-weight:800; color:var(--text); font-size:13px; word-break:break-all; flex:1;">${fullArt}</div>
+        <button class="danger" style="padding:4px 8px; font-size:11px; box-shadow:none; margin-left:8px;" onclick="removeFboArticle('${escapeJsString(item.key)}')">✕</button>
+        <button class="glass-btn" style="padding:4px 8px; font-size:14px; margin-left:4px;" onclick="printFboLabel('${escapeJsString(item.fullArticle)}','${escapeJsString(item.suffix)}','${escapeJsString(item.material)}','${escapeJsString(item.width)}')">🖨️</button>
+    </div>`;
+}).join('');
 
 function handleFboArticleKey(event) { 
     if (event.key === 'Enter') { event.preventDefault(); addFboArticle(); } 
+}
+
+function printFboLabel(fullArticle, suffix, material, width) {
+    // Открываем окно для печати
+    const w = window.open('', '_blank', 'width=400,height=300');
+    if (!w) {
+        alert('Разрешите всплывающие окна для печати наклеек');
+        return;
+    }
+    w.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                @page {
+                    size: 10cm 15cm;
+                    margin: 0;
+                }
+                body {
+                    width: 10cm;
+                    height: 15cm;
+                    margin: 0;
+                    font-family: Arial, sans-serif;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    text-align: center;
+                    border: 1px dashed #ccc;
+                }
+                h2 {
+                    font-size: 24px;
+                    margin: 10px 0;
+                }
+                .art {
+                    font-size: 28px;
+                    font-weight: bold;
+                    margin: 5px 0;
+                }
+                .details {
+                    font-size: 18px;
+                    margin: 3px 0;
+                }
+            </style>
+        </head>
+        <body>
+            <h2>ФБО</h2>
+            <div class="art">${escapeHtml(fullArticle)}</div>
+            <div class="details">Размер: ${escapeHtml(suffix)}</div>
+            <div class="details">Металл: ${escapeHtml(material)}</div>
+            <div class="details">Ширина: ${escapeHtml(width)}</div>
+        </body>
+        </html>
+    `);
+    w.document.close();
+    w.focus();
+    w.print();
 }
 
 function addFboArticle() {
@@ -1777,6 +1835,7 @@ window.showApp = showApp;
 // ============================================================
 // ЭКСПОРТ ФУНКЦИЙ В ГЛОБАЛЬНУЮ ОБЛАСТЬ (для onclick в HTML)
 // ============================================================
+window.printFboLabel = printFboLabel;
 window.removeFb = remove;
 window.startShift = startShift;
 window.addCounter = addCounter;
