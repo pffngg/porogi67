@@ -4,14 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>porogi</title>
-
-    <!-- Подключаем стили из отдельного файла -->
     <link rel="stylesheet" href="css/style.css">
-
 </head>
-
 <body>
-    <div class="version-tag">Версия сайта: alfa v0.12: фиксы 1.07.26 </div>
+    <div class="version-tag">Версия сайта: alfa v0.12: фиксы 1.07.26</div>
 
     <div id="context-menu">
         <div style="color:#ff3b30;" id="ctx-delete">Удалить</div>
@@ -20,71 +16,71 @@
     <div id="reportModal" class="modal-overlay">
         <div class="modal-content">
             <h2 style="margin:0 0 16px 0; color:var(--accent);">СМЕНА ЗАКРЫТА!</h2>
-            <div id="reportDetails" style="margin: 20px 0; font-size: 15px; line-height: 1.7; text-align: left; background: rgba(99, 102, 241, 0.04); padding: 16px; border-radius: 12px; border: 1px solid var(--border);"></div>
+            <div id="reportDetails" style="margin:20px 0;font-size:15px;line-height:1.7;text-align:left;background:rgba(99,102,241,0.04);padding:16px;border-radius:12px;border:1px solid var(--border);"></div>
             <button class="primary" style="width:100%" onclick="document.getElementById('reportModal').style.display='none'">Домой💀</button>
         </div>
     </div>
 
     <div id="surveyModal" class="modal-overlay">
-        <div class="modal-content" style="max-width:460px; text-align:left; max-height:90vh; overflow-y:auto;">
-            <h2 style="margin:0 0 20px 0; color:var(--accent); text-align:center;">Заполни отчёт</h2>
-            <div style="margin-bottom:16px; display:flex; align-items:center; gap:12px; background:rgba(99,102,241,0.04); padding:12px 14px; border-radius:12px; border:1px solid var(--border); cursor:pointer;" onclick="toggleSurveyCheck('problems')">
-                <div id="surveyProblemsBox" style="width:26px; height:26px; border-radius:8px; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--accent); flex-shrink:0;"></div>
-                <div style="font-size:14px; font-weight:600;">Кидал заявки в проблемы</div>
+        <div class="modal-content" style="max-width:460px;text-align:left;max-height:90vh;overflow-y:auto;">
+            <h2 style="margin:0 0 20px 0;color:var(--accent);text-align:center;">Заполни отчёт</h2>
+            <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px;background:rgba(99,102,241,0.04);padding:12px 14px;border-radius:12px;border:1px solid var(--border);cursor:pointer;" onclick="toggleSurveyCheck('problems')">
+                <div id="surveyProblemsBox" style="width:26px;height:26px;border-radius:8px;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--accent);flex-shrink:0;"></div>
+                <div style="font-size:14px;font-weight:600;">Кидал заявки в проблемы</div>
             </div>
-            <div style="margin-bottom:16px; display:flex; align-items:center; gap:12px; background:rgba(99,102,241,0.04); padding:12px 14px; border-radius:12px; border:1px solid var(--border); cursor:pointer;" onclick="toggleSurveyCheck('report')">
-                <div id="surveyReportBox" style="width:26px; height:26px; border-radius:8px; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--accent); flex-shrink:0;"></div>
-                <div style="font-size:14px; font-weight:600;">Печатал отчёт</div>
-            </div>
-            <div style="margin-bottom:16px;">
-                <label style="font-size:14px; font-weight:600; display:block; margin-bottom:8px;">Сколько коробок ВБ?</label>
-                <input id="surveyBoxes" type="number" min="0" placeholder="0" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); background:white; color:var(--text); font-size:14px;">
+            <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px;background:rgba(99,102,241,0.04);padding:12px 14px;border-radius:12px;border:1px solid var(--border);cursor:pointer;" onclick="toggleSurveyCheck('report')">
+                <div id="surveyReportBox" style="width:26px;height:26px;border-radius:8px;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--accent);flex-shrink:0;"></div>
+                <div style="font-size:14px;font-weight:600;">Печатал отчёт</div>
             </div>
             <div style="margin-bottom:16px;">
-                <label style="font-size:14px; font-weight:600; display:block; margin-bottom:8px;">Кто работал?</label>
-                <div style="display:flex; gap:8px; margin-bottom:12px;">
+                <label style="font-size:14px;font-weight:600;display:block;margin-bottom:8px;">Сколько коробок ВБ?</label>
+                <input id="surveyBoxes" type="number" min="0" placeholder="0" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:white;color:var(--text);font-size:14px;">
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="font-size:14px;font-weight:600;display:block;margin-bottom:8px;">Кто работал?</label>
+                <div style="display:flex;gap:8px;margin-bottom:12px;">
                     <button id="surveyCntBtn1" class="glass-btn" style="flex:1;" onclick="setWorkersCount(1)">1</button>
                     <button id="surveyCntBtn2" class="glass-btn" style="flex:1;" onclick="setWorkersCount(2)">2</button>
                     <button id="surveyCntBtn3" class="glass-btn" style="flex:1;" onclick="setWorkersCount(3)">3</button>
                     <button id="surveyCntBtn4" class="glass-btn" style="flex:1;" onclick="setWorkersCount(4)">4</button>
                 </div>
-                <div id="surveyWorkersInputs" style="display:flex; flex-direction:column; gap:8px;"></div>
+                <div id="surveyWorkersInputs" style="display:flex;flex-direction:column;gap:8px;"></div>
             </div>
             <div style="margin-bottom:20px;">
-                <label style="font-size:14px; font-weight:600; display:block; margin-bottom:8px;">Фото к отчёту (необязательно)</label>
+                <label style="font-size:14px;font-weight:600;display:block;margin-bottom:8px;">Фото к отчёту (необязательно)</label>
                 <input type="file" id="surveyPhotoInp" accept="image/*" style="display:none" onchange="prepareSurveyPhoto(this)">
                 <button class="glass-btn" style="width:100%;" onclick="document.getElementById('surveyPhotoInp').click()">📷 Прикрепить фото</button>
-                <div id="surveyPhotoPreview" style="margin-top:10px; display:none; position:relative;">
-                    <img id="surveyPhotoImg" style="width:100%; border-radius:12px; max-height:200px; object-fit:cover;">
-                    <div onclick="removeSurveyPhoto()" style="position:absolute; top:8px; right:8px; width:26px; height:26px; border-radius:50%; background:rgba(0,0,0,0.7); color:white; display:flex; align-items:center; justify-content:center; cursor:pointer;">×</div>
+                <div id="surveyPhotoPreview" style="margin-top:10px;display:none;position:relative;">
+                    <img id="surveyPhotoImg" style="width:100%;border-radius:12px;max-height:200px;object-fit:cover;">
+                    <div onclick="removeSurveyPhoto()" style="position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.7);color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;">×</div>
                 </div>
             </div>
-            <div style="display:flex; gap:10px;">
-                <button class="glass-btn" style="flex:1; padding:14px;" onclick="skipSurvey()">Скип</button>
-                <button class="primary" style="flex:1; padding:14px;" onclick="submitSurvey()">Сохранить в отчёт</button>
+            <div style="display:flex;gap:10px;">
+                <button class="glass-btn" style="flex:1;padding:14px;" onclick="skipSurvey()">Скип</button>
+                <button class="primary" style="flex:1;padding:14px;" onclick="submitSurvey()">Сохранить в отчёт</button>
             </div>
         </div>
     </div>
 
     <div id="profileModal" class="modal-overlay" onclick="if(event.target.id==='profileModal') document.getElementById('profileModal').style.display='none'">
         <div class="modal-content" onclick="event.stopPropagation()">
-            <img id="profileAvatarPreview" class="avatar" style="width:100px; height:100px; margin-bottom:20px; cursor:pointer; border-width:3px;" onclick="triggerAvatarInput()">
-            <div id="profileName" style="font-weight:800; margin-bottom:10px; font-size:18px;"></div>
-            <div id="profileRole" style="font-size:12px; color:#64748b; margin-bottom:16px;"></div>
-            <button id="profileEditBtn" class="glass-btn" style="margin-bottom:16px; width:100%;" onclick="triggerAvatarInput()">Изменить фото</button>
-            <div id="avatarEditor" style="display:none; text-align:center; margin-bottom:16px;">
-                <div style="position:relative; width:220px; height:220px; margin:0 auto 12px; border-radius:50%; overflow:hidden; background:#f1f5f9; border:2px solid rgba(99,102,241,0.2);">
-                    <canvas id="avatarCanvas" width="220" height="220" style="width:100%; height:100%;"></canvas>
+            <img id="profileAvatarPreview" class="avatar" style="width:100px;height:100px;margin-bottom:20px;cursor:pointer;border-width:3px;" onclick="triggerAvatarInput()">
+            <div id="profileName" style="font-weight:800;margin-bottom:10px;font-size:18px;"></div>
+            <div id="profileRole" style="font-size:12px;color:#64748b;margin-bottom:16px;"></div>
+            <button id="profileEditBtn" class="glass-btn" style="margin-bottom:16px;width:100%;" onclick="triggerAvatarInput()">Изменить фото</button>
+            <div id="avatarEditor" style="display:none;text-align:center;margin-bottom:16px;">
+                <div style="position:relative;width:220px;height:220px;margin:0 auto 12px;border-radius:50%;overflow:hidden;background:#f1f5f9;border:2px solid rgba(99,102,241,0.2);">
+                    <canvas id="avatarCanvas" width="220" height="220" style="width:100%;height:100%;"></canvas>
                 </div>
-                <div style="display:flex; gap:10px; justify-content:center; margin-bottom:12px;">
+                <div style="display:flex;gap:10px;justify-content:center;margin-bottom:12px;">
                     <button class="glass-btn" style="padding:10px 14px;" onclick="zoomAvatar(-0.05)">−</button>
                     <button class="glass-btn" style="padding:10px 14px;" onclick="zoomAvatar(0.05)">+</button>
                 </div>
-                <button class="primary" style="width:100%; margin-bottom:10px;" onclick="saveAvatar()">Сохранить</button>
+                <button class="primary" style="width:100%;margin-bottom:10px;" onclick="saveAvatar()">Сохранить</button>
                 <button class="glass-btn" style="width:100%;" onclick="cancelAvatarEdit()">Отмена</button>
             </div>
-            <div id="profileStats" style="text-align:left; line-height:1.8; color:#64748b; margin-bottom:20px; background:#f8fafc; padding:16px; border-radius:12px; border: 1px solid var(--border); transition: all 0.3s ease;"></div>
-            <button class="primary" style="width:100%; margin-bottom:10px;" onclick="document.getElementById('profileModal').style.display='none'">Закрыть</button>
+            <div id="profileStats" style="text-align:left;line-height:1.8;color:#64748b;margin-bottom:20px;background:#f8fafc;padding:16px;border-radius:12px;border:1px solid var(--border);transition:all 0.3s ease;"></div>
+            <button class="primary" style="width:100%;margin-bottom:10px;" onclick="document.getElementById('profileModal').style.display='none'">Закрыть</button>
             <button class="danger" style="width:100%;" onclick="logout()">Выйти</button>
         </div>
     </div>
@@ -92,7 +88,7 @@
     <div id="lightbox" class="modal-overlay" onclick="this.style.display='none'"><img id="lightbox-img" style="max-width:95%; max-height:95%"></div>
 
     <input type="file" id="avatarInp" style="display:none" accept="image/*" onchange="uploadAvatar(this)">
-    
+
     <div id="app">
         <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 28px; gap:16px; flex-wrap: wrap;">
             <div class="nav-profile" style="align-items:flex-start; gap:12px;">
@@ -288,36 +284,33 @@
         </div>
     </div>
 
- <script src="js/utils.js"></script>
+    <script src="js/utils.js"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
+        import { getDatabase } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js';
 
-<script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
-    import { getDatabase } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js';
+        const firebaseConfig = {
+            apiKey: "AIzaSyA41nDX13dsMuPNJkckCMQz8bfim3Hscxs",
+            authDomain: "porog-lol.firebaseapp.com",
+            databaseURL: "https://porog-lol-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "porog-lol"
+        };
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyA41nDX13dsMuPNJkckCMQz8bfim3Hscxs",
-        authDomain: "porog-lol.firebaseapp.com",
-        databaseURL: "https://porog-lol-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "porog-lol"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    window.db = db;
-    console.log('✅ Firebase готов');
-</script>
-
-<script type="module" src="js/app-v9.js"></script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const check = setInterval(function() {
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        window.db = db;
+        console.log('✅ Firebase готов');
+    </script>
+    <script type="module" src="js/app-v9.js"></script>
+    <script>
+        function tryShowApp() {
             if (typeof showApp === 'function') {
-                clearInterval(check);
                 showApp();
+            } else {
+                setTimeout(tryShowApp, 100);
             }
-        }, 100);
-    });
-</script>
+        }
+        tryShowApp();
+    </script>
 </body>
 </html>
