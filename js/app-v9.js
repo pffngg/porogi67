@@ -52,7 +52,6 @@ let fboArticlesVisible = true;
 // ============================================================
 
 // Без авторизации — задаём имя из localStorage или "Гость"
-window.currentUserName = localStorage.getItem('userName') || 'Гость';
 
 // Эта функция вызывается из auth-v9.js после успешного входа
 function showApp() {
@@ -512,20 +511,20 @@ function renderFboArticles(fboArticles) {
     }
     
     list.innerHTML = articles.map(item => {
-    const fullArt = escapeHtml(item.fullArticle || '');
-    return `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(99,102,241,0.04); border-radius:10px; border:1px solid var(--border);">
-        <div style="font-weight:800; color:var(--text); font-size:13px; word-break:break-all; flex:1;">${fullArt}</div>
-        <button class="danger" style="padding:4px 8px; font-size:11px; box-shadow:none; margin-left:8px;" onclick="removeFboArticle('${escapeJsString(item.key)}')">✕</button>
-        <button class="glass-btn" style="padding:4px 8px; font-size:14px; margin-left:4px;" onclick="printFboLabel('${escapeJsString(item.fullArticle)}','${escapeJsString(item.suffix)}','${escapeJsString(item.material)}','${escapeJsString(item.width)}')">🖨️</button>
-    </div>`;
-}).join('');
+        const fullArt = escapeHtml(item.fullArticle || '');
+        return `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(99,102,241,0.04); border-radius:10px; border:1px solid var(--border);">
+            <div style="font-weight:800; color:var(--text); font-size:13px; word-break:break-all; flex:1;">${fullArt}</div>
+            <button class="danger" style="padding:4px 8px; font-size:11px; box-shadow:none; margin-left:8px;" onclick="removeFboArticle('${escapeJsString(item.key)}')">✕</button>
+            <button class="glass-btn" style="padding:4px 8px; font-size:14px; margin-left:4px;" onclick="printFboLabel('${escapeJsString(item.fullArticle)}','${escapeJsString(item.suffix)}','${escapeJsString(item.material)}','${escapeJsString(item.width)}')">🖨️</button>
+        </div>`;
+    }).join('');
+} // <-- вот здесь была пропущена закрывающая скобка, обязательно поставь её
 
 function handleFboArticleKey(event) { 
     if (event.key === 'Enter') { event.preventDefault(); addFboArticle(); } 
 }
 
 function printFboLabel(fullArticle, suffix, material, width) {
-    // Открываем окно для печати
     const w = window.open('', '_blank', 'width=400,height=300');
     if (!w) {
         alert('Разрешите всплывающие окна для печати наклеек');
@@ -581,6 +580,7 @@ function printFboLabel(fullArticle, suffix, material, width) {
     w.focus();
     w.print();
 }
+
 
 function addFboArticle() {
     if (!window.currentUserName || !isGlobalParticipant) return;
