@@ -50,6 +50,9 @@ let fboArticlesVisible = true;
 // ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
 // ============================================================
 
+// Без авторизации — задаём имя из localStorage или "Гость"
+window.currentUserName = localStorage.getItem('userName') || 'Гость';
+
 // Эта функция вызывается из auth-v9.js после успешного входа
 function showApp() {
     console.log('🚀 Запуск приложения...');
