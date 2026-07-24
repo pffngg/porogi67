@@ -10,13 +10,14 @@ import {
 // db доступен глобально через window.db (настроен в index.html)
 const db = window.db;
 
+window.currentUserName = 'Порог'; // или любое имя
 // ============================================================
 // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
 // ============================================================
 
 // currentUser и window.currentUserName теперь из auth-v9.js (глобальные)
 // isAdmin — будем определять по БД
-let isAdmin = false;
+let isAdmin = true;
 let scheduleDate = new Date();
 let scheduleMode = 'day';
 let userAvatars = {};
@@ -78,22 +79,22 @@ if (!window.currentUserName) {
     document.getElementById("adminPanel").style.display = "none";
     document.getElementById("adminUsersPanel").style.display = "none";
     
-    // Определяем, является ли пользователь админом
-    onValue(ref(db, "admins"), snap => {
-        const admins = snap.val() || {};
-        isAdmin = !!admins[window.currentUserName] || window.currentUserName.toLowerCase() === "дениска";
+    // Определяем, является ли пользователь админом - больше не нужно 
+    // onValue(ref(db, "admins"), snap => {
+        //const admins = snap.val() || {};
+        //isAdmin = !!admins[window.currentUserName] || window.currentUserName.toLowerCase() === "дениска";
         
-        document.getElementById("userTag").innerText = isAdmin ? "⭐" + window.currentUserName : "@" + window.currentUserName.toLowerCase();
-        document.getElementById("btn-settings").style.display = isAdmin ? "inline-flex" : "none";
-        document.getElementById("adminPanel").style.display = isAdmin ? "flex" : "none";
-        document.getElementById("adminUsersPanel").style.display = isAdmin ? "block" : "none";
+      //  document.getElementById("userTag").innerText = isAdmin ? "⭐" + window.currentUserName : "@" + window.currentUserName.toLowerCase();
+       // document.getElementById("btn-settings").style.display = isAdmin ? "inline-flex" : "none";
+       // document.getElementById("adminPanel").style.display = isAdmin ? "flex" : "none";
+       // document.getElementById("adminUsersPanel").style.display = isAdmin ? "block" : "none";
         
-        if (isAdmin && !adminListenersInitialized) { 
-            listenAdminUsers(); 
-            adminListenersInitialized = true; 
-        }
-    });
-    
+      //  if (isAdmin && !adminListenersInitialized) { 
+      //      listenAdminUsers(); 
+       //     adminListenersInitialized = true; 
+   //     }
+//    });
+//    
     // Загружаем данные пользователей
     onValue(ref(db, "users"), snap => {
         latestUsers = snap.val() || {};
