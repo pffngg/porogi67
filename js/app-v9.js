@@ -1842,4 +1842,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showApp();
 });
 
+// Автозапуск
+showApp();
+
 console.log('📦 app-v9.js загружен, ждем авторизацию...');
