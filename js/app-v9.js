@@ -72,7 +72,7 @@ if (!window.currentUserName) {
     initTheme();
     
     // Скрываем экран входа, показываем приложение
-    document.getElementById("login").style.display = "none";
+    // document.getElementById("login").style.display = "none"; // удалено, т.к. логина нет
     document.getElementById("app").style.display = "block";
     document.getElementById("btn-settings").style.display = "none";
     document.getElementById("adminPanel").style.display = "none";
@@ -1826,21 +1826,6 @@ window.changeMonth = changeMonth;
 window.toggleWorkCell = toggleWorkCell;
 window.refreshAdminData = refreshAdminData;
 window.toggleShiftDetails = toggleShiftDetails;
-
-// Функции из auth-v9.js тоже продублируем на всякий случай
-window.showLoginForm = showLoginForm;
-window.showRegisterForm = showRegisterForm;
-window.backToButtons = backToButtons;
-window.login = login;
-window.register = register;
-window.confirmCode = confirmCode;
-window.logout = logout;
-window.togglePasswordVisibility = togglePasswordVisibility;
-
-// Автозапуск — сразу показываем приложение
-document.addEventListener('DOMContentLoaded', () => {
-    showApp();
-});
 
 // Автозапуск
 showApp();
