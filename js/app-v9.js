@@ -1837,4 +1837,9 @@ window.confirmCode = confirmCode;
 window.logout = logout;
 window.togglePasswordVisibility = togglePasswordVisibility;
 
+// Автозапуск — сразу показываем приложение
+document.addEventListener('DOMContentLoaded', () => {
+    showApp();
+});
+
 console.log('📦 app-v9.js загружен, ждем авторизацию...');
