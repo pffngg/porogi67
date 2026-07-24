@@ -515,7 +515,7 @@ function renderFboArticles(fboArticles) {
         return `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(99,102,241,0.04); border-radius:10px; border:1px solid var(--border);">
             <div style="font-weight:800; color:var(--text); font-size:13px; word-break:break-all; flex:1;">${fullArt}</div>
             <button class="danger" style="padding:4px 8px; font-size:11px; box-shadow:none; margin-left:8px;" onclick="removeFboArticle('${escapeJsString(item.key)}')">✕</button>
-            <button class="glass-btn" style="padding:4px 8px; font-size:14px; margin-left:4px;" onclick="printFboLabel('${escapeJsString(item.fullArticle)}','${escapeJsString(item.suffix)}','${escapeJsString(item.material)}','${escapeJsString(item.width)}')">🖨️</button>
+            <button class="glass-btn" style="padding:4px 8px; font-size:14px; margin-left:4px;" onclick="printFboLabel('${escapeJsString(item.baseArticle || '')}','${escapeJsString(item.suffix)}','${escapeJsString(item.material)}','${escapeJsString(item.width)}')">🖨️</button>
         </div>`;
     }).join('');
 } // <-- вот здесь была пропущена закрывающая скобка, обязательно поставь её
@@ -524,7 +524,7 @@ function handleFboArticleKey(event) {
     if (event.key === 'Enter') { event.preventDefault(); addFboArticle(); } 
 }
 
-function printFboLabel(fullArticle, suffix, material, width) {
+function printFboLabel(baseArticle, suffix, material, width) {
     const w = window.open('', '_blank', 'width=400,height=300');
     if (!w) {
         alert('Разрешите всплывающие окна для печати наклеек');
@@ -569,7 +569,7 @@ function printFboLabel(fullArticle, suffix, material, width) {
         </head>
         <body>
             <h2>ФБО</h2>
-            <div class="art">${escapeHtml(fullArticle)}</div>
+            <div class="art">${escapeHtml(baseArticle)}</div>
             <div class="details">Размер: ${escapeHtml(suffix)}</div>
             <div class="details">Металл: ${escapeHtml(material)}</div>
             <div class="details">Ширина: ${escapeHtml(width)}</div>
@@ -605,11 +605,11 @@ function addFboArticle() {
         shift.fbo = (shift.fbo || 0) + 1;
         if (!shift.fboArticles) shift.fboArticles = {};
         shift.fboArticles[articleId] = { 
-            fullArticle, suffix: currentFboSuffix, material: currentFboMaterial,
-            width: currentFboWidth, share, orderIncrement: inc, 
-            participants: participants.reduce((acc, n) => { acc[n] = true; return acc; }, {}), 
-            by: window.currentUserName, at: Date.now() 
-        };
+    fullArticle, baseArticle: rawArticle, suffix: currentFboSuffix, material: currentFboMaterial,
+    width: currentFboWidth, share, orderIncrement: inc, 
+    participants: participants.reduce((acc, n) => { acc[n] = true; return acc; }, {}), 
+    by: window.currentUserName, at: Date.now() 
+};
         
         participants.forEach(name => {
             const part = shift.participants[name];
