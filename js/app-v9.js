@@ -226,7 +226,6 @@ function listenActiveShift() {
         const workDiv = document.getElementById("work");
         const startBtnCont = document.getElementById("startBtnCont");
         const joinBtn = document.getElementById("joinShiftBtn");
-        const leaveBtn = document.getElementById("leaveShiftBtn");
         const closeBtn = document.getElementById("closeShiftBtn");
         const ctrls = document.querySelectorAll(".ctrl-btn");
 
@@ -257,7 +256,7 @@ function listenActiveShift() {
             const parts = shift.participants || {};
             isGlobalParticipant = parts[window.currentUserName] !== undefined;
 
-            let partsText = "<b style='color:var(--accent);'>🟢 Смена в эфире:</b><br><br>";
+            let partsText = "<b style='color:var(--accent);'>🟢 Смена открыта:</b><br><br>";
             Object.keys(parts).forEach(p => {
                 partsText += `• ${escapeHtml(p)} <span style="float:right; opacity:0.8;">${Number(parts[p].earned || 0).toFixed(0)}₽</span><br>`;
             });
@@ -267,7 +266,6 @@ function listenActiveShift() {
                 ctrls.forEach(b => b.style.display = "flex");
                 setFboControlsEnabled(true);
                 joinBtn.style.display = "none";
-                leaveBtn.style.display = "flex";
                 closeBtn.style.display = isAdmin ? "flex" : "none";
                 document.getElementById("cdek_val").style.pointerEvents = "auto";
                 document.getElementById("wb_val").style.pointerEvents = "auto";
@@ -279,7 +277,6 @@ function listenActiveShift() {
                 ctrls.forEach(b => b.style.display = "none");
                 setFboControlsEnabled(false);
                 joinBtn.style.display = "flex";
-                leaveBtn.style.display = "none";
                 closeBtn.style.display = "none";
                 document.getElementById("cdek_val").style.pointerEvents = "none";
                 document.getElementById("wb_val").style.pointerEvents = "none";
