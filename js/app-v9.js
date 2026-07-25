@@ -265,6 +265,7 @@ function listenActiveShift() {
             if (isGlobalParticipant) {
                 ctrls.forEach(b => b.style.display = "flex");
                 setFboControlsEnabled(true);
+                startGoogleSheetPolling();
                 joinBtn.style.display = "none";
                 closeBtn.style.display = isAdmin ? "flex" : "none";
                 document.getElementById("cdek_val").style.pointerEvents = "auto";
@@ -273,9 +274,11 @@ function listenActiveShift() {
                 document.getElementById("opt_val").style.pointerEvents = "auto";
                 document.getElementById("salaryDisplay").innerText = 
                     `Моя доля: ${Number(parts[window.currentUserName].earned || 0).toFixed(0)}₽`;
+                
             } else {
                 ctrls.forEach(b => b.style.display = "none");
                 setFboControlsEnabled(false);
+                stopGoogleSheetPolling();
                 joinBtn.style.display = "flex";
                 closeBtn.style.display = "none";
                 document.getElementById("cdek_val").style.pointerEvents = "none";
@@ -294,6 +297,83 @@ function listenActiveShift() {
             setFboControlsEnabled(false);
         }
     });
+}
+
+// ==================== ОПРОС GOOGLE SHEETS ДЛЯ СДЭК ====================
+let gSheetLastIndex = 0;   // Сколько строк уже обработано
+let gSheetLastPrefix = null;
+let gSheetLastNumber = null;
+let gSheetPollingInterval = null;
+const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzQoEGwxIygNv8uy19cVWg9DGtSVVcCM019YlGzWWDtuyRvEIEe-eH72uIx9BgF4lQb/exec';
+
+// Извлекает последнее число из строки (например, из "[ITM]000747105432" → 747105432)
+function extractLastNumber(str) {
+  const match = String(str).match(/(\d+)$/);
+  return match ? parseInt(match[1], 10) : null;
+}
+
+// Получить префикс (всё до последнего числа)
+function extractPrefix(str) {
+  const match = String(str).match(/^(.*?)(\d+)$/);
+  return match ? match[1] : null;
+}
+
+async function pollGoogleSheet() {
+ if (!GOOGLE_SHEET_URL || GOOGLE_SHEET_URL === 'ВСТАВЬ_СЮДА_ССЫЛКУ_ИЗ_APPS_SCRIPT') return;
+  try {
+    const response = await fetch(GOOGLE_SHEET_URL);
+    const data = await response.json(); // массив строк (первый столбец каждой строки)
+    if (!data || data.length === 0) return;
+
+    for (let i = gSheetLastIndex; i < data.length; i++) {
+      const row = data[i];
+      const rawCode = (row[0] || '').toString().trim();
+      if (!rawCode) continue; // пустая строка
+
+      // Является ли строка штрих-кодом СДЭК? Должна содержать число в конце
+      const number = extractLastNumber(rawCode);
+      if (number === null) continue; // нет числа — не штрих-код, пропускаем
+
+      const prefix = extractPrefix(rawCode);
+
+      // Логика группировки
+      if (
+        gSheetLastPrefix !== null &&
+        prefix === gSheetLastPrefix &&
+        number === gSheetLastNumber + 1
+      ) {
+        // Это дополнительное место того же заказа
+        addPlace('cdek');
+        console.log('➕ Доп. место СДЭК:', rawCode);
+      } else {
+        // Это новый заказ (или место, если префикс поменялся)
+        addCounter('cdek');
+        console.log('🆕 Новый заказ СДЭК:', rawCode);
+      }
+
+      gSheetLastPrefix = prefix;
+      gSheetLastNumber = number;
+    }
+
+    gSheetLastIndex = data.length; // запоминаем, что обработали
+  } catch (error) {
+    console.error('Ошибка при опросе Google Sheets:', error);
+  }
+}
+
+// Запуск/остановка опроса
+function startGoogleSheetPolling() {
+  if (gSheetPollingInterval) return; // уже запущен
+  gSheetPollingInterval = setInterval(pollGoogleSheet, 5000); // проверяем каждые 5 секунд
+  console.log('🔄 Опрос Google Sheets запущен');
+}
+
+function stopGoogleSheetPolling() {
+  if (gSheetPollingInterval) {
+    clearInterval(gSheetPollingInterval);
+    gSheetPollingInterval = null;
+    console.log('⏹️ Опрос Google Sheets остановлен');
+  }
 }
 
 function startShift() {
@@ -2014,6 +2094,8 @@ window.toggleWorkCell = toggleWorkCell;
 window.refreshAdminData = refreshAdminData;
 window.toggleShiftDetails = toggleShiftDetails;
 window.sendReportToTelegram = sendReportToTelegram;
+window.startGoogleSheetPolling = startGoogleSheetPolling;
+window.stopGoogleSheetPolling = stopGoogleSheetPolling;
 
 // Автозапуск
 showApp();
