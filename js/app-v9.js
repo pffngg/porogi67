@@ -11,6 +11,8 @@ import {
 const db = window.db;
 
 window.currentUserName = 'Порог'; // или любое имя
+const TELEGRAM_BOT_TOKEN = '8986503587:AAESiDLvCOD5xdq76yT_ZMk7z8WPLYcgk40';
+const TELEGRAM_CHAT_ID = '-5350819457';
 // ============================================================
 // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
 // ============================================================
@@ -1043,6 +1045,7 @@ function listenHistory() {
                 <div class="history-arrow">▼</div>
                 ${timeLabel ? `<small style="opacity:0.6; display:block; margin-top:8px;">${escapeHtml(timeLabel)}</small>` : ''}
                 <button class="export-btn" style="margin-top:10px; width:100%;" onclick="event.stopPropagation(); exportShiftToImage(${JSON.stringify(d).replace(/"/g, '&quot;')})">📊 Скачать отчёт (PNG)</button>
+                <button class="export-btn" style="margin-top:6px; width:100%; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);" onclick="event.stopPropagation(); sendReportToTelegram(${JSON.stringify(d).replace(/"/g, '&quot;')})">📤 Отправить в Telegram</button>
             </div>` + html;
         });
         
@@ -1826,6 +1829,134 @@ function exportShiftToImage(shiftData) {
     } else { finishDraw(); }
 }
 
+async function sendReportToTelegram(shiftData) {
+    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+        alert('Не настроен Telegram-бот. Укажите токен и chat_id в коде.');
+        return;
+    }
+
+    // Генерируем изображение отчёта (точно такое же, как для скачивания)
+    if (!shiftData) return;
+    const cdekCount = shiftData.cdek || 0;
+    const wbCount = shiftData.wb || 0;
+    const dostCount = shiftData.dost || 0;
+    const fboCount = shiftData.fbo || 0;
+    const optCount = shiftData.opt || 0;
+    const totalOrders = shiftData.total || (cdekCount + wbCount + dostCount + fboCount);
+    const cdekPlaces = shiftData.cdek_places || cdekCount;
+    const dostPlaces = shiftData.dost_places || dostCount;
+    const totalPlaces = shiftData.total_places || (cdekPlaces + wbCount + dostPlaces + fboCount);
+    const totalSalary = Math.round(Number(shiftData.totalSalary || 0));
+    const dateLabel = shiftData.date || '';
+    const startTime = shiftData.start || '';
+    const endTime = shiftData.end || '';
+
+    const width = 800, height = 700;
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    const ctx = canvas.getContext('2d');
+
+    // Фон
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+    bgGrad.addColorStop(0, '#0f172a'); bgGrad.addColorStop(0.4, '#1e293b'); bgGrad.addColorStop(1, '#0f172a');
+    ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, width, height);
+
+    // Полоски
+    ctx.strokeStyle = 'rgba(99, 102, 241, 0.15)'; ctx.lineWidth = 1;
+    for (let i = 0; i < 8; i++) { ctx.beginPath(); ctx.moveTo(0, 100 + i * 80); ctx.lineTo(width, 100 + i * 80); ctx.stroke(); }
+
+    // Акцентная полоса сверху
+    const accentGrad = ctx.createLinearGradient(0, 0, width, 0);
+    accentGrad.addColorStop(0, '#6366f1'); accentGrad.addColorStop(0.5, '#818cf8'); accentGrad.addColorStop(1, '#a78bfa');
+    ctx.fillStyle = accentGrad; ctx.fillRect(0, 0, width, 5);
+
+    // Заголовок
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('POROGI67', width / 2, 60);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '14px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText('ОТЧЁТ О СМЕНЕ', width / 2, 85);
+    ctx.fillStyle = 'rgba(255,255,255,0.65)'; ctx.font = '13px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText(`${dateLabel}  •  ${startTime.split(',')[1] || ''} - ${endTime.split(',')[1] || ''}`, width / 2, 110);
+
+    // Разделитель
+    ctx.strokeStyle = 'rgba(99, 102, 241, 0.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(80, 130); ctx.lineTo(width - 80, 130); ctx.stroke();
+
+    // Таблица
+    const tableStartY = 160, colX = [80, 280, 420, 560, 680];
+    ctx.fillStyle = 'rgba(99, 102, 241, 0.2)'; ctx.fillRect(60, tableStartY - 10, width - 120, 36);
+    ctx.fillStyle = '#a78bfa'; ctx.font = 'bold 13px -apple-system, BlinkMacSystemFont, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText('КАТЕГОРИЯ', colX[0], tableStartY + 15); ctx.textAlign = 'center';
+    ctx.fillText('ЗАКАЗОВ', colX[1], tableStartY + 15); ctx.fillText('МЕСТ', colX[2], tableStartY + 15); ctx.fillText('СТАТУС', colX[3], tableStartY + 15);
+
+    const rows = [
+        { cat: 'СДЭК', orders: cdekCount, places: cdekPlaces, note: cdekPlaces !== cdekCount ? `${cdekPlaces} мест` : 'мест = заказов' },
+        { cat: 'ВБ / ОЗОН', orders: wbCount, places: wbCount, note: 'мест = заказов' },
+        { cat: 'ФБО', orders: fboCount, places: fboCount, note: 'мест = заказов' },
+        { cat: 'ДОСТАВКА', orders: dostCount, places: dostPlaces, note: dostPlaces !== dostCount ? `${dostPlaces} мест` : 'мест = заказов' },
+    ];
+
+    let y = tableStartY + 50;
+    rows.forEach((row, idx) => {
+        if (idx % 2 === 0) { ctx.fillStyle = 'rgba(255,255,255,0.03)'; ctx.fillRect(60, y - 14, width - 120, 38); }
+        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 15px -apple-system, BlinkMacSystemFont, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(row.cat, colX[0], y); ctx.fillStyle = '#e2e8f0'; ctx.font = '18px -apple-system, BlinkMacSystemFont, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(row.orders, colX[1], y); ctx.fillText(row.places, colX[2], y);
+        ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+        ctx.fillText(row.note, colX[3], y); y += 42;
+    });
+
+    // Итого
+    ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(80, y + 5); ctx.lineTo(width - 80, y + 5); ctx.stroke();
+    y += 25;
+    ctx.fillStyle = 'rgba(99, 102, 241, 0.25)'; ctx.fillRect(60, y - 14, width - 120, 42);
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText('ИТОГО', colX[0], y + 5); ctx.fillStyle = '#a78bfa'; ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(totalOrders, colX[1], y + 5); ctx.fillText(totalPlaces, colX[2], y + 5);
+    y += 45;
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '13px -apple-system, BlinkMacSystemFont, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(`Оптовые заказы: ${optCount}  •  Общий заработок: ${totalSalary} ₽`, width / 2, y);
+
+    // Отчёт по смене (если есть)
+    const survey = shiftData.survey;
+    if (survey && survey.text) {
+        y += 30; ctx.strokeStyle = 'rgba(99, 102, 241, 0.3)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(80, y); ctx.lineTo(width - 80, y); ctx.stroke();
+        y += 25; ctx.fillStyle = '#a78bfa'; ctx.font = 'bold 13px -apple-system, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText('ОТЧЁТ ПО СМЕНЕ', 80, y); y += 24;
+        ctx.fillStyle = '#e2e8f0'; ctx.font = '14px -apple-system, sans-serif';
+        survey.text.split('\n').forEach(line => { ctx.fillText(line, 80, y); y += 22; });
+    }
+
+    // Нижняя полоса
+    ctx.fillStyle = accentGrad; ctx.fillRect(0, height - 5, width, 5);
+    ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = '10px -apple-system, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('POROGI67 • Система управления порогами • ' + new Date().toLocaleDateString(), width / 2, height - 15);
+
+    // Получаем PNG в base64
+    const imageData = canvas.toDataURL('image/png').split(',')[1];
+
+    // Отправляем в Telegram
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`;
+    const formData = new FormData();
+    formData.append('chat_id', TELEGRAM_CHAT_ID);
+    formData.append('photo', new Blob([Uint8Array.from(atob(imageData), c => c.charCodeAt(0))], {type: 'image/png'}), 'report.png');
+    formData.append('caption', `📊 Отчёт о смене (${dateLabel})`);
+
+    fetch(url, { method: 'POST', body: formData })
+        .then(response => response.json())
+        .then(data => {
+            if (data.ok) {
+                alert('✅ Изображение отчёта отправлено в Telegram!');
+            } else {
+                alert('❌ Ошибка отправки: ' + data.description);
+            }
+        })
+        .catch(err => {
+            alert('❌ Ошибка сети: ' + err.message);
+        });
+}
 // ============================================================
 // ЗАПУСК
 // ============================================================
@@ -1886,6 +2017,7 @@ window.changeMonth = changeMonth;
 window.toggleWorkCell = toggleWorkCell;
 window.refreshAdminData = refreshAdminData;
 window.toggleShiftDetails = toggleShiftDetails;
+window.sendReportToTelegram = sendReportToTelegram;
 
 // Автозапуск
 showApp();
