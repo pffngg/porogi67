@@ -527,7 +527,7 @@ function handleFboArticleKey(event) {
 }
 
 function printFboLabel(baseArticle, suffix, material, width) {
-    const w = window.open('', '_blank', 'width=400,height=300');
+    const w = window.open('', '_blank', 'width=500,height=400');
     if (!w) {
         alert('Разрешите всплывающие окна для печати наклеек');
         return;
@@ -539,12 +539,12 @@ function printFboLabel(baseArticle, suffix, material, width) {
             <meta charset="UTF-8">
             <style>
                 @page {
-                    size: 10cm 15cm;
+                    size: 15cm 22.5cm;
                     margin: 0;
                 }
                 body {
-                    width: 10cm;
-                    height: 15cm;
+                    width: 15cm;
+                    height: 22.5cm;
                     margin: 0;
                     font-family: Arial, sans-serif;
                     display: flex;
@@ -555,17 +555,17 @@ function printFboLabel(baseArticle, suffix, material, width) {
                     border: 1px dashed #ccc;
                 }
                 h2 {
-                    font-size: 24px;
-                    margin: 10px 0;
+                    font-size: 36px;
+                    margin: 15px 0;
                 }
                 .art {
-                    font-size: 28px;
+                    font-size: 42px;
                     font-weight: bold;
-                    margin: 5px 0;
+                    margin: 8px 0;
                 }
                 .details {
-                    font-size: 18px;
-                    margin: 3px 0;
+                    font-size: 27px;
+                    margin: 5px 0;
                 }
             </style>
         </head>
@@ -582,7 +582,6 @@ function printFboLabel(baseArticle, suffix, material, width) {
     w.focus();
     w.print();
 }
-
 
 function addFboArticle() {
     if (!window.currentUserName || !isGlobalParticipant) return;
