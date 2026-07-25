@@ -346,11 +346,11 @@ async function pollGoogleSheet(sheetName) {
 
       const prefix = extractPrefix(rawCode);
 
-      if (
-        state.lastPrefix !== null &&
-        prefix === state.lastPrefix &&
-        number === state.lastNumber + 1
-      ) {
+    if (
+    state.lastPrefix !== null &&
+    prefix === state.lastPrefix &&
+    Math.abs(number - state.lastNumber) === 1
+) {
         // Дополнительное место того же заказа
         addPlace('cdek');
         console.log(`➕ Доп. место СДЭК (${sheetName}):`, rawCode);
@@ -388,6 +388,21 @@ function stopGoogleSheetPolling() {
   }
 }
 
+async function initSheetState(sheetName) {
+    const state = gSheetState[sheetName];
+    if (!state) return;
+    const url = `${GOOGLE_SHEET_URL}?sheet=${encodeURIComponent(sheetName)}`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data && data.length > 0) {
+            state.lastIndex = data.length; // начинаем с конца
+        }
+    } catch (e) {
+        console.error(`Ошибка инициализации ${sheetName}:`, e);
+    }
+}
+
 function startShift() {
     const participant = createParticipantData(Date.now());
     set(ref(db, "active_shift"), {
@@ -401,9 +416,11 @@ function startShift() {
 
     // Сброс состояний Google Sheets при новой смене
     Object.keys(gSheetState).forEach(key => {
-        gSheetState[key] = { lastIndex: 0, lastPrefix: null, lastNumber: null };
-    });
-}
+    gSheetState[key] = { lastIndex: 0, lastPrefix: null, lastNumber: null };
+});
+// Пропускаем старые строки
+initSheetState('СДЭК');
+initSheetState('СДЭК БЖ');
 
 function addCounter(type) {
     if (!type || !window.currentUserName) return;
