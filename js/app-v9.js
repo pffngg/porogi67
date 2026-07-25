@@ -421,6 +421,7 @@ function startShift() {
 // Пропускаем старые строки
 initSheetState('СДЭК');
 initSheetState('СДЭК БЖ');
+    }
 
 function addCounter(type) {
     if (!type || !window.currentUserName) return;
