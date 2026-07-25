@@ -12,7 +12,7 @@ const db = window.db;
 
 window.currentUserName = 'Порог'; // или любое имя
 const TELEGRAM_BOT_TOKEN = '8986503587:AAESiDLvCOD5xdq76yT_ZMk7z8WPLYcgk40';
-const TELEGRAM_CHAT_ID = '-5350819457';
+const TELEGRAM_CHAT_ID = '-1004488885558';
 // ============================================================
 // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
 // ============================================================
