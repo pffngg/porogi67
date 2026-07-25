@@ -300,11 +300,15 @@ function listenActiveShift() {
 }
 
 // ==================== ОПРОС GOOGLE SHEETS ДЛЯ СДЭК ====================
-let gSheetLastIndex = 0;   // Сколько строк уже обработано
-let gSheetLastPrefix = null;
-let gSheetLastNumber = null;
+const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwPhw-ZVl1KZvmR4yjVjSyyLagoknLRNiA0RYSJYkePpEsrfB9Uc-lU-QHaSQVmWdJ1/exec';
+
+// Состояния для двух листов
+const gSheetState = {
+  'СДЭК': { lastIndex: 0, lastPrefix: null, lastNumber: null },
+  'СДЭК БЖ': { lastIndex: 0, lastPrefix: null, lastNumber: null }
+};
+
 let gSheetPollingInterval = null;
-const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzQoEGwxIygNv8uy19cVWg9DGtSVVcCM019YlGzWWDtuyRvEIEe-eH72uIx9BgF4lQb/exec';
 
 // Извлекает последнее число из строки (например, из "[ITM]000747105432" → 747105432)
 function extractLastNumber(str) {
@@ -318,54 +322,62 @@ function extractPrefix(str) {
   return match ? match[1] : null;
 }
 
-async function pollGoogleSheet() {
- if (!GOOGLE_SHEET_URL || GOOGLE_SHEET_URL === 'ВСТАВЬ_СЮДА_ССЫЛКУ_ИЗ_APPS_SCRIPT') return;
+async function pollGoogleSheet(sheetName) {
+  if (!GOOGLE_SHEET_URL || GOOGLE_SHEET_URL.includes('ВСТАВЬ_СЮДА')) return;
+  if (!isGlobalParticipant) return;
+
+  const state = gSheetState[sheetName];
+  if (!state) return; // неизвестный лист
+
+  const url = `${GOOGLE_SHEET_URL}?sheet=${encodeURIComponent(sheetName)}`;
+
   try {
-    const response = await fetch(GOOGLE_SHEET_URL);
-    const data = await response.json(); // массив строк (первый столбец каждой строки)
+    const response = await fetch(url);
+    const data = await response.json();
     if (!data || data.length === 0) return;
 
-    for (let i = gSheetLastIndex; i < data.length; i++) {
+    for (let i = state.lastIndex; i < data.length; i++) {
       const row = data[i];
       const rawCode = (row[0] || '').toString().trim();
-      if (!rawCode) continue; // пустая строка
+      if (!rawCode) continue;
 
-      // Является ли строка штрих-кодом СДЭК? Должна содержать число в конце
       const number = extractLastNumber(rawCode);
-      if (number === null) continue; // нет числа — не штрих-код, пропускаем
+      if (number === null) continue;
 
       const prefix = extractPrefix(rawCode);
 
-      // Логика группировки
       if (
-        gSheetLastPrefix !== null &&
-        prefix === gSheetLastPrefix &&
-        number === gSheetLastNumber + 1
+        state.lastPrefix !== null &&
+        prefix === state.lastPrefix &&
+        number === state.lastNumber + 1
       ) {
-        // Это дополнительное место того же заказа
+        // Дополнительное место того же заказа
         addPlace('cdek');
-        console.log('➕ Доп. место СДЭК:', rawCode);
+        console.log(`➕ Доп. место СДЭК (${sheetName}):`, rawCode);
       } else {
-        // Это новый заказ (или место, если префикс поменялся)
+        // Новый заказ
         addCounter('cdek');
-        console.log('🆕 Новый заказ СДЭК:', rawCode);
+        console.log(`🆕 Новый заказ СДЭК (${sheetName}):`, rawCode);
       }
 
-      gSheetLastPrefix = prefix;
-      gSheetLastNumber = number;
+      state.lastPrefix = prefix;
+      state.lastNumber = number;
     }
 
-    gSheetLastIndex = data.length; // запоминаем, что обработали
+    state.lastIndex = data.length;
   } catch (error) {
-    console.error('Ошибка при опросе Google Sheets:', error);
+    console.error(`Ошибка при опросе Google Sheets (${sheetName}):`, error);
   }
 }
 
 // Запуск/остановка опроса
 function startGoogleSheetPolling() {
-  if (gSheetPollingInterval) return; // уже запущен
-  gSheetPollingInterval = setInterval(pollGoogleSheet, 5000); // проверяем каждые 5 секунд
-  console.log('🔄 Опрос Google Sheets запущен');
+  if (gSheetPollingInterval) return;
+  gSheetPollingInterval = setInterval(() => {
+    pollGoogleSheet('СДЭК');
+    pollGoogleSheet('СДЭК БЖ');
+  }, 5000);
+  console.log('🔄 Опрос Google Sheets запущен (СДЭК + СДЭК БЖ)');
 }
 
 function stopGoogleSheetPolling() {
@@ -385,6 +397,11 @@ function startShift() {
         fboArticles: {},
         participants: { [window.currentUserName]: participant },
         allParticipants: { [window.currentUserName]: participant }
+    }); // <-- здесь закрывается вызов set
+
+    // Сброс состояний Google Sheets при новой смене
+    Object.keys(gSheetState).forEach(key => {
+        gSheetState[key] = { lastIndex: 0, lastPrefix: null, lastNumber: null };
     });
 }
 
