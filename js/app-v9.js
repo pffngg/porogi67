@@ -371,7 +371,7 @@ async function pollGoogleSheet(sheetName) {
 }
 
 // Запуск/остановка опроса
-// function startGoogleSheetPolling() {
+function startGoogleSheetPolling() {
   if (gSheetPollingInterval) return;
   gSheetPollingInterval = setInterval(() => {
     pollGoogleSheet('СДЭК');
@@ -380,7 +380,7 @@ async function pollGoogleSheet(sheetName) {
   console.log('🔄 Опрос Google Sheets запущен (СДЭК + СДЭК БЖ)');
 }
 
-// function stopGoogleSheetPolling() {
+function stopGoogleSheetPolling() {
   if (gSheetPollingInterval) {
     clearInterval(gSheetPollingInterval);
     gSheetPollingInterval = null;
