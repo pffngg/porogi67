@@ -338,28 +338,22 @@ async function pollGoogleSheet(sheetName) {
     const data = await response.json();
     if (!data || data.length === 0) return;
 
-    for (let i = state.lastIndex; i < data.length; i++) {
+     for (let i = state.lastIndex; i < data.length; i++) {
       const row = data[i];
       const rawCode = (row[0] || '').toString().trim();
       if (!rawCode) continue;
 
-        const number = extractLastNumber(rawCode);
+      const number = extractLastNumber(rawCode);
       if (number === null) continue;
 
       const prefix = extractPrefix(rawCode);
 
-      // Проверяем, является ли это место соседним (разница в 1)
       if (sheetName === 'ОЗОН и ВБ') {
         // ОЗОН и ВБ: всегда 1 заказ = 1 место
         addCounter('wb');
         console.log(`🆕 Новый заказ ВБ/ОЗОН (${sheetName}):`, rawCode);
       } else {
         // СДЭК: логика с местами
-        const number = extractLastNumber(rawCode);
-        if (number === null) continue;
-
-        const prefix = extractPrefix(rawCode);
-
         const isAdjacent = (
           state.lastPrefix !== null &&
           prefix === state.lastPrefix &&
@@ -377,10 +371,6 @@ async function pollGoogleSheet(sheetName) {
         state.lastPrefix = prefix;
         state.lastNumber = number;
       }
-
-      // Всегда обновляем последний префикс и номер
-      state.lastPrefix = prefix;
-      state.lastNumber = number;
     }
 
     state.lastIndex = data.length;
@@ -463,8 +453,8 @@ function startShift() {
     setTimeout(() => {
         initSheetState('СДЭК');
         initSheetState('СДЭК БЖ');
+        initSheetState('ОЗОН и ВБ');
     }, 1000);
-}
 
 function addCounter(type) {
     if (!type || !window.currentUserName) return;
@@ -688,8 +678,8 @@ function renderFboArticles(fboArticles) {
         return `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(99,102,241,0.04); border-radius:10px; border:1px solid var(--border);">
             <div style="font-weight:800; color:var(--text); font-size:13px; word-break:break-all; flex:1;">${fullArt}</div>
             <button class="danger" style="padding:4px 8px; font-size:11px; box-shadow:none; margin-left:8px;" onclick="removeFboArticle('${escapeJsString(item.key)}')">✕</button>
-            <button class="glass-btn" style="padding:4px 8px; font-size:14px; margin-left:4px;" onclick="printFboLabel('${escapeJsString(item.baseArticle || '')}','${escapeJsString(item.suffix)}','${escapeJsString(item.material)}','${escapeJsString(item.width)}','${escapeJsString(item.type || 'Порог')}')"
-        </div>`;
+           <button class="glass-btn" style="padding:4px 8px; font-size:14px; margin-left:4px;" onclick="printFboLabel('${escapeJsString(item.baseArticle || '')}','${escapeJsString(item.suffix)}','${escapeJsString(item.material)}','${escapeJsString(item.width)}','${escapeJsString(item.type || 'Порог')}')">🖨️</button>
+</div>`;
     }).join('');
 } // <-- вот здесь была пропущена закрывающая скобка, обязательно поставь её
 
