@@ -447,10 +447,9 @@ function startShift() {
         participants: { [window.currentUserName]: participant },
         allParticipants: { [window.currentUserName]: participant }
     });
-}
 
     // Сброс состояний Google Sheets при новой смене
-   Object.keys(gSheetState).forEach(key => {
+    Object.keys(gSheetState).forEach(key => {
         gSheetState[key] = { lastIndex: 0, lastPrefix: null, lastNumber: null };
     });
 
