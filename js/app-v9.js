@@ -1934,13 +1934,10 @@ function downloadFboCsv(shiftData) {
   let csv = '';
   articles.forEach(item => {
     const art = item.baseArticle || '';
-    const suffix = item.suffix || '';
+    const suffix = item.suffix || '';    // размер (S/F) или пусто для арок
     const material = item.material || '';
-    const width = item.width || '';
-    const type = item.type || 'Порог';
-    csv += `${art}\t${suffix}\t${material}\t${width}`;
-    if (type === 'Арка') csv += '\t(Арка)';
-    csv += '\n';
+    const width = item.width || '';      // толщина (1 ММ / 1,5 ММ) или пусто для арок
+    csv += `${art}\t${suffix}\t${material}\t${width}\n`;
   });
 
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
