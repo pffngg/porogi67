@@ -265,7 +265,7 @@ function listenActiveShift() {
             if (isGlobalParticipant) {
                 ctrls.forEach(b => b.style.display = "flex");
                 setFboControlsEnabled(true);
-              //  startGoogleSheetPolling();
+              startGoogleSheetPolling();
                 joinBtn.style.display = "none";
                 closeBtn.style.display = isAdmin ? "flex" : "none";
                 document.getElementById("cdek_val").style.pointerEvents = "auto";
@@ -278,7 +278,7 @@ function listenActiveShift() {
             } else {
                 ctrls.forEach(b => b.style.display = "none");
                 setFboControlsEnabled(false);
-              //  stopGoogleSheetPolling();
+              stopGoogleSheetPolling();
                 joinBtn.style.display = "flex";
                 closeBtn.style.display = "none";
                 document.getElementById("cdek_val").style.pointerEvents = "none";
@@ -415,9 +415,9 @@ function startShift() {
     }); // <-- здесь закрывается вызов set
 
     // Сброс состояний Google Sheets при новой смене
-   // Object.keys(gSheetState).forEach(key => {
-//    gSheetState[key] = { lastIndex: 0, lastPrefix: null, lastNumber: null };
-// });
+    Object.keys(gSheetState).forEach(key => {
+    gSheetState[key] = { lastIndex: 0, lastPrefix: null, lastNumber: null };
+ });
 // Пропускаем старые строки
 initSheetState('СДЭК');
 initSheetState('СДЭК БЖ');
