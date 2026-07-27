@@ -1931,17 +1931,22 @@ function downloadFboCsv(shiftData) {
     return;
   }
 
+  const isValidArt = (str) => /^[\d.\-]+$/.test(str); // только цифры, точки, дефисы
+
   let csv = '';
   articles.forEach(item => {
     let art = item.baseArticle;
     if (!art && item.fullArticle) {
-      // Старая запись: берём первую часть до пробела (например, "22-45S")
       const firstPart = item.fullArticle.split(' ')[0];
-      // Если последний символ – это размер (S или F), убираем его
+      // Убираем размер S/F в конце, если есть
       if (firstPart.endsWith('S') || firstPart.endsWith('F')) {
-        art = firstPart.slice(0, -1);  // 22-45S → 22-45
+        art = firstPart.slice(0, -1);
       } else {
         art = firstPart;
+      }
+      // Если получилось нечто непохожее на артикул (дата и т.п.) – очищаем
+      if (!isValidArt(art)) {
+        art = '';
       }
     }
     const suffix = item.suffix || '';
