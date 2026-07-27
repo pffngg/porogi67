@@ -1931,13 +1931,8 @@ function downloadFboCsv(shiftData) {
     return;
   }
 
-  // Функция проверки: артикул должен содержать цифры и не содержать кириллицы
-  const isValidArticle = (str) => {
-    if (!str) return false;
-    const hasDigit = /\d/.test(str);                // есть хотя бы одна цифра
-    const hasCyrillic = /[а-яё]/i.test(str);        // нет русских букв
-    return hasDigit && !hasCyrillic;
-  };
+  // Функция проверки: только цифры, дефисы и точки, и хотя бы одна цифра
+  const isValidArticle = (str) => /^[\d.\-]+$/.test(str) && /\d/.test(str);
 
   let csv = '';
   articles.forEach(item => {
