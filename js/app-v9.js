@@ -306,7 +306,8 @@ const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwPhw-ZVl1KZvm
 // Состояния для двух листов
 const gSheetState = {
   'СДЭК': { lastIndex: 0, lastPrefix: null, lastNumber: null },
-  'СДЭК БЖ': { lastIndex: 0, lastPrefix: null, lastNumber: null }
+  'СДЭК БЖ': { lastIndex: 0, lastPrefix: null, lastNumber: null },
+  'ОЗОН и ВБ': { lastIndex: 0, lastPrefix: null, lastNumber: null }
 };
 
 let gSheetPollingInterval = null;
@@ -348,20 +349,33 @@ async function pollGoogleSheet(sheetName) {
       const prefix = extractPrefix(rawCode);
 
       // Проверяем, является ли это место соседним (разница в 1)
-      const isAdjacent = (
-        state.lastPrefix !== null &&
-        prefix === state.lastPrefix &&
-        Math.abs(number - state.lastNumber) === 1
-      );
-
-      if (isAdjacent) {
-        // Дополнительное место того же заказа
-        addPlace('cdek');
-        console.log(`➕ Доп. место СДЭК (${sheetName}):`, rawCode);
+      if (sheetName === 'ОЗОН и ВБ') {
+        // ОЗОН и ВБ: всегда 1 заказ = 1 место
+        addCounter('wb');
+        console.log(`🆕 Новый заказ ВБ/ОЗОН (${sheetName}):`, rawCode);
       } else {
-        // Новый заказ
-        addCounter('cdek');
-        console.log(`🆕 Новый заказ СДЭК (${sheetName}):`, rawCode);
+        // СДЭК: логика с местами
+        const number = extractLastNumber(rawCode);
+        if (number === null) continue;
+
+        const prefix = extractPrefix(rawCode);
+
+        const isAdjacent = (
+          state.lastPrefix !== null &&
+          prefix === state.lastPrefix &&
+          Math.abs(number - state.lastNumber) === 1
+        );
+
+        if (isAdjacent) {
+          addPlace('cdek');
+          console.log(`➕ Доп. место СДЭК (${sheetName}):`, rawCode);
+        } else {
+          addCounter('cdek');
+          console.log(`🆕 Новый заказ СДЭК (${sheetName}):`, rawCode);
+        }
+
+        state.lastPrefix = prefix;
+        state.lastNumber = number;
       }
 
       // Всегда обновляем последний префикс и номер
@@ -379,21 +393,21 @@ async function pollGoogleSheet(sheetName) {
 async function startGoogleSheetPolling() {
   if (gSheetPollingInterval) return;
   
-  // Сначала инициализируем оба листа (пропускаем старые строки)
   await initSheetState('СДЭК');
   await initSheetState('СДЭК БЖ');
+  await initSheetState('ОЗОН и ВБ');
   
-  // Сразу запускаем первую проверку без ожидания
   pollGoogleSheet('СДЭК');
   pollGoogleSheet('СДЭК БЖ');
+  pollGoogleSheet('ОЗОН и ВБ');
   
-  // Затем проверяем каждые 2 секунды (вместо 5)
   gSheetPollingInterval = setInterval(() => {
     pollGoogleSheet('СДЭК');
     pollGoogleSheet('СДЭК БЖ');
-  }, 2000); // <-- изменил с 5000 на 2000
+    pollGoogleSheet('ОЗОН и ВБ');
+  }, 1000); // 1 секунда
   
-  console.log('🔄 Опрос Google Sheets запущен (СДЭК + СДЭК БЖ) каждые 2 сек');
+  console.log('🔄 Опрос Google Sheets запущен (СДЭК + СДЭК БЖ + ОЗОН и ВБ) каждую 1 сек');
 }
 
 function stopGoogleSheetPolling() {
@@ -441,7 +455,7 @@ function startShift() {
     });
 
     // Сброс состояний Google Sheets при новой смене
-    Object.keys(gSheetState).forEach(key => {
+   Object.keys(gSheetState).forEach(key => {
         gSheetState[key] = { lastIndex: 0, lastPrefix: null, lastNumber: null };
     });
 
