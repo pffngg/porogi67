@@ -371,13 +371,24 @@ async function pollGoogleSheet(sheetName) {
 }
 
 // Запуск/остановка опроса
-function startGoogleSheetPolling() {
+async function startGoogleSheetPolling() {
   if (gSheetPollingInterval) return;
+  
+  // Сначала инициализируем оба листа (пропускаем старые строки)
+  await initSheetState('СДЭК');
+  await initSheetState('СДЭК БЖ');
+  
+  // Сразу запускаем первую проверку без ожидания
+  pollGoogleSheet('СДЭК');
+  pollGoogleSheet('СДЭК БЖ');
+  
+  // Затем проверяем каждые 2 секунды (вместо 5)
   gSheetPollingInterval = setInterval(() => {
     pollGoogleSheet('СДЭК');
     pollGoogleSheet('СДЭК БЖ');
-  }, 5000);
-  console.log('🔄 Опрос Google Sheets запущен (СДЭК + СДЭК БЖ)');
+  }, 2000); // <-- изменил с 5000 на 2000
+  
+  console.log('🔄 Опрос Google Sheets запущен (СДЭК + СДЭК БЖ) каждые 2 сек');
 }
 
 function stopGoogleSheetPolling() {
