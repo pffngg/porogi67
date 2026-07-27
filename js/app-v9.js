@@ -324,12 +324,14 @@ function extractPrefix(str) {
   return match ? match[1] : null;
 }
 
+let gSheetPollingActive = false; // защита от повторного входа
+
 async function pollGoogleSheet(sheetName) {
   if (!GOOGLE_SHEET_URL || GOOGLE_SHEET_URL.includes('ВСТАВЬ_СЮДА')) return;
   if (!isGlobalParticipant) return;
 
   const state = gSheetState[sheetName];
-  if (!state) return; // неизвестный лист
+  if (!state) return;
 
   const url = `${GOOGLE_SHEET_URL}?sheet=${encodeURIComponent(sheetName)}`;
 
@@ -338,7 +340,7 @@ async function pollGoogleSheet(sheetName) {
     const data = await response.json();
     if (!data || data.length === 0) return;
 
-     for (let i = state.lastIndex; i < data.length; i++) {
+    for (let i = state.lastIndex; i < data.length; i++) {
       const row = data[i];
       const rawCode = (row[0] || '').toString().trim();
       if (!rawCode) continue;
@@ -346,31 +348,30 @@ async function pollGoogleSheet(sheetName) {
       const number = extractLastNumber(rawCode);
       if (number === null) continue;
 
-      const prefix = extractPrefix(rawCode);
-
       if (sheetName === 'ОЗОН и ВБ') {
-        // ОЗОН и ВБ: всегда 1 заказ = 1 место
         addCounter('wb');
         console.log(`🆕 Новый заказ ВБ/ОЗОН (${sheetName}):`, rawCode);
-      } else {
-        // СДЭК: логика с местами
-        const isAdjacent = (
-          state.lastPrefix !== null &&
-          prefix === state.lastPrefix &&
-          Math.abs(number - state.lastNumber) === 1
-        );
-
-        if (isAdjacent) {
-          addPlace('cdek');
-          console.log(`➕ Доп. место СДЭК (${sheetName}):`, rawCode);
-        } else {
-          addCounter('cdek');
-          console.log(`🆕 Новый заказ СДЭК (${sheetName}):`, rawCode);
-        }
-
-        state.lastPrefix = prefix;
-        state.lastNumber = number;
+        continue;
       }
+
+      const prefix = extractPrefix(rawCode);
+
+      const isAdjacent = (
+        state.lastPrefix !== null &&
+        prefix === state.lastPrefix &&
+        Math.abs(number - state.lastNumber) === 1
+      );
+
+      if (isAdjacent) {
+        addPlace('cdek');
+        console.log(`➕ Доп. место СДЭК (${sheetName}):`, rawCode);
+      } else {
+        addCounter('cdek');
+        console.log(`🆕 Новый заказ СДЭК (${sheetName}):`, rawCode);
+      }
+
+      state.lastPrefix = prefix;
+      state.lastNumber = number;
     }
 
     state.lastIndex = data.length;
@@ -379,33 +380,36 @@ async function pollGoogleSheet(sheetName) {
   }
 }
 
-// Запуск/остановка опроса
 async function startGoogleSheetPolling() {
-  if (gSheetPollingInterval) return;
-  
+  if (gSheetPollingActive) return;
+
   await initSheetState('СДЭК');
   await initSheetState('СДЭК БЖ');
   await initSheetState('ОЗОН и ВБ');
-  
-  pollGoogleSheet('СДЭК');
-  pollGoogleSheet('СДЭК БЖ');
-  pollGoogleSheet('ОЗОН и ВБ');
-  
-  gSheetPollingInterval = setInterval(() => {
-    pollGoogleSheet('СДЭК');
-    pollGoogleSheet('СДЭК БЖ');
-    pollGoogleSheet('ОЗОН и ВБ');
-  }, 1000); // 1 секунда
-  
-  console.log('🔄 Опрос Google Sheets запущен (СДЭК + СДЭК БЖ + ОЗОН и ВБ) каждую 1 сек');
+
+  gSheetPollingActive = true;
+  console.log('🔄 Опрос Google Sheets запущен (СДЭК + СДЭК БЖ + ОЗОН и ВБ)');
+
+  const pollAll = async () => {
+    if (!gSheetPollingActive) return;
+    await Promise.all([
+      pollGoogleSheet('СДЭК'),
+      pollGoogleSheet('СДЭК БЖ'),
+      pollGoogleSheet('ОЗОН и ВБ')
+    ]);
+    setTimeout(pollAll, 500); // через 0.5 сек после завершения текущего опроса
+  };
+
+  pollAll();
 }
 
 function stopGoogleSheetPolling() {
+  gSheetPollingActive = false;
   if (gSheetPollingInterval) {
-    clearInterval(gSheetPollingInterval);
+    clearTimeout(gSheetPollingInterval);
     gSheetPollingInterval = null;
-    console.log('⏹️ Опрос Google Sheets остановлен');
   }
+  console.log('⏹️ Опрос Google Sheets остановлен');
 }
 
 async function initSheetState(sheetName) {
@@ -443,6 +447,7 @@ function startShift() {
         participants: { [window.currentUserName]: participant },
         allParticipants: { [window.currentUserName]: participant }
     });
+}
 
     // Сброс состояний Google Sheets при новой смене
    Object.keys(gSheetState).forEach(key => {
@@ -1233,6 +1238,7 @@ function listenHistory() {
                 ${timeLabel ? `<small style="opacity:0.6; display:block; margin-top:8px;">${escapeHtml(timeLabel)}</small>` : ''}
                 <button class="export-btn" style="margin-top:10px; width:100%;" onclick="event.stopPropagation(); exportShiftToImage(${JSON.stringify(d).replace(/"/g, '&quot;')})">📊 Скачать отчёт (PNG)</button>
                 <button class="export-btn" style="margin-top:6px; width:100%; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);" onclick="event.stopPropagation(); sendReportToTelegram(${JSON.stringify(d).replace(/"/g, '&quot;')})">📤 Отправить в Telegram</button>
+                <button class="export-btn" style="margin-top:6px; width:100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="event.stopPropagation(); downloadFboCsv(${JSON.stringify(d).replace(/"/g, '&quot;')})">📥 Скачать ФБО (CSV)</button>
             </div>` + html;
         });
         
@@ -1915,6 +1921,37 @@ function toggleWorkCell(path, name, day, isWork) {
     else { set(cellRef, "10-22"); } 
 }
 
+function downloadFboCsv(shiftData) {
+  if (!shiftData || !shiftData.fboArticles) {
+    alert('Нет данных ФБО для этой смены');
+    return;
+  }
+  const articles = Object.values(shiftData.fboArticles);
+  if (!articles.length) {
+    alert('Нет артикулов ФБО');
+    return;
+  }
+
+  let csv = '';
+  articles.forEach(item => {
+    const art = item.baseArticle || '';
+    const suffix = item.suffix || '';
+    const material = item.material || '';
+    const width = item.width || '';
+    const type = item.type || 'Порог';
+    csv += `${art}\t${suffix}\t${material}\t${width}`;
+    if (type === 'Арка') csv += '\t(Арка)';
+    csv += '\n';
+  });
+
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `fbo_${shiftData.date || 'report'}.csv`;
+  link.click();
+}
+window.downloadFboCsv = downloadFboCsv;
+
 // ============================================================
 // ЭКСПОРТ В PNG
 // ============================================================
@@ -2207,6 +2244,7 @@ window.toggleShiftDetails = toggleShiftDetails;
 window.sendReportToTelegram = sendReportToTelegram;
 window.startGoogleSheetPolling = startGoogleSheetPolling;
 window.stopGoogleSheetPolling = stopGoogleSheetPolling;
+window.downloadFboCsv = downloadFboCsv;
 
 // Автозапуск
 showApp();
