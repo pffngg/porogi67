@@ -455,6 +455,7 @@ function startShift() {
         initSheetState('СДЭК БЖ');
         initSheetState('ОЗОН и ВБ');
     }, 1000);
+}
 
 function addCounter(type) {
     if (!type || !window.currentUserName) return;
