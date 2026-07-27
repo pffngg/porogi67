@@ -266,7 +266,7 @@ function listenActiveShift() {
             if (isGlobalParticipant) {
                 ctrls.forEach(b => b.style.display = "flex");
                 setFboControlsEnabled(true);
-              startGoogleSheetPolling();
+             // startGoogleSheetPolling();
                 joinBtn.style.display = "none";
                 closeBtn.style.display = isAdmin ? "flex" : "none";
                 document.getElementById("cdek_val").style.pointerEvents = "auto";
@@ -279,7 +279,7 @@ function listenActiveShift() {
             } else {
                 ctrls.forEach(b => b.style.display = "none");
                 setFboControlsEnabled(false);
-              stopGoogleSheetPolling();
+            //  stopGoogleSheetPolling();
                 joinBtn.style.display = "flex";
                 closeBtn.style.display = "none";
                 document.getElementById("cdek_val").style.pointerEvents = "none";
@@ -454,11 +454,11 @@ function startShift() {
     });
 
     // Ждём немного, чтобы set точно завершился, и инициализируем листы
-    setTimeout(() => {
-        initSheetState('СДЭК');
-        initSheetState('СДЭК БЖ');
-        initSheetState('ОЗОН и ВБ');
-    }, 1000);
+  //  setTimeout(() => {
+    //    initSheetState('СДЭК');
+      //  initSheetState('СДЭК БЖ');
+        //initSheetState('ОЗОН и ВБ');
+   // }, 1000);
 }
 
 function addCounter(type) {
