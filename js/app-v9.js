@@ -48,6 +48,7 @@ let currentFboSuffix = "";
 let currentFboMaterial = "";
 let currentFboWidth = "";
 let fboArticlesVisible = true;
+let currentFboType = "Порог"; // "Порог" или "Арка"
 
 // ============================================================
 // ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
@@ -604,6 +605,22 @@ function manualInputPlaces(type) {
 function selectFboOption(type, value) {
     if (!isGlobalParticipant) return;
     
+    if (type === 'type') {
+        currentFboType = value;
+        document.getElementById('fboBtnPorog').className = value === 'Порог' ? 'primary fbo-control' : 'glass-btn fbo-control';
+        document.getElementById('fboBtnArka').className = value === 'Арка' ? 'primary fbo-control' : 'glass-btn fbo-control';
+        document.getElementById('fboLabelType').innerText = value;
+        
+        // Показываем/скрываем строки размера и ширины
+        const isPorog = value === 'Порог';
+        document.getElementById('fboSizeRow').style.display = isPorog ? 'flex' : 'none';
+        document.getElementById('fboWidthRow').style.display = isPorog ? 'flex' : 'none';
+        
+        const input = document.getElementById('fboArticleInput');
+        if (input) input.focus();
+        return;
+    }
+    
     if (type === 'suffix') {
         currentFboSuffix = value;
         document.getElementById('fboBtnS').className = value === 'S' ? 'primary fbo-control' : 'glass-btn fbo-control';
@@ -657,7 +674,7 @@ function renderFboArticles(fboArticles) {
         return `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(99,102,241,0.04); border-radius:10px; border:1px solid var(--border);">
             <div style="font-weight:800; color:var(--text); font-size:13px; word-break:break-all; flex:1;">${fullArt}</div>
             <button class="danger" style="padding:4px 8px; font-size:11px; box-shadow:none; margin-left:8px;" onclick="removeFboArticle('${escapeJsString(item.key)}')">✕</button>
-            <button class="glass-btn" style="padding:4px 8px; font-size:14px; margin-left:4px;" onclick="printFboLabel('${escapeJsString(item.baseArticle || '')}','${escapeJsString(item.suffix)}','${escapeJsString(item.material)}','${escapeJsString(item.width)}')">🖨️</button>
+            <button class="glass-btn" style="padding:4px 8px; font-size:14px; margin-left:4px;" onclick="printFboLabel('${escapeJsString(item.baseArticle || '')}','${escapeJsString(item.suffix)}','${escapeJsString(item.material)}','${escapeJsString(item.width)}','${escapeJsString(item.type || 'Порог')}')"
         </div>`;
     }).join('');
 } // <-- вот здесь была пропущена закрывающая скобка, обязательно поставь её
@@ -666,12 +683,27 @@ function handleFboArticleKey(event) {
     if (event.key === 'Enter') { event.preventDefault(); addFboArticle(); } 
 }
 
-function printFboLabel(baseArticle, suffix, material, width) {
+function printFboLabel(baseArticle, suffix, material, width, type) {
     const w = window.open('', '_blank', 'width=500,height=400');
     if (!w) {
         alert('Разрешите всплывающие окна для печати наклеек');
         return;
     }
+    
+    let detailsHtml = '';
+    if (type === 'Порог') {
+        detailsHtml = `
+            <div class="details">Размер: ${escapeHtml(suffix)}</div>
+            <div class="details">Металл: ${escapeHtml(material)}</div>
+            <div class="details">Ширина: ${escapeHtml(width)}</div>
+        `;
+    } else {
+        detailsHtml = `
+            <div class="details">Металл: ${escapeHtml(material)}</div>
+            <div class="details">Тип: Арка</div>
+        `;
+    }
+    
     w.document.write(`
         <!DOCTYPE html>
         <html>
@@ -712,9 +744,7 @@ function printFboLabel(baseArticle, suffix, material, width) {
         <body>
             <h2>ФБО</h2>
             <div class="art">${escapeHtml(baseArticle)}</div>
-            <div class="details">Размер: ${escapeHtml(suffix)}</div>
-            <div class="details">Металл: ${escapeHtml(material)}</div>
-            <div class="details">Ширина: ${escapeHtml(width)}</div>
+            ${detailsHtml}
         </body>
         </html>
     `);
@@ -729,14 +759,23 @@ function addFboArticle() {
     const input = document.getElementById('fboArticleInput');
     const rawArticle = (input?.value || '').trim();
     if (!rawArticle) return;
-    if (!currentFboSuffix) { alert('Выберите размер (S или F)'); return; }
-    if (!currentFboMaterial) { alert('Выберите металл (Цинк или ХКС)'); return; }
-    if (!currentFboWidth) { alert('Выберите ширину (1 мм или 1,5 мм)'); return; }
     
-    const fullArticle = `${rawArticle}${currentFboSuffix} ${currentFboMaterial} ${currentFboWidth}`;
+    if (currentFboType === 'Порог') {
+        if (!currentFboSuffix) { alert('Выберите размер (S или F)'); return; }
+        if (!currentFboWidth) { alert('Выберите ширину (1 мм или 1,5 мм)'); return; }
+    }
+    if (!currentFboMaterial) { alert('Выберите металл (Цинк или ХКС)'); return; }
+    
+    let fullArticle;
+    if (currentFboType === 'Порог') {
+        fullArticle = `${rawArticle}${currentFboSuffix} ${currentFboMaterial} ${currentFboWidth}`;
+    } else {
+        fullArticle = `${rawArticle} ${currentFboMaterial} (Арка)`;
+    }
+    
     const articleId = push(ref(db, 'active_shift/fboArticles')).key;
     
-   runTransaction(ref(db, 'active_shift'), shift => {
+    runTransaction(ref(db, 'active_shift'), shift => {
         if (!shift || !shift.participants || !shift.participants[window.currentUserName]) return;
         
         const participants = Object.keys(shift.participants);
@@ -746,11 +785,16 @@ function addFboArticle() {
         shift.fbo = (shift.fbo || 0) + 1;
         if (!shift.fboArticles) shift.fboArticles = {};
         shift.fboArticles[articleId] = { 
-    fullArticle, baseArticle: rawArticle, suffix: currentFboSuffix, material: currentFboMaterial,
-    width: currentFboWidth, share, orderIncrement: inc, 
-    participants: participants.reduce((acc, n) => { acc[n] = true; return acc; }, {}), 
-    by: window.currentUserName, at: Date.now() 
-};
+            fullArticle, 
+            baseArticle: rawArticle, 
+            type: currentFboType,
+            suffix: currentFboType === 'Порог' ? currentFboSuffix : '',
+            material: currentFboMaterial,
+            width: currentFboType === 'Порог' ? currentFboWidth : '',
+            share, orderIncrement: inc, 
+            participants: participants.reduce((acc, n) => { acc[n] = true; return acc; }, {}), 
+            by: window.currentUserName, at: Date.now() 
+        };
         
         participants.forEach(name => {
             const part = shift.participants[name];
@@ -761,7 +805,6 @@ function addFboArticle() {
         return shift;
     }).then(() => { if (input) input.value = ''; });
 }
-
 function removeFboArticle(articleId) {
     if (!articleId) return;
     
