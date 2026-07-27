@@ -1931,7 +1931,13 @@ function downloadFboCsv(shiftData) {
     return;
   }
 
-  const isValidArt = (str) => /^[\d.\-]+$/.test(str); // только цифры, точки, дефисы
+  // Функция проверки: артикул должен содержать цифры и не содержать кириллицы
+  const isValidArticle = (str) => {
+    if (!str) return false;
+    const hasDigit = /\d/.test(str);                // есть хотя бы одна цифра
+    const hasCyrillic = /[а-яё]/i.test(str);        // нет русских букв
+    return hasDigit && !hasCyrillic;
+  };
 
   let csv = '';
   articles.forEach(item => {
@@ -1944,16 +1950,23 @@ function downloadFboCsv(shiftData) {
       } else {
         art = firstPart;
       }
-      // Если получилось нечто непохожее на артикул (дата и т.п.) – очищаем
-      if (!isValidArt(art)) {
-        art = '';
-      }
     }
+    
+    // Если артикул не прошёл проверку — пропускаем всю строку
+    if (!isValidArticle(art)) {
+      return;
+    }
+
     const suffix = item.suffix || '';
     const material = item.material || '';
     const width = item.width || '';
-    csv += `${art || ''};${suffix};${material};${width}\n`;
+    csv += `${art};${suffix};${material};${width}\n`;
   });
+
+  if (!csv) {
+    alert('Нет корректных артикулов ФБО');
+    return;
+  }
 
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
