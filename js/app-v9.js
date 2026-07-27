@@ -1933,11 +1933,16 @@ function downloadFboCsv(shiftData) {
 
   let csv = '';
   articles.forEach(item => {
-    const art = item.baseArticle || '';
+    // Пытаемся получить артикул из baseArticle, если нет — вытаскиваем из fullArticle
+    let art = item.baseArticle;
+    if (!art && item.fullArticle) {
+      // Берём часть до первого пробела или всё, если пробела нет
+      art = item.fullArticle.split(' ')[0];
+    }
     const suffix = item.suffix || '';
     const material = item.material || '';
     const width = item.width || '';
-    csv += `${art};${suffix};${material};${width}\n`;
+    csv += `${art || ''};${suffix};${material};${width}\n`;
   });
 
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
