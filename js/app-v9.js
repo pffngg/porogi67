@@ -341,16 +341,19 @@ async function pollGoogleSheet(sheetName) {
       const rawCode = (row[0] || '').toString().trim();
       if (!rawCode) continue;
 
-      const number = extractLastNumber(rawCode);
+        const number = extractLastNumber(rawCode);
       if (number === null) continue;
 
       const prefix = extractPrefix(rawCode);
 
-    if (
-    state.lastPrefix !== null &&
-    prefix === state.lastPrefix &&
-    Math.abs(number - state.lastNumber) === 1
-) {
+      // Проверяем, является ли это место соседним (разница в 1)
+      const isAdjacent = (
+        state.lastPrefix !== null &&
+        prefix === state.lastPrefix &&
+        Math.abs(number - state.lastNumber) === 1
+      );
+
+      if (isAdjacent) {
         // Дополнительное место того же заказа
         addPlace('cdek');
         console.log(`➕ Доп. место СДЭК (${sheetName}):`, rawCode);
@@ -360,6 +363,7 @@ async function pollGoogleSheet(sheetName) {
         console.log(`🆕 Новый заказ СДЭК (${sheetName}):`, rawCode);
       }
 
+      // Всегда обновляем последний префикс и номер
       state.lastPrefix = prefix;
       state.lastNumber = number;
     }
@@ -407,7 +411,17 @@ async function initSheetState(sheetName) {
         const response = await fetch(url);
         const data = await response.json();
         if (data && data.length > 0) {
-            state.lastIndex = data.length; // начинаем с конца
+            state.lastIndex = data.length;
+            // Запоминаем префикс и номер самой последней строки
+            const lastRow = data[data.length - 1];
+            const lastCode = (lastRow[0] || '').toString().trim();
+            if (lastCode) {
+                const lastNum = extractLastNumber(lastCode);
+                if (lastNum !== null) {
+                    state.lastNumber = lastNum;
+                    state.lastPrefix = extractPrefix(lastCode);
+                }
+            }
         }
     } catch (e) {
         console.error(`Ошибка инициализации ${sheetName}:`, e);
