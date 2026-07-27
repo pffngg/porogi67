@@ -412,16 +412,19 @@ function startShift() {
         fboArticles: {},
         participants: { [window.currentUserName]: participant },
         allParticipants: { [window.currentUserName]: participant }
-    }); // <-- здесь закрывается вызов set
+    });
 
     // Сброс состояний Google Sheets при новой смене
     Object.keys(gSheetState).forEach(key => {
-    gSheetState[key] = { lastIndex: 0, lastPrefix: null, lastNumber: null };
- });
-// Пропускаем старые строки
-initSheetState('СДЭК');
-initSheetState('СДЭК БЖ');
-    }
+        gSheetState[key] = { lastIndex: 0, lastPrefix: null, lastNumber: null };
+    });
+
+    // Ждём немного, чтобы set точно завершился, и инициализируем листы
+    setTimeout(() => {
+        initSheetState('СДЭК');
+        initSheetState('СДЭК БЖ');
+    }, 1000);
+}
 
 function addCounter(type) {
     if (!type || !window.currentUserName) return;
