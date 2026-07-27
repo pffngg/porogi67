@@ -1933,11 +1933,16 @@ function downloadFboCsv(shiftData) {
 
   let csv = '';
   articles.forEach(item => {
-    // Пытаемся получить артикул из baseArticle, если нет — вытаскиваем из fullArticle
     let art = item.baseArticle;
     if (!art && item.fullArticle) {
-      // Берём часть до первого пробела или всё, если пробела нет
-      art = item.fullArticle.split(' ')[0];
+      // Старая запись: берём первую часть до пробела (например, "22-45S")
+      const firstPart = item.fullArticle.split(' ')[0];
+      // Если последний символ – это размер (S или F), убираем его
+      if (firstPart.endsWith('S') || firstPart.endsWith('F')) {
+        art = firstPart.slice(0, -1);  // 22-45S → 22-45
+      } else {
+        art = firstPart;
+      }
     }
     const suffix = item.suffix || '';
     const material = item.material || '';
