@@ -1227,7 +1227,7 @@ function listenHistory() {
            const deleteButton = isAdmin ? 
     `<button class="danger" style="position:absolute; right:10px; top:10px; padding:5px 10px; z-index:2;" onclick="event.stopPropagation(); removeShiftFromHistory('${escapeJsString(s.key)}')">×</button>` : "";
             
-                        html = `<div class="card history-card" style="padding:15px; text-align:left;" onclick="toggleShiftDetails(this)">
+            html = `<div class="card history-card" style="padding:15px; text-align:left;" onclick="toggleShiftDetails(this)">
                 <div style="padding-bottom:32px;"><div><b style="font-size:16px;">Смена ${dateLabel}</b></div></div>
                 <div style="margin:8px 0; font-size:14px; color:var(--text-secondary);">Общий заработок: <span style="color:var(--accent); font-weight:800; font-size:18px;">${Math.round(Number(d.totalSalary || 0))}₽</span></div>
                 <div style="margin:4px 0; font-size:13px; color:var(--text-secondary);">Заказов: ${d.total || 0} | Мест: ${totalPlaces}</div>
@@ -1239,6 +1239,7 @@ function listenHistory() {
                 <button class="export-btn" style="margin-top:6px; width:100%; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);" onclick="event.stopPropagation(); sendReportToTelegram(${JSON.stringify(d).replace(/"/g, '&quot;')})">📤 Отправить в Telegram</button>
                 <button class="export-btn" style="margin-top:6px; width:100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="event.stopPropagation(); downloadFboCsv(${JSON.stringify(d).replace(/"/g, '&quot;')})">📥 Скачать ФБО (CSV)</button>
             </div>` + html;
+        });
         
         historyBox.innerHTML = html || `<div class="card" style="text-align:center; color:var(--text-secondary);">Истории смен пока нет</div>`;
     });
