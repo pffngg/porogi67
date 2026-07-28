@@ -1935,7 +1935,7 @@ function downloadFboCsv(shiftData) {
   }
 
   // Функция проверки: только цифры, дефисы и точки, и хотя бы одна цифра
-  const isValidArticle = (str) => /^[\d.\-]+$/.test(str) && /\d/.test(str);
+  const isValidArticle = (str) => /[\d]/.test(str);
 
   let csv = '';
   articles.forEach(item => {
