@@ -1234,10 +1234,9 @@ function listenHistory() {
                 <div class="history-details" style="display:none; padding:8px; background:rgba(99,102,241,0.04); border-radius:8px; font-size:13px;">${detailsHtml}</div>
                 ${deleteButton}
                 <div style="display:flex; gap:8px; margin-top:10px; justify-content:center;">
-    <button class="export-btn" style="padding:8px 12px; font-size:13px; border-radius:20px; display:flex; align-items:center; gap:6px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);" onclick="event.stopPropagation(); exportShiftToImage(${JSON.stringify(d).replace(/"/g, '&quot;')})">📊</button>
-    <button class="export-btn" style="padding:8px 12px; font-size:13px; border-radius:20px; display:flex; align-items:center; gap:6px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);" onclick="event.stopPropagation(); sendReportToTelegram(${JSON.stringify(d).replace(/"/g, '&quot;')})">📤</button>
-    <button class="export-btn" style="padding:8px 12px; font-size:13px; border-radius:20px; display:flex; align-items:center; gap:6px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="event.stopPropagation(); downloadFboCsv(${JSON.stringify(d).replace(/"/g, '&quot;')})">📥</button>
-</div>` + html;
+   <button class="export-btn" style="margin-top:10px; width:100%;" onclick="event.stopPropagation(); exportShiftToImage(${JSON.stringify(d).replace(/"/g, '&quot;')})">📊 Скачать отчёт (PNG)</button>
+<button class="export-btn" style="margin-top:6px; width:100%; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);" onclick="event.stopPropagation(); sendReportToTelegram(${JSON.stringify(d).replace(/"/g, '&quot;')})">📤 Отправить в Telegram</button>
+<button class="export-btn" style="margin-top:6px; width:100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="event.stopPropagation(); downloadFboCsv(${JSON.stringify(d).replace(/"/g, '&quot;')})">📥 Скачать ФБО (CSV)</button>
         });
         
         historyBox.innerHTML = html || `<div class="card" style="text-align:center; color:var(--text-secondary);">Истории смен пока нет</div>`;
