@@ -1235,9 +1235,11 @@ function listenHistory() {
                 ${deleteButton}
                 <div class="history-arrow">▼</div>
                 ${timeLabel ? `<small style="opacity:0.6; display:block; margin-top:8px;">${escapeHtml(timeLabel)}</small>` : ''}
-                <button class="export-btn" style="margin-top:10px; width:100%;" onclick="event.stopPropagation(); exportShiftToImage(${JSON.stringify(d).replace(/"/g, '&quot;')})">📊 Скачать отчёт (PNG)</button>
-                <button class="export-btn" style="margin-top:6px; width:100%; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);" onclick="event.stopPropagation(); sendReportToTelegram(${JSON.stringify(d).replace(/"/g, '&quot;')})">📤 Отправить в Telegram</button>
-                <button class="export-btn" style="margin-top:6px; width:100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="event.stopPropagation(); downloadFboCsv(${JSON.stringify(d).replace(/"/g, '&quot;')})">📥 Скачать ФБО (CSV)</button>
+                <div style="display:flex; gap:8px; margin-top:10px; justify-content:center; flex-wrap:wrap;">
+                    <button class="export-btn" style="padding:8px 14px; font-size:13px; border-radius:20px; display:inline-flex; align-items:center; gap:6px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color:#fff;" onclick="event.stopPropagation(); exportShiftToImage(${JSON.stringify(d).replace(/"/g, '&quot;')})">📊 PNG</button>
+                    <button class="export-btn" style="padding:8px 14px; font-size:13px; border-radius:20px; display:inline-flex; align-items:center; gap:6px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color:#fff;" onclick="event.stopPropagation(); sendReportToTelegram(${JSON.stringify(d).replace(/"/g, '&quot;')})">📤 Telegram</button>
+                    <button class="export-btn" style="padding:8px 14px; font-size:13px; border-radius:20px; display:inline-flex; align-items:center; gap:6px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff;" onclick="event.stopPropagation(); downloadFboCsv(${JSON.stringify(d).replace(/"/g, '&quot;')})">📥 CSV</button>
+                </div>
             </div>` + html;
         });
         
