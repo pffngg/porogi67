@@ -1928,13 +1928,12 @@ function downloadFboCsv(shiftData) {
     return;
   }
   const articles = Object.values(shiftData.fboArticles);
-  console.log('FBO articles:', articles);
   if (!articles.length) {
     alert('Нет артикулов ФБО');
     return;
   }
 
-  // Функция проверки: только цифры, дефисы и точки, и хотя бы одна цифра
+  // Проверка: артикул должен содержать хотя бы одну цифру
   const isValidArticle = (str) => /[\d]/.test(str);
 
   let csv = '';
@@ -1950,7 +1949,6 @@ function downloadFboCsv(shiftData) {
       }
     }
     
-    // Если артикул не прошёл проверку — пропускаем всю строку
     if (!isValidArticle(art)) {
       return;
     }
@@ -1972,6 +1970,7 @@ function downloadFboCsv(shiftData) {
   link.download = `fbo_${shiftData.date || 'report'}.csv`;
   link.click();
 }
+
 window.downloadFboCsv = downloadFboCsv;
 
 // ============================================================
