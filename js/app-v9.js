@@ -1238,7 +1238,7 @@ function listenHistory() {
                 <button class="export-btn" style="margin-top:10px; width:100%;" onclick="event.stopPropagation(); exportShiftToImage(${JSON.stringify(d).replace(/"/g, '&quot;')})">📊 Скачать отчёт (PNG)</button>
                 <button class="export-btn" style="margin-top:6px; width:100%; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);" onclick="event.stopPropagation(); sendReportToTelegram(${JSON.stringify(d).replace(/"/g, '&quot;')})">📤 Отправить в Telegram</button>
                 <button class="export-btn" style="margin-top:6px; width:100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%);" onclick="event.stopPropagation(); downloadFboCsv(${JSON.stringify(d).replace(/"/g, '&quot;')})">📥 Скачать ФБО (CSV)</button>
-            </div>` + html;
+            </div>`;
         
         historyBox.innerHTML = html || `<div class="card" style="text-align:center; color:var(--text-secondary);">Истории смен пока нет</div>`;
     });
