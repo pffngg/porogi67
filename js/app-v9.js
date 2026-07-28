@@ -1928,6 +1928,7 @@ function downloadFboCsv(shiftData) {
     return;
   }
   const articles = Object.values(shiftData.fboArticles);
+  console.log('FBO articles:', articles);
   if (!articles.length) {
     alert('Нет артикулов ФБО');
     return;
