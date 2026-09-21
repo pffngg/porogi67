@@ -20,7 +20,6 @@
 
     :root {
       --bg: #08090b;
-      --bg-soft: #111217;
       --card: rgba(20, 21, 27, 0.72);
       --border: rgba(255, 255, 255, 0.08);
 
@@ -70,13 +69,18 @@
 
       overflow: hidden;
       position: relative;
+
+      perspective: 1200px;
     }
 
     .background {
       position: absolute;
-      inset: 0;
+      inset: -6%;
       overflow: hidden;
       pointer-events: none;
+
+      transition: transform 0.15s ease-out;
+      will-change: transform;
     }
 
     .orb {
@@ -139,7 +143,7 @@
       position: absolute;
       inset: 0;
 
-      opacity: 0.04;
+      opacity: 0.035;
 
       background-image:
         repeating-linear-gradient(
@@ -153,13 +157,73 @@
       pointer-events: none;
     }
 
+    .line {
+      position: absolute;
+
+      width: 1px;
+      height: 130px;
+
+      background:
+        linear-gradient(
+          to bottom,
+          transparent,
+          rgba(255, 255, 255, 0.18),
+          transparent
+        );
+
+      animation: lineMove 8s linear infinite;
+    }
+
+    .line:nth-child(4) {
+      left: 20%;
+      top: -130px;
+    }
+
+    .line:nth-child(5) {
+      left: 70%;
+      top: -230px;
+
+      animation-delay: -3s;
+    }
+
+    .line:nth-child(6) {
+      left: 88%;
+      top: -180px;
+
+      animation-delay: -5s;
+    }
+
+    @keyframes lineMove {
+      from {
+        transform: translateY(-20vh);
+        opacity: 0;
+      }
+
+      20% {
+        opacity: 0.8;
+      }
+
+      80% {
+        opacity: 0.8;
+      }
+
+      to {
+        transform: translateY(130vh);
+        opacity: 0;
+      }
+    }
+
     .wrapper {
       position: relative;
       z-index: 2;
 
       width: min(92%, 760px);
-
       padding: 24px;
+
+      transform-style: preserve-3d;
+      transition: transform 0.18s ease-out;
+
+      will-change: transform;
     }
 
     .card {
@@ -268,16 +332,15 @@
     }
 
     h1 {
-      max-width: 620px;
+      max-width: 650px;
 
       font-size: clamp(42px, 7vw, 76px);
       line-height: 0.98;
 
       letter-spacing: -0.055em;
-
       font-weight: 850;
 
-      margin-bottom: 22px;
+      margin-bottom: 24px;
 
       background:
         linear-gradient(
@@ -292,15 +355,51 @@
       color: transparent;
     }
 
+    .word {
+      display: inline-block;
+
+      opacity: 0;
+      transform: translateY(18px);
+
+      animation:
+        wordAppear 0.65s cubic-bezier(.2,.8,.2,1) forwards;
+    }
+
+    .word:nth-child(1) { animation-delay: 0.15s; }
+    .word:nth-child(2) { animation-delay: 0.23s; }
+    .word:nth-child(3) { animation-delay: 0.31s; }
+
+    @keyframes wordAppear {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     .subtitle {
-      max-width: 560px;
+      max-width: 580px;
 
       color: var(--muted);
 
       font-size: clamp(17px, 2vw, 20px);
-      line-height: 1.6;
+      line-height: 1.65;
 
       margin-bottom: 36px;
+
+      opacity: 0;
+      transform: translateY(15px);
+
+      animation:
+        fadeUp 0.7s ease forwards;
+
+      animation-delay: 0.55s;
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .button {
@@ -337,6 +436,13 @@
         transform 0.25s ease,
         box-shadow 0.25s ease,
         filter 0.25s ease;
+
+      opacity: 0;
+
+      animation:
+        fadeUp 0.7s ease forwards;
+
+      animation-delay: 0.72s;
     }
 
     .button:hover {
@@ -374,62 +480,13 @@
       color: #666874;
 
       font-size: 13px;
-    }
 
-    .line {
-      position: absolute;
+      opacity: 0;
 
-      width: 1px;
-      height: 130px;
+      animation:
+        fadeUp 0.7s ease forwards;
 
-      background:
-        linear-gradient(
-          to bottom,
-          transparent,
-          rgba(255, 255, 255, 0.18),
-          transparent
-        );
-
-      animation: lineMove 8s linear infinite;
-    }
-
-    .line:nth-child(1) {
-      left: 20%;
-      top: -130px;
-    }
-
-    .line:nth-child(2) {
-      left: 70%;
-      top: -230px;
-
-      animation-delay: -3s;
-    }
-
-    .line:nth-child(3) {
-      left: 88%;
-      top: -180px;
-
-      animation-delay: -5s;
-    }
-
-    @keyframes lineMove {
-      from {
-        transform: translateY(-20vh);
-        opacity: 0;
-      }
-
-      20% {
-        opacity: 0.8;
-      }
-
-      80% {
-        opacity: 0.8;
-      }
-
-      to {
-        transform: translateY(130vh);
-        opacity: 0;
-      }
+      animation-delay: 0.9s;
     }
 
     @media (max-width: 600px) {
@@ -448,7 +505,7 @@
       }
 
       h1 {
-        font-size: 48px;
+        font-size: 46px;
       }
 
       .subtitle {
@@ -474,7 +531,7 @@
 
 <body>
 
-  <div class="background">
+  <div class="background" id="background">
     <div class="orb one"></div>
     <div class="orb two"></div>
     <div class="orb three"></div>
@@ -486,7 +543,7 @@
 
   <div class="noise"></div>
 
-  <main class="wrapper">
+  <main class="wrapper" id="wrapper">
     <section class="card">
 
       <div class="brand">
@@ -495,7 +552,9 @@
       </div>
 
       <h1>
-        Сайт переехал сюда
+        <span class="word">Сайт</span>
+        <span class="word">переехал</span>
+        <span class="word">сюда</span>
       </h1>
 
       <p class="subtitle">
@@ -520,6 +579,56 @@
 
     </section>
   </main>
+
+  <script>
+    const wrapper = document.getElementById("wrapper");
+    const background = document.getElementById("background");
+
+    let currentX = 0;
+    let currentY = 0;
+    let targetX = 0;
+    let targetY = 0;
+
+    function animate() {
+      currentX += (targetX - currentX) * 0.08;
+      currentY += (targetY - currentY) * 0.08;
+
+      wrapper.style.transform = `
+        rotateY(${currentX * 2.6}deg)
+        rotateX(${-currentY * 2.6}deg)
+        translate3d(
+          ${currentX * 5}px,
+          ${currentY * 5}px,
+          0
+        )
+      `;
+
+      background.style.transform = `
+        translate3d(
+          ${-currentX * 16}px,
+          ${-currentY * 16}px,
+          0
+        )
+      `;
+
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener("mousemove", (event) => {
+      targetX =
+        (event.clientX / window.innerWidth - 0.5);
+
+      targetY =
+        (event.clientY / window.innerHeight - 0.5);
+    });
+
+    window.addEventListener("mouseleave", () => {
+      targetX = 0;
+      targetY = 0;
+    });
+
+    animate();
+  </script>
 
 </body>
 </html>
