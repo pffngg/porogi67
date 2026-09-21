@@ -1,330 +1,525 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>porogi</title>
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Porogi67 — сайт переехал</title>
+
+  <meta
+    name="description"
+    content="Сайт Porogi67 переехал на новый адрес."
+  />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #08090b;
+      --bg-soft: #111217;
+      --card: rgba(20, 21, 27, 0.72);
+      --border: rgba(255, 255, 255, 0.08);
+
+      --text: #ffffff;
+      --muted: #9d9faa;
+
+      --accent: #ff0033;
+      --accent-light: #ff3b5f;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+    }
+
+    body {
+      font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
+
+      background:
+        radial-gradient(
+          circle at 20% 20%,
+          rgba(255, 0, 51, 0.13),
+          transparent 35%
+        ),
+        radial-gradient(
+          circle at 80% 75%,
+          rgba(255, 0, 51, 0.08),
+          transparent 30%
+        ),
+        var(--bg);
+
+      color: var(--text);
+
+      min-height: 100vh;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      overflow: hidden;
+      position: relative;
+    }
+
+    .background {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .orb {
+      position: absolute;
+
+      border-radius: 999px;
+
+      filter: blur(90px);
+      opacity: 0.5;
+
+      animation: float 12s ease-in-out infinite;
+    }
+
+    .orb.one {
+      width: 360px;
+      height: 360px;
+
+      background: rgba(255, 0, 51, 0.28);
+
+      top: -120px;
+      left: -100px;
+    }
+
+    .orb.two {
+      width: 300px;
+      height: 300px;
+
+      background: rgba(255, 60, 90, 0.16);
+
+      bottom: -130px;
+      right: -100px;
+
+      animation-delay: -5s;
+    }
+
+    .orb.three {
+      width: 220px;
+      height: 220px;
+
+      background: rgba(255, 0, 51, 0.12);
+
+      top: 45%;
+      left: 55%;
+
+      animation-delay: -8s;
+    }
+
+    @keyframes float {
+      0%,
+      100% {
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+
+      50% {
+        transform: translate3d(35px, -25px, 0) scale(1.08);
+      }
+    }
+
+    .noise {
+      position: absolute;
+      inset: 0;
+
+      opacity: 0.04;
+
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          rgba(255,255,255,0.08) 0,
+          rgba(255,255,255,0.08) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+
+      pointer-events: none;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 2;
+
+      width: min(92%, 760px);
+
+      padding: 24px;
+    }
+
+    .card {
+      position: relative;
+
+      padding: 58px 42px 42px;
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.055),
+          rgba(255, 255, 255, 0.02)
+        ),
+        var(--card);
+
+      border: 1px solid var(--border);
+
+      border-radius: 30px;
+
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+
+      box-shadow:
+        0 30px 100px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+      overflow: hidden;
+
+      animation: cardAppear 0.9s cubic-bezier(.2,.8,.2,1) both;
+    }
+
+    .card::before {
+      content: "";
+
+      position: absolute;
+
+      width: 240px;
+      height: 240px;
+
+      border-radius: 50%;
+
+      background: rgba(255, 0, 51, 0.12);
+
+      filter: blur(70px);
+
+      top: -130px;
+      left: 50%;
+
+      transform: translateX(-50%);
+    }
+
+    @keyframes cardAppear {
+      from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.97);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+
+      margin-bottom: 32px;
+
+      color: #d8d8de;
+
+      font-size: 14px;
+      font-weight: 700;
+
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .brand-dot {
+      width: 10px;
+      height: 10px;
+
+      border-radius: 50%;
+
+      background: var(--accent);
+
+      box-shadow:
+        0 0 0 5px rgba(255, 0, 51, 0.1),
+        0 0 24px rgba(255, 0, 51, 0.7);
+
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.15);
+        opacity: 0.7;
+      }
+    }
+
+    h1 {
+      max-width: 620px;
+
+      font-size: clamp(42px, 7vw, 76px);
+      line-height: 0.98;
+
+      letter-spacing: -0.055em;
+
+      font-weight: 850;
+
+      margin-bottom: 22px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #d8d9df 100%
+        );
+
+      -webkit-background-clip: text;
+      background-clip: text;
+
+      color: transparent;
+    }
+
+    .subtitle {
+      max-width: 560px;
+
+      color: var(--muted);
+
+      font-size: clamp(17px, 2vw, 20px);
+      line-height: 1.6;
+
+      margin-bottom: 36px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+
+      min-height: 58px;
+
+      padding: 0 24px;
+
+      border-radius: 18px;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--accent),
+          var(--accent-light)
+        );
+
+      color: white;
+
+      text-decoration: none;
+
+      font-size: 16px;
+      font-weight: 750;
+
+      box-shadow:
+        0 14px 40px rgba(255, 0, 51, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22);
+
+      transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        filter 0.25s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-3px);
+
+      box-shadow:
+        0 18px 50px rgba(255, 0, 51, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+
+      filter: brightness(1.05);
+    }
+
+    .button:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .arrow {
+      width: 22px;
+      height: 22px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      transition: transform 0.25s ease;
+    }
+
+    .button:hover .arrow {
+      transform: translateX(4px);
+    }
+
+    .footer {
+      margin-top: 28px;
+
+      color: #666874;
+
+      font-size: 13px;
+    }
+
+    .line {
+      position: absolute;
+
+      width: 1px;
+      height: 130px;
+
+      background:
+        linear-gradient(
+          to bottom,
+          transparent,
+          rgba(255, 255, 255, 0.18),
+          transparent
+        );
+
+      animation: lineMove 8s linear infinite;
+    }
+
+    .line:nth-child(1) {
+      left: 20%;
+      top: -130px;
+    }
+
+    .line:nth-child(2) {
+      left: 70%;
+      top: -230px;
+
+      animation-delay: -3s;
+    }
+
+    .line:nth-child(3) {
+      left: 88%;
+      top: -180px;
+
+      animation-delay: -5s;
+    }
+
+    @keyframes lineMove {
+      from {
+        transform: translateY(-20vh);
+        opacity: 0;
+      }
+
+      20% {
+        opacity: 0.8;
+      }
+
+      80% {
+        opacity: 0.8;
+      }
+
+      to {
+        transform: translateY(130vh);
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .wrapper {
+        width: 100%;
+        padding: 18px;
+      }
+
+      .card {
+        padding: 42px 26px 30px;
+        border-radius: 24px;
+      }
+
+      .brand {
+        margin-bottom: 26px;
+      }
+
+      h1 {
+        font-size: 48px;
+      }
+
+      .subtitle {
+        font-size: 16px;
+      }
+
+      .button {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
 </head>
+
 <body>
-    <div class="version-tag">Версия: 28.07</div>
 
-    <div id="context-menu">
-        <div style="color:#ff3b30;" id="ctx-delete">Удалить</div>
-    </div>
+  <div class="background">
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
 
-    <div id="reportModal" class="modal-overlay">
-        <div class="modal-content">
-            <h2 style="margin:0 0 16px 0; color:var(--accent);">СМЕНА ЗАКРЫТА!</h2>
-            <div id="reportDetails" style="margin:20px 0;font-size:15px;line-height:1.7;text-align:left;background:rgba(99,102,241,0.04);padding:16px;border-radius:12px;border:1px solid var(--border);"></div>
-            <button class="primary" style="width:100%" onclick="document.getElementById('reportModal').style.display='none'">Домой💀</button>
-        </div>
-    </div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+  </div>
 
-    <div id="surveyModal" class="modal-overlay">
-        <div class="modal-content" style="max-width:460px;text-align:left;max-height:90vh;overflow-y:auto;">
-            <h2 style="margin:0 0 20px 0;color:var(--accent);text-align:center;">Заполни отчёт</h2>
-            <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px;background:rgba(99,102,241,0.04);padding:12px 14px;border-radius:12px;border:1px solid var(--border);cursor:pointer;" onclick="toggleSurveyCheck('problems')">
-                <div id="surveyProblemsBox" style="width:26px;height:26px;border-radius:8px;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--accent);flex-shrink:0;"></div>
-                <div style="font-size:14px;font-weight:600;">Кидал заявки в проблемы</div>
-            </div>
-            <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px;background:rgba(99,102,241,0.04);padding:12px 14px;border-radius:12px;border:1px solid var(--border);cursor:pointer;" onclick="toggleSurveyCheck('report')">
-                <div id="surveyReportBox" style="width:26px;height:26px;border-radius:8px;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--accent);flex-shrink:0;"></div>
-                <div style="font-size:14px;font-weight:600;">Печатал отчёт</div>
-            </div>
-            <div style="margin-bottom:16px;">
-                <label style="font-size:14px;font-weight:600;display:block;margin-bottom:8px;">Сколько коробок ВБ?</label>
-                <input id="surveyBoxes" type="number" min="0" placeholder="0" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:white;color:var(--text);font-size:14px;">
-            </div>
-            <div style="margin-bottom:16px;">
-                <label style="font-size:14px;font-weight:600;display:block;margin-bottom:8px;">Кто работал?</label>
-                <div style="display:flex;gap:8px;margin-bottom:12px;">
-                    <button id="surveyCntBtn1" class="glass-btn" style="flex:1;" onclick="setWorkersCount(1)">1</button>
-                    <button id="surveyCntBtn2" class="glass-btn" style="flex:1;" onclick="setWorkersCount(2)">2</button>
-                    <button id="surveyCntBtn3" class="glass-btn" style="flex:1;" onclick="setWorkersCount(3)">3</button>
-                    <button id="surveyCntBtn4" class="glass-btn" style="flex:1;" onclick="setWorkersCount(4)">4</button>
-                </div>
-                <div id="surveyWorkersInputs" style="display:flex;flex-direction:column;gap:8px;"></div>
-            </div>
-            <div style="margin-bottom:20px;">
-                <label style="font-size:14px;font-weight:600;display:block;margin-bottom:8px;">Фото к отчёту (необязательно)</label>
-                <input type="file" id="surveyPhotoInp" accept="image/*" style="display:none" onchange="prepareSurveyPhoto(this)">
-                <button class="glass-btn" style="width:100%;" onclick="document.getElementById('surveyPhotoInp').click()">📷 Прикрепить фото</button>
-                <div id="surveyPhotoPreview" style="margin-top:10px;display:none;position:relative;">
-                    <img id="surveyPhotoImg" style="width:100%;border-radius:12px;max-height:200px;object-fit:cover;">
-                    <div onclick="removeSurveyPhoto()" style="position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.7);color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;">×</div>
-                </div>
-            </div>
-            <div style="display:flex;gap:10px;">
-                <button class="glass-btn" style="flex:1;padding:14px;" onclick="skipSurvey()">Скип</button>
-                <button class="primary" style="flex:1;padding:14px;" onclick="submitSurvey()">Сохранить в отчёт</button>
-            </div>
-        </div>
-    </div>
+  <div class="noise"></div>
 
-    <div id="profileModal" class="modal-overlay" onclick="if(event.target.id==='profileModal') document.getElementById('profileModal').style.display='none'">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <img id="profileAvatarPreview" class="avatar" style="width:100px;height:100px;margin-bottom:20px;cursor:pointer;border-width:3px;" onclick="triggerAvatarInput()">
-            <div id="profileName" style="font-weight:800;margin-bottom:10px;font-size:18px;"></div>
-            <div id="profileRole" style="font-size:12px;color:#64748b;margin-bottom:16px;"></div>
-            <button id="profileEditBtn" class="glass-btn" style="margin-bottom:16px;width:100%;" onclick="triggerAvatarInput()">Изменить фото</button>
-            <div id="avatarEditor" style="display:none;text-align:center;margin-bottom:16px;">
-                <div style="position:relative;width:220px;height:220px;margin:0 auto 12px;border-radius:50%;overflow:hidden;background:#f1f5f9;border:2px solid rgba(99,102,241,0.2);">
-                    <canvas id="avatarCanvas" width="220" height="220" style="width:100%;height:100%;"></canvas>
-                </div>
-                <div style="display:flex;gap:10px;justify-content:center;margin-bottom:12px;">
-                    <button class="glass-btn" style="padding:10px 14px;" onclick="zoomAvatar(-0.05)">−</button>
-                    <button class="glass-btn" style="padding:10px 14px;" onclick="zoomAvatar(0.05)">+</button>
-                </div>
-                <button class="primary" style="width:100%;margin-bottom:10px;" onclick="saveAvatar()">Сохранить</button>
-                <button class="glass-btn" style="width:100%;" onclick="cancelAvatarEdit()">Отмена</button>
-            </div>
-            <div id="profileStats" style="text-align:left;line-height:1.8;color:#64748b;margin-bottom:20px;background:#f8fafc;padding:16px;border-radius:12px;border:1px solid var(--border);transition:all 0.3s ease;"></div>
-            <button class="primary" style="width:100%;margin-bottom:10px;" onclick="document.getElementById('profileModal').style.display='none'">Закрыть</button>
-            <button class="danger" style="width:100%;" onclick="logout()">Выйти</button>
-        </div>
-    </div>
+  <main class="wrapper">
+    <section class="card">
 
-    <div id="lightbox" class="modal-overlay" onclick="this.style.display='none'"><img id="lightbox-img" style="max-width:95%; max-height:95%"></div>
+      <div class="brand">
+        <span class="brand-dot"></span>
+        Porogi67
+      </div>
 
-    <input type="file" id="avatarInp" style="display:none" accept="image/*" onchange="uploadAvatar(this)">
+      <h1>
+        Сайт переехал сюда
+      </h1>
 
-    <div id="app">
-        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 28px; gap:16px; flex-wrap: wrap;">
-            <div class="nav-profile" style="align-items:flex-start; gap:12px;">
-                <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
-                    <img id="myAvatar" class="avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" onclick="showProfileModal()" style="cursor:pointer; width:44px; height:44px;">
-                </div>
-                <div>
-                    <div id="userTag" style="font-weight:700; color:var(--text);"></div>
-                    <div id="presence-mini" style="display:flex; gap:3px;"></div>
-                </div>
-            </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
-                <button id="btn-main" class="primary" onclick="switchTab('main')">Смена</button>
-                <button id="btn-sched" class="glass-btn" onclick="switchTab('sched')">График</button>
-                <button id="btn-chat" class="glass-btn" onclick="switchTab('chat')">Чат <div id="chat-badge" class="badge">0</div></button>
-                <button id="btn-settings" class="glass-btn" onclick="switchTab('settings')">⚙️</button>
-                <button id="btn-theme" class="glass-btn" onclick="toggleTheme()" title="Переключить тему">🌙</button>
-            </div>
-        </div>
+      <p class="subtitle">
+        Мы перенесли Porogi67 на новый адрес.
+        Все актуальные функции и данные теперь находятся на новом сайте.
+      </p>
 
-        <div id="view-main">
-            <div id="startBtnCont"><button class="primary" style="width: 100%; padding: 28px; font-size: 18px; font-weight:700;" onclick="startShift()">КРУТИТЬ ПОРОГИ</button></div>
+      <a
+        class="button"
+        href="https://porogi67.webtm.ru/"
+      >
+        Перейти на актуальный сайт
 
-            <div id="work" style="display:none;">
-                <div id="active-shift-info" style="margin-bottom: 16px; padding: 16px; border-radius: 12px; font-size: 14px;">
-                    <div id="shift-participants"></div>
-                </div>
-                <!-- СДЭК -->
-                <div class="card">
-                    <h4 style="margin:0 0 12px 0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">СДЭК</h4>
-                    <div style="display:flex; gap:16px; align-items: center;">
-                        <button class="success-btn ctrl-btn" style="flex:1; font-size:24px;" onclick="addCounter('cdek')">+</button>
-                        <div class="count" id="cdek_val" onclick="manualInput('cdek')">0</div>
-                        <button class="danger ctrl-btn" style="padding:12px 16px;" onclick="removeCounter('cdek')">−</button>
-                    </div>
-                    <div class="places-row">
-                        <span class="places-label">Места</span>
-                        <button class="glass-btn places-btn" onclick="addPlace('cdek')">+</button>
-                        <div class="count-sm" id="cdek_places_val" onclick="manualInputPlaces('cdek')">0</div>
-                        <button class="glass-btn places-btn" onclick="removePlace('cdek')">−</button>
-                    </div>
-                </div>
-
-                <!-- ВБ/ОЗОН -->
-                <div class="card">
-                    <h4 style="margin:0 0 12px 0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">ВБ / ОЗОН</h4>
-                    <div style="display:flex; gap:16px; align-items: center;">
-                        <button class="success-btn ctrl-btn" style="flex:1; font-size:24px;" onclick="addCounter('wb')">+</button>
-                        <div class="count" id="wb_val" onclick="manualInput('wb')">0</div>
-                        <button class="danger ctrl-btn" style="padding:12px 16px;" onclick="removeCounter('wb')">−</button>
-                    </div>
-                    <div style="font-size:11px; color:var(--text-secondary); margin-top:6px; opacity:0.7;">мест = заказов</div>
-                </div>
-
-                <!-- ДОСТАВКА -->
-                <div class="card">
-                    <h4 style="margin:0 0 12px 0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">ДОСТАВКА</h4>
-                    <div style="display:flex; gap:16px; align-items: center;">
-                        <button class="success-btn ctrl-btn" style="flex:1; font-size:24px;" onclick="addCounter('dost')">+</button>
-                        <div class="count" id="dost_val" onclick="manualInput('dost')">0</div>
-                        <button class="danger ctrl-btn" style="padding:12px 16px;" onclick="removeCounter('dost')">−</button>
-                    </div>
-                    <div class="places-row">
-                        <span class="places-label">Места</span>
-                        <button class="glass-btn places-btn" onclick="addPlace('dost')">+</button>
-                        <div class="count-sm" id="dost_places_val" onclick="manualInputPlaces('dost')">0</div>
-                        <button class="glass-btn places-btn" onclick="removePlace('dost')">−</button>
-                    </div>
-                </div>
-
-            <!-- ФБО -->
-<div class="card">
-    <h4 style="margin:0 0 10px 0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">ФБО</h4>
-    
-    <!-- Тип: Порог или Арка -->
-    <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
-        <span style="font-size:12px; color:var(--text-secondary); min-width:42px;">Тип:</span>
-        <button id="fboBtnPorog" class="primary fbo-control" style="padding:8px 14px;" onclick="selectFboOption('type','Порог')">Порог</button>
-        <button id="fboBtnArka" class="glass-btn fbo-control" style="padding:8px 14px;" onclick="selectFboOption('type','Арка')">Арка</button>
-        <span id="fboLabelType" style="font-size:12px; color:var(--accent); font-weight:600;">Порог</span>
-    </div>
-    
-    <!-- Размер (только для порогов) -->
-    <div id="fboSizeRow" style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
-        <span style="font-size:12px; color:var(--text-secondary); min-width:42px;">Размер:</span>
-        <button id="fboBtnS" class="glass-btn fbo-control" style="width:40px; padding:8px 0;" onclick="selectFboOption('suffix','S')">S</button>
-        <button id="fboBtnF" class="glass-btn fbo-control" style="width:40px; padding:8px 0;" onclick="selectFboOption('suffix','F')">F</button>
-        <span id="fboLabelSuffix" style="font-size:12px; color:var(--accent); font-weight:600;"></span>
-    </div>
-    
-    <!-- Металл -->
-    <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap;">
-        <span style="font-size:12px; color:var(--text-secondary); min-width:42px;">Металл:</span>
-        <button id="fboBtnZinc" class="glass-btn fbo-control" style="padding:8px 14px;" onclick="selectFboOption('material','ЦИНК')">Цинк</button>
-        <button id="fboBtnHks" class="glass-btn fbo-control" style="padding:8px 14px;" onclick="selectFboOption('material','ХКС')">ХКС</button>
-        <span id="fboLabelMaterial" style="font-size:12px; color:var(--accent); font-weight:600;"></span>
-    </div>
-    
-    <!-- Ширина (только для порогов) -->
-    <div id="fboWidthRow" style="display:flex; gap:8px; align-items:center; margin-bottom:12px; flex-wrap:wrap;">
-        <span style="font-size:12px; color:var(--text-secondary); min-width:42px;">Ширина:</span>
-        <button id="fboBtn1mm" class="glass-btn fbo-control" style="padding:8px 14px;" onclick="selectFboOption('width','1 ММ')">1 мм</button>
-        <button id="fboBtn15mm" class="glass-btn fbo-control" style="padding:8px 14px;" onclick="selectFboOption('width','1,5 ММ')">1,5 мм</button>
-        <span id="fboLabelWidth" style="font-size:12px; color:var(--accent); font-weight:600;"></span>
-    </div>
-    
-    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-        <input id="fboArticleInput" placeholder="Артикул" style="flex:1; min-width:100px; padding:12px; border-radius:12px; border:1px solid var(--border); background:white; color:var(--text); font-size:14px;" onkeydown="handleFboArticleKey(event)">
-        <div class="count" id="fbo_val" style="font-size:22px; padding:10px 14px; pointer-events:none;">0</div>
-    </div>
-    <div style="font-size:11px; color:var(--text-secondary); margin-top:6px; opacity:0.7;">мест = заказов</div>
-    <div class="fbo-articles-toggle" onclick="toggleFboArticles()" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0 6px; margin-top:8px; cursor:pointer; user-select:none; border-top:1px solid var(--border);">
-        <span style="font-size:12px; color:var(--text-secondary);">
-            Записанные артикулы (<span id="fboArticlesCount">0</span>)
+        <span class="arrow">
+          →
         </span>
-        <span id="fboToggleArrow" style="transition:transform 0.3s;">▼</span>
-    </div>
-    <div id="fboArticlesWrapper" style="max-height:250px; overflow-y:auto; transition:max-height 0.3s ease;">
-        <div id="fboArticlesList" style="display:flex; flex-direction:column; gap:8px; padding-top:4px;"></div>
-    </div>
-</div>
+      </a>
 
-                <!-- ОПТОВЫЕ -->
-                <div class="card">
-                    <h4 style="margin:0 0 12px 0; color:#64748b; font-weight:600; text-transform:uppercase; font-size:12px;">ОПТОВЫЕ ЗАКАЗЫ</h4>
-                    <div style="display:flex; gap:16px; align-items: center;">
-                        <button class="success-btn ctrl-btn" style="flex:1; font-size:24px;" onclick="addCounter('opt')">+</button>
-                        <div class="count" id="opt_val" onclick="manualInput('opt')">0</div>
-                        <button class="danger ctrl-btn" style="padding:12px 16px;" onclick="removeCounter('opt')">−</button>
-                    </div>
-                </div>
+      <div class="footer">
+        porogi67.webtm.ru
+      </div>
 
-                <!-- ИТОГИ -->
-                <div id="total-stats" style="text-align:center; margin:28px 0; background: white; padding:20px; border-radius:12px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                    <div style="font-size:52px; font-weight:900; color:var(--accent);" id="total">0</div>
-                    <div style="font-size:14px; color:#64748b; margin-top:4px;" id="placesDisplay">Мест: 0</div>
-                    <div style="font-size:14px; color:#64748b; margin-top:4px;" id="optDisplay">Оптовые: 0</div>
-                    <div id="salaryDisplay" style="color:var(--accent); font-weight:800; font-size:18px; margin-top:8px;">Итого: 0₽</div>
-                </div>
+    </section>
+  </main>
 
-                <button id="joinShiftBtn" class="success-btn" style="width:100%; padding:16px; display:none; font-size:16px; font-weight:700;" onclick="joinShift()">ПРИСОЕДИНИТЬСЯ К СМЕНЕ</button>
-                <div style="display:flex; gap:10px;">
-                    <button id="closeShiftBtn" class="danger" style="width:100%; padding:16px; display:none; font-size:16px; font-weight:700; background: #dc2626; border: 2px solid #991b1b; color: white;" onclick="closeShift()" title="Закрыть смену">ЗАКРЫТЬ СМЕНУ</button>
-                </div>
-            </div>
-
-            <button class="glass-btn" style="width:100%; margin-top:16px; padding:12px;" onclick="toggleHistory()">История смен</button>
-            <div id="history" style="display:none; margin-top:16px;"></div>
-        </div>
-
-        <div id="view-sched" style="display:none;">
-            <div style="display:flex; gap:12px; margin-bottom:16px;">
-                <button id="t-day" class="primary" style="flex:1" onclick="setMode('day')">ДЕНЬ</button>
-                <button id="t-night" class="glass-btn" style="flex:1" onclick="setMode('night')">НОЧЬ</button>
-            </div>
-            <div style="display:flex; justify-content: center; gap:16px; align-items: center; margin-bottom:16px;">
-                <button class="glass-btn" onclick="changeMonth(-1)">←</button><span id="monthLabel" style="font-weight:700; min-width:60px; text-align:center;"></span><button class="glass-btn" onclick="changeMonth(1)">→</button>
-            </div>
-            <div id="adminPanel" style="display:none; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
-                <input id="staffInp" placeholder="Имя сотрудника" style="flex:1; min-width:200px; padding:12px 14px; border-radius:10px; background:white; border: 1px solid var(--border); color:var(--text); font-size:14px;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addNewStaff(); }">
-                <button class="success-btn" onclick="addNewStaff()">+ Добавить</button>
-            </div>
-            <div class="schedule-wrap"><table><thead><tr id="h-row"></tr></thead><tbody id="b-rows"></tbody></table></div>
-        </div>
-
-        <div id="view-chat" style="display:none;">
-            <div id="muteBanner" class="mute-banner">Ты в муте, чел</div>
-            <div id="chat-messages"></div>
-            <div id="preview-area" style="display:none; margin-bottom:10px;">
-                <div id="preview-info" style="font-size:12px; color:#aaa; margin-bottom:8px;">Нажми на крестик, чтобы удалить фото.</div>
-                <div id="preview-imgs" style="display:flex; gap:8px; margin-bottom:10px; overflow-x:auto;"></div>
-            </div>
-            <div id="chatInputContainer" style="background: white; border: 1px solid var(--border); padding: 12px; border-radius: 12px; display:flex; gap:10px; align-items:center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: all 0.3s ease;">
-                <button class="glass-btn" style="width:40px; height:40px; border-radius:50%; padding:0;" onclick="document.getElementById('fileInp').click()">+</button>
-                <input type="file" id="fileInp" style="display:none" accept="image/*" multiple onchange="preparePhotos(this)">
-                <textarea id="chatMsg" placeholder="Напиши что-нибудь..." style="flex:1; background: transparent; border: none; color:var(--text); outline:none; resize:none; min-height:44px; line-height:1.5; padding:0 8px; font-family: inherit; font-size:14px;" rows="2" onkeydown="handleChatKey(event)"></textarea>
-                <button id="sendChatBtn" class="primary" onclick="sendChat()">↑</button>
-            </div>
-        </div>
-
-        <div id="view-settings" style="display:none;">
-            <div id="adminUsersPanel" style="display:none; margin-top:24px; gap:16px;">
-                <div class="card" style="padding:20px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                        <div>
-                            <div style="font-size:18px; font-weight:800; color:var(--text);">Админ-панель</div>
-                            <div style="font-size:13px; color:#64748b;">Управление пользователями</div>
-                        </div>
-                        <button class="glass-btn" onclick="refreshAdminData()" style="font-size:12px; padding:8px 12px;">Обновить</button>
-                    </div>
-                    <div style="display:flex; gap:10px; margin-bottom:16px;">
-                        <input id="adminInp" placeholder="Добавить администратора" style="flex:1; padding:12px 14px; border-radius:10px; background:white; border: 1px solid var(--border); color:var(--text); font-size:14px;" onkeydown="if(event.key==='Enter'){ event.preventDefault(); addNewAdmin(); }">
-                        <button class="success-btn" onclick="addNewAdmin()">+</button>
-                    </div>
-                    <div id="adminUsersList" style="display:flex; flex-direction:column; gap:12px;"></div>
-                </div>
-                <div id="adminActiveShiftPanel" class="card" style="padding:20px;"></div>
-                <div class="card" style="padding:20px;">
-                    <div style="font-size:18px; font-weight:800; margin-bottom:12px; color:var(--text);">Онлайн сейчас</div>
-                    <div id="onlineUsersList" style="display:flex; flex-direction:column; gap:8px; color:var(--text);"></div>
-                </div>
-                <div class="card" style="padding:20px;">
-                    <div style="font-size:18px; font-weight:800; margin-bottom:12px; color:var(--text);">🚫 Заблокированные</div>
-                    <div id="blockedIpsList" style="display:flex; flex-direction:column; gap:10px;"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="js/utils.js"></script>
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js';
-        import { getDatabase } from 'https://www.gstatic.com/firebasejs/10.14.0/firebase-database.js';
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyA41nDX13dsMuPNJkckCMQz8bfim3Hscxs",
-            authDomain: "porog-lol.firebaseapp.com",
-            databaseURL: "https://porog-lol-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "porog-lol"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        window.db = db;
-        console.log('✅ Firebase готов');
-    </script>
-    <script type="module" src="js/app-v9.js"></script>
-    <script>
-        function tryShowApp() {
-            if (typeof showApp === 'function') {
-                showApp();
-            } else {
-                setTimeout(tryShowApp, 100);
-            }
-        }
-        tryShowApp();
-    </script>
 </body>
 </html>
